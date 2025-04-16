@@ -12,8 +12,8 @@ import UserTypeSection from "../components/UserTypeSection";
 import CakePreferencesSection from "../components/CakePreferencesSection";
 import PrimaryButton from "../components/PrimaryButton";
 
-type ProfileSetupRouteProp = RouteProp<RootStackParamList, 'ProfileSetup'>;
 
+type ProfileSetupRouteProp = RouteProp<RootStackParamList, 'ProfileSetup'>;
 const ProfileSetupScreen: React.FC = () => {
   const route = useRoute<ProfileSetupRouteProp>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -59,8 +59,6 @@ const ProfileSetupScreen: React.FC = () => {
       <View style={{alignItems: "center", marginBottom: 20}}>
         <ProfileAvatar />
       </View>
-        
-
         <View style={styles.inputContainer}>
           <InputField
             placeholder="닉네임"
@@ -93,7 +91,6 @@ const ProfileSetupScreen: React.FC = () => {
           selectedCakes={selectedCakes}
           onSelectCake={handleCakeSelection}
         />
-
         <PrimaryButton title="로그인" onPress={handleLogin} />
       </View>
     </ScrollView>

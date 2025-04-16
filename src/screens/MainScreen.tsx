@@ -1,50 +1,38 @@
-import * as React from "react";
-import { View, StyleSheet } from "react-native";
+import React from "react";
+import { View, StyleSheet, ScrollView, SafeAreaView, StatusBar } from "react-native";
 import TitleSection from "../components/TitleSection";
 import SearchBar from "../components/SearchBar";
-import ImageGrid from "../components/ImageGrid";
+import GridLayout from "../components/GridLayout";
+import CustomerBottomBar from "../components/CustomerBottomBar";
+import SellerBottomBar from "../components/SellerBottomBar";
 
-function MainScreen() {
+const MainScreen: React.FC = () => {
   return (
-    <View style={styles.container}>
-      <View style={styles.spacingLarge} />
-      <View style={styles.contentContainer}>
-        <View style={styles.headerContainer}>
-          <TitleSection />
-          <SearchBar />
-        </View>
-        <ImageGrid />
-      </View>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
+      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        <TitleSection />
+        <SearchBar />
+        <GridLayout />
+      </ScrollView>
+      <CustomerBottomBar />
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
-    marginLeft: "auto",
-    marginRight: "auto",
-    maxWidth: 480,
-    width: "100%",
-    paddingBottom: 17,
-    overflow: "hidden",
+    flex: 1,
+    backgroundColor: "#FFFFFF",
   },
-  spacingLarge: {
-    display: "flex",
-    minHeight: 24,
-    marginTop: 11,
-    width: "100%",
-    backgroundColor: "#FFF",
+  scrollContainer: {
+    paddingBottom: 100,
   },
-  contentContainer: {
-    display: "flex",
+  mainContainer: {
     width: "100%",
-    flexDirection: "column",
-    alignItems: "stretch",
-  },
-  headerContainer: {
-    width: "100%",
-    fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
-    lineHeight: 1,
+    maxWidth: 390,
+    position: "relative",
+    flex: 1,
   },
 });
 

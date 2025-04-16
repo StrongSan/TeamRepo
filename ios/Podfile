@@ -14,7 +14,11 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
+<<<<<<< HEAD
 target 'cakeday' do
+=======
+target 'CakedaYNew' do
+>>>>>>> origin/main
   config = use_native_modules!
 
   use_react_native!(

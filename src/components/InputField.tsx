@@ -18,7 +18,6 @@ const InputField: React.FC<InputFieldProps> = ({
   onPressArrow,
 }) => {
 
-
   return (
     <View style={styles.container}>
       <TextInput
@@ -57,7 +56,6 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
     fontFamily: "Poppins",
   },
-  
   
   arrowContainer: {
     marginLeft: 16,
