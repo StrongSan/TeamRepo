@@ -1,11 +1,10 @@
-// src/navigation/AppNavigator.tsx
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/LoginScreen';
 import ProfileSetupScreen from '../screens/ProfileSetupScreen';
 import RegionSelectionScreen from '../screens/RegionSelectionScreen';
+import MainScreen from '../screens/MainScreen';
 
-// 🔸 네비게이션에 사용할 param 타입 정의
 export type RootStackParamList = {
   Login: undefined;
   RegionSelection: {
@@ -21,9 +20,9 @@ export type RootStackParamList = {
     userType?: 'owner' | 'customer' | null;
     selectedCakes?: number[];
   };
+  Main: undefined
 };
 
-// 🔸 Stack 생성
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 
@@ -36,6 +35,7 @@ const AppNavigator = () => {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
       <Stack.Screen name="RegionSelection" component={RegionSelectionScreen} />
+      <Stack.Screen name="Main" component={MainScreen} />
     </Stack.Navigator>
   );
 };

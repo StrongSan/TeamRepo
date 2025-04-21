@@ -11,30 +11,32 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
   title,
   onPress,
   disabled = false,
-  style,
-  textStyle,
 }) => {
   return (
     <TouchableOpacity
-      style={[styles.buttonBase, style, disabled && styles.disabled]}
+      style={[styles.button, disabled && styles.buttonDisabled]}
       onPress={onPress}
       disabled={disabled}
     >
-      <Text style={[styles.textBase, textStyle]}>{title}</Text>
-
+      <Text style={styles.buttonText}>{title}</Text>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  buttonBase: {
+  button: {
+    width: "100%",
+    paddingVertical: 18,
+    marginTop: 20,
+    borderRadius: 10,
+    backgroundColor: "#E78182",
     alignItems: "center",
     justifyContent: "center",
   },
-  disabled: {
+  buttonDisabled: {
     backgroundColor: "#CCCCCC",
   },
-  textBase: {
+  buttonText: {
     color: "#FFF",
     fontFamily: "Inter",
     fontSize: 16,

@@ -14,7 +14,6 @@ export const useKakaoLogin = () => {
   const handleKakaoLogin = useCallback(async () => {
     try {
       console.log('[카카오 로그인 시도]');
-
       // 더미 토큰 사용
       const kakaoToken = 'dummy_token';
       const response = await loginWithKakao(kakaoToken);
@@ -40,7 +39,6 @@ export const useKakaoLogin = () => {
     } catch (error) {
       console.error('카카오 로그인 에러', error);
       Alert.alert('로그인 실패', '네트워크나 서버를 확인해주세요.');
-      navigation.navigate('ProfileSetup', {});
     }
   }, [navigation]);
 

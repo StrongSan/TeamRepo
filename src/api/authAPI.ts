@@ -1,12 +1,12 @@
 import axios from 'axios';
 
 //백엔드 API 주소 - 추후 카카오 도메인으로 변경
-const API_BASE_URL = 'http://192.168.0.237:8080';
+const API_BASE_URL = 'http://192.168.0.4:8080';
 
 //카카오 로그인 요청
 export const loginWithKakao = async (kakaoAccessToken: String) => {
     try {
-        const response = await axios.post('http://192.168.0.237:8080/auth/kakao', {
+        const response = await axios.post('http://192.168.0.4:8080/auth/kakao', {
             token: kakaoAccessToken
           });
 

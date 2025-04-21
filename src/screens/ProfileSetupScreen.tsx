@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
-import { useNavigation } from '@react-navigation/native';
+import {View, StyleSheet, ScrollView} from "react-native";
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
-import { useRoute } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../navigation/AppNavigator';
+import { Alert } from "react-native";
 import BackHeader from "../components/BackHeader";
 import ProfileAvatar from "../components/ProfileAvatar";
 import InputField from "../components/InputField";
 import UserTypeSection from "../components/UserTypeSection";
 import CakePreferencesSection from "../components/CakePreferencesSection";
 import PrimaryButton from "../components/PrimaryButton";
-
+import { submitProfile } from '../api/profileAPI'
 
 type ProfileSetupRouteProp = RouteProp<RootStackParamList, 'ProfileSetup'>;
+
 const ProfileSetupScreen: React.FC = () => {
   const route = useRoute<ProfileSetupRouteProp>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -41,13 +42,29 @@ const ProfileSetupScreen: React.FC = () => {
     }
   };
 
-  const handleLogin = () => {
-    console.log({
-      nickname,
-      location,
-      userType,
-      selectedCakes,
-    });
+  const handleLogin = async () => {
+    if (!nickname || !location || !userType) {
+      Alert.alert("모든 항목을 입력해주세요.");
+      return;
+    }
+
+    try {
+      const response = await submitProfile({
+        nickname,
+        location,
+        userType,
+        selectedCakes,
+      });
+  
+      console.log("프로필 저장 성공:", response);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Main" as never }],
+      });
+    } catch (error) {
+      console.error("프로필 저장 실패:", error);
+      Alert.alert("저장 중 오류가 발생했습니다.");
+    }
   };
 
   return (
@@ -59,6 +76,8 @@ const ProfileSetupScreen: React.FC = () => {
       <View style={{alignItems: "center", marginBottom: 20}}>
         <ProfileAvatar />
       </View>
+        
+
         <View style={styles.inputContainer}>
           <InputField
             placeholder="닉네임"
@@ -91,6 +110,7 @@ const ProfileSetupScreen: React.FC = () => {
           selectedCakes={selectedCakes}
           onSelectCake={handleCakeSelection}
         />
+
         <PrimaryButton title="로그인" onPress={handleLogin} />
       </View>
     </ScrollView>

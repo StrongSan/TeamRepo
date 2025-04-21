@@ -20,18 +20,12 @@ import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
   return (
-    <View style={{ flex: 1 }}>
-      <NavigationContainer>
-        <AppNavigator />
-      </NavigationContainer>
-
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-        <CakeOrderForm />
-      </SafeAreaView>
-    </View>
+    <NavigationContainer>
+      <AppNavigator />
+    </NavigationContainer>
   );
-}
+};
+
 
 const styles = StyleSheet.create({
   container: {

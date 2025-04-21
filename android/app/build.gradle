@@ -78,9 +78,9 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
 
-    namespace "com.cakedaynew"
+    namespace "com.cakeday"
     defaultConfig {
-        applicationId "com.cakedaynew"
+        applicationId "com.cakeday"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
