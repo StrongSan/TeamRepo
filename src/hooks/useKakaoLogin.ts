@@ -14,6 +14,7 @@ export const useKakaoLogin = () => {
   const handleKakaoLogin = useCallback(async () => {
     try {
       console.log('[카카오 로그인 시도]');
+      navigation.navigate('ProfileSetup', {});
       // 더미 토큰 사용
       const kakaoToken = 'dummy_token';
       const response = await loginWithKakao(kakaoToken);
@@ -29,7 +30,7 @@ export const useKakaoLogin = () => {
       if (token && user?.nickname) {
         await AsyncStorage.setItem('accessToken', token);
         Alert.alert('로그인 성공!', `${user.nickname}님 환영합니다 🎉`);
-        navigation.navigate('ProfileSetup', {});
+        
 
       } else {
         console.warn('토큰 없음:', response);

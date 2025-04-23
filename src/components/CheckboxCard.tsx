@@ -1,14 +1,17 @@
 import React from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet, Image } from "react-native";
 
 interface CheckboxCardProps {
   selected: boolean;
+  image: any; //require로 받은 이미지
   onSelect: () => void;
 }
 
-const CheckboxCard: React.FC<CheckboxCardProps> = ({ selected, onSelect }) => {
+const CheckboxCard: React.FC<CheckboxCardProps> = ({ selected, onSelect, image }) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onSelect}>
+
+      <Image source={image} style={styles.image} resizeMode="cover" />
 
       <View style={[styles.checkbox, selected && styles.checkboxSelected]}>
         {selected && <View style={styles.checkboxInner} />}
@@ -27,6 +30,7 @@ const styles = StyleSheet.create({
     position: "relative",
     marginBottom: 7,
     marginRight: 7,
+    overflow: "hidden",
   },
   checkbox: {
     width: 23,
@@ -53,6 +57,10 @@ const styles = StyleSheet.create({
     transform: [{ rotate: "-45deg" }],
     marginTop: -2,
   },
+  image: {
+    width: "100%",
+    height: "100%",
+  }
 });
 
 export default CheckboxCard;

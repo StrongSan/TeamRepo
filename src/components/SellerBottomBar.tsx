@@ -10,7 +10,7 @@ const SellerBottomBar: React.FC = () => {
   return (
     <View style={styles.navContainer}>
       <View style={styles.navIcon}>
-        <HomeIcon width={33} height={33} style={{ color: "#E78182" }} /> {/* 빨간줄 무시 가능 */}
+        <HomeIcon width={33} height={33} fill="#E78182" />
       </View>
       <View style={styles.navIcon}>
         <MailIcon width={30} height={30} />

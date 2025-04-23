@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingLeft: 16,
     paddingRight: 16,
-    paddingTop: 70,
+    paddingTop: 40,
     paddingBottom: 8,
     gap: 8,
     overflow: "hidden",

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import { View, Text, StyleSheet, FlatList, Image } from "react-native";
 import CheckboxCard from "./CheckboxCard";
 import ProfileCakeIcon from "../../assets/icons/profileCake-icon.svg";
 
@@ -8,19 +8,29 @@ interface CakePreferencesSectionProps {
   onSelectCake: (index: number) => void;
 }
 
+const cakeImages = [
+  require("../../assets/images/pre_cho1.jpg"),
+  require("../../assets/images/pre_cho2.jpg"),
+  require("../../assets/images/pre_stcho.jpg"),
+  require("../../assets/images/pre_figure.jpg"),
+  require("../../assets/images/pre_letter.jpg"),
+  require("../../assets/images/pre_flower.jpg"),
+  require("../../assets/images/pre_fru.jpg"),
+  require("../../assets/images/pre_rice.jpg"),
+]
+
 const CakePreferencesSection: React.FC<CakePreferencesSectionProps> = ({
   selectedCakes,
   onSelectCake,
 }) => {
+  
 
 
-  const cakeOptions = Array(8)
-    .fill(null)
-    .map((_, index) => ({
-      id: index,
-      image: null,
-      selected: selectedCakes.includes(index),
-    }));
+  const cakeOptions = cakeImages.map((img, index) => ({
+    id: index,
+    image: img,
+    selected: selectedCakes.includes(index),
+  }));
 
   return (
     <View style={styles.container}>
@@ -39,6 +49,7 @@ const CakePreferencesSection: React.FC<CakePreferencesSectionProps> = ({
           renderItem={({ item }) => (
             <CheckboxCard
               selected={item.selected}
+              image={item.image}
               onSelect={() => onSelectCake(item.id)}
             />
           )}

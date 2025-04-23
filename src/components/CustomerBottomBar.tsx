@@ -16,7 +16,7 @@ const CustomerBottomBar: React.FC = () => {
         <MailIcon width={30} height={30} />
       </View>
       <View style={[styles.navIcon, styles.homeIconContainer]}>
-        <HomeIcon width={30} height={30} style={{ color: "white"}} /> {/* 빨간줄 무시 가능 */}
+      <HomeIcon width={33} height={33} fill="#E78182" />
       </View>
       <View style={styles.navIcon}>
         <HeartIcon width={30} height={30} />

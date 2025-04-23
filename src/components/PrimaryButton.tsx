@@ -1,20 +1,23 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import { TouchableOpacity, Text, StyleSheet, ViewStyle } from "react-native";
 
 interface PrimaryButtonProps {
   title: string;
   onPress: () => void;
   disabled?: boolean;
+
+  style?: ViewStyle | ViewStyle[];
 }
 
 const PrimaryButton: React.FC<PrimaryButtonProps> = ({
   title,
   onPress,
   disabled = false,
+  style,
 }) => {
   return (
     <TouchableOpacity
-      style={[styles.button, disabled && styles.buttonDisabled]}
+      style={[styles.button, disabled && styles.buttonDisabled, style]}
       onPress={onPress}
       disabled={disabled}
     >
@@ -26,12 +29,12 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
 const styles = StyleSheet.create({
   button: {
     width: "100%",
-    paddingVertical: 18,
-    marginTop: 20,
+    height: 48,
     borderRadius: 10,
     backgroundColor: "#E78182",
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 10,
   },
   buttonDisabled: {
     backgroundColor: "#CCCCCC",
@@ -40,7 +43,7 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontFamily: "Inter",
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "900",
   },
 });
 

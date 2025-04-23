@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     paddingRight: 16,
     paddingTop: 12,
-    paddingBottom: 12,
+    paddingBottom: 20,
     flexDirection: "column",
     overflow: "hidden",
     justifyContent: "center",

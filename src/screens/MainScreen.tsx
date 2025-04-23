@@ -15,7 +15,7 @@ const MainScreen: React.FC = () => {
         <SearchBar />
         <GridLayout />
       </ScrollView>
-      <CustomerBottomBar />
+      <SellerBottomBar />
     </SafeAreaView>
   );
 };

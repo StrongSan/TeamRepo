@@ -47,7 +47,10 @@ const ProfileSetupScreen: React.FC = () => {
       Alert.alert("모든 항목을 입력해주세요.");
       return;
     }
-
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Main" as never }],
+    });
     try {
       const response = await submitProfile({
         nickname,
@@ -57,10 +60,7 @@ const ProfileSetupScreen: React.FC = () => {
       });
   
       console.log("프로필 저장 성공:", response);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Main" as never }],
-      });
+      
     } catch (error) {
       console.error("프로필 저장 실패:", error);
       Alert.alert("저장 중 오류가 발생했습니다.");
