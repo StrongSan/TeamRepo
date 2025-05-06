@@ -9,8 +9,10 @@ import {
 } from "react-native";
 import ProfileAvatar from "../../assets/icons/profileAvatar.svg";
 import AllowLeft from "../../assets/icons/allowLeft.svg";
+import { useNavigation } from "@react-navigation/native";
 
 const ProfileHeader = () => {
+  const navigation = useNavigation();
   return (
     <SafeAreaView style={{ backgroundColor: "white" }}>
       <StatusBar
@@ -20,9 +22,12 @@ const ProfileHeader = () => {
 
       {/* ✅ 상단 헤더 흰 배경 */}
       <View style={styles.topWhiteHeader}>
-        <TouchableOpacity style={styles.backButtonContainer}>
-          <AllowLeft width={24} height={24} />
-        </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.backButtonContainer}
+        onPress={() => navigation.goBack()}
+      >
+        <AllowLeft width={24} height={24} />
+      </TouchableOpacity>
       </View>
 
       {/* ✅ 회색 배경 */}

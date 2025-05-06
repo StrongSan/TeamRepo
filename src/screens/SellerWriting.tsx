@@ -4,8 +4,8 @@ import {
   StyleSheet,
   ScrollView,
   Image,
-  KeyboardAvoidingView, // ✅ 추가
-  Platform,              // ✅ 추가
+  KeyboardAvoidingView, 
+  Platform,              
 } from "react-native";
 import TopBar from "../components/TopBar";
 import InputField from "../components/UploadInputField";

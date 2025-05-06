@@ -1,14 +1,16 @@
 import React from "react";
 import { View, StyleSheet, Image, Text } from "react-native";
-
-
+import { useNavigation } from "@react-navigation/native";
+import { TouchableOpacity } from "react-native";
+  
 const SellerHeader: React.FC = () => {
+  const navigation = useNavigation();
   return (
     <>
       <View style={styles.headerContainer}>
-        <View style={styles.backButtonContainer}>
+      <TouchableOpacity style={styles.backButtonContainer} onPress={() => navigation.goBack()}>
           <Image source={{ uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/1a0ed0d0acc2cb311b68162a26f192252ab1cc98?placeholderIfAbsent=true&apiKey=22b54abd138245f5857096ad134e8a56" }} style={styles.backIcon} />
-        </View>
+      </TouchableOpacity>
       </View>
       <View style={styles.sellerInfoContainer}>
         <View style={styles.sellerInfo}>

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Platform, StatusBar } from "react-native";
 import AllowLeftIcon from "../../assets/icons/allowLeft.svg";
+import { useNavigation } from "@react-navigation/native";
 
 interface TopBarProps {
   title: string;
@@ -8,11 +9,12 @@ interface TopBarProps {
 }
 
 const TopBar: React.FC<TopBarProps> = ({ title, onBackPress }) => {
+  const navigation = useNavigation();
   return (
     <View style={styles.wrapper}>
       <View style={styles.shadowContainer}>
         <View style={styles.container}>
-          <TouchableOpacity onPress={onBackPress}>
+          <TouchableOpacity onPress={onBackPress ?? (() => navigation.goBack())}>
             <AllowLeftIcon width={24} height={24} />
           </TouchableOpacity>
           <Text style={styles.titleText}>{title}</Text>

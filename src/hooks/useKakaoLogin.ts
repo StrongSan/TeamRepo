@@ -1,4 +1,3 @@
-// src/hooks/useKakaoLogin.ts
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import { loginWithKakao } from '../api/authAPI';
@@ -15,11 +14,9 @@ export const useKakaoLogin = () => {
     try {
       console.log('[카카오 로그인 시도]');
       navigation.navigate('ProfileSetup', {});
-      // 더미 토큰 사용
       const kakaoToken = 'dummy_token';
       const response = await loginWithKakao(kakaoToken);
-
-      // 구조 분해와 타입 단언
+      
       const { token, user } = (response ?? {}) as {
         token?: string;
         user?: { nickname?: string };

@@ -20,7 +20,7 @@ const ProfileSetupScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [nickname, setNickname] = useState("");
   const [location, setLocation] = useState("");
-  const [userType, setUserType] = useState<"owner" | "customer" | null>(null);
+  const [userType, setUserType] = useState<"seller" | "customer" | null>(null);
   const [selectedCakes, setSelectedCakes] = useState<number[]>([]);
 
   useEffect(() => {
@@ -49,8 +49,13 @@ const ProfileSetupScreen: React.FC = () => {
     }
     navigation.reset({
       index: 0,
-      routes: [{ name: "Main" as never }],
-    });
+      routes: [
+        {
+          name: "MainScreen",
+          params: { userType },
+        } as never,
+      ],
+    });    
     try {
       const response = await submitProfile({
         nickname,

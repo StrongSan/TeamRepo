@@ -4,8 +4,8 @@ import RadioOption from './RadioOption';
 import UserIcon from "../../assets/icons/user-icon.svg";
 
 interface UserTypeSectionProps {
-  selectedType: "owner" | "customer" | null;
-  onSelectType: (type: "owner" | "customer") => void;
+  selectedType: "seller" | "customer" | null;
+  onSelectType: (type: "seller" | "customer") => void;
 }
 
 const UserTypeSection: React.FC<UserTypeSectionProps> = ({
@@ -24,8 +24,8 @@ const UserTypeSection: React.FC<UserTypeSectionProps> = ({
       <View style={styles.optionsContainer}>
         <RadioOption
           label="사장님이에요"
-          selected={selectedType === "owner"}
-          onSelect={() => onSelectType("owner")}
+          selected={selectedType === "seller"}
+          onSelect={() => onSelectType("seller")}
         />
         <RadioOption
           label="손님이에요"
