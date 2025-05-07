@@ -6,7 +6,7 @@ import type { RootStackParamList } from "../navigation/AppNavigator";
 
 import BottomMore from "../../assets/icons/bottom-more.svg";
 import MailIcon from "../../assets/icons/mail-icon.svg";
-import HomeIcon from "../../assets/icons/home-icon.svg";
+import HomeIcon from "../../assets/icons/pink-home-icon.svg";
 import BottomPlus from "../../assets/icons/bottom-plus.svg";
 import ProfileIcon from "../../assets/icons/bottom-profile-icon.svg";
 
@@ -15,16 +15,16 @@ const SellerBottomBar: React.FC = () => {
 
   return (
     <View style={styles.navContainer}>
-      <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("MainScreen")}>
-        <HomeIcon width={33} height={33} fill="#E78182" />
+      <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("MainScreen", { userType: "seller" })}>        
+        <HomeIcon width={28} height={28} fill="#E78182" />
       </TouchableOpacity>
       <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("MailScreen")}>
         <MailIcon width={30} height={30} />
       </TouchableOpacity>
       <TouchableOpacity style={[styles.navIcon, styles.homeIconContainer]} onPress={() => navigation.navigate("SellerWriting")}>
-        <BottomPlus width={30} height={30} />
+        <BottomPlus width={25} height={25} />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("ProfileScreen")}>
+      <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("ProfileScreen", { userType: "seller" })}>
         <ProfileIcon width={30} height={30} />
       </TouchableOpacity>
       <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("MoreScreen")}>

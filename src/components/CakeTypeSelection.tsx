@@ -13,8 +13,7 @@ const CakeTypeSelection: React.FC<CakeTypeSelectionProps> = ({
 }) => {
   const cakeTypes = [
     ["레터링 케이크", "떡 케이크", "유아용 케이크"],
-    ["포토 케이크", "이벤트 케이크", "플라워 케이크"],
-    ["웨딩 케이크", "2단 케이크", "기타"],
+    ["포토 케이크", "이벤트 케이크", "과일 케이크"],
   ];
 
   return (
@@ -42,7 +41,6 @@ const CakeTypeSelection: React.FC<CakeTypeSelectionProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 20,
     width: "100%",
     paddingLeft: 12,
     paddingRight: 12,
@@ -65,6 +63,7 @@ const styles = StyleSheet.create({
   },
   chipRow: {
     display: "flex",
+    flexWrap: "wrap",
     marginTop: 4,
     width: "100%",
     paddingTop: 2,

@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
+import { KeyboardTypeOptions } from "react-native";
 
 interface FormInputProps {
     label: string;
@@ -7,6 +8,7 @@ interface FormInputProps {
     rightIcon?: React.ReactNode;
     multiline?: boolean;
     height?: number;
+    keyboardType?: KeyboardTypeOptions;
   }
   
   const OrderFormInput: React.FC<FormInputProps> = ({
@@ -15,6 +17,7 @@ interface FormInputProps {
     rightIcon,
     multiline,
     height,
+    keyboardType,
   }) => {
     return (
       <View style={styles.container}>
@@ -25,6 +28,7 @@ interface FormInputProps {
             placeholder={placeholder}
             multiline={multiline}
             placeholderTextColor="rgba(0,0,0,0.5)"
+            keyboardType={keyboardType}
           />
           {rightIcon && rightIcon}
         </View>

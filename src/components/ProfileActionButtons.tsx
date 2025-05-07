@@ -1,76 +1,92 @@
 import * as React from "react";
 import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
 
-const ProfileActionButtons = () => {
+interface Props {
+  isFollowing: boolean;
+  userType: "customer" | "seller";
+}
+
+const ProfileActionButtons: React.FC<Props> = ({ isFollowing, userType }) => {
+  const renderCustomerButtons = () => (
+    <>
+      <TouchableOpacity style={styles.buttonWrapper}>
+        <View
+          style={[
+            styles.baseButton,
+            isFollowing ? styles.followingOutlined : styles.followingFilled
+          ]}
+        >
+          <Text style={isFollowing ? styles.outlinedText : styles.filledText}>
+            {isFollowing ? "팔로잉" : "팔로우"}
+          </Text>
+
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.buttonWrapper}>
+        <View style={[styles.baseButton, styles.outlinedButton]}>
+          <Text style={styles.outlinedText}>메세지</Text>
+        </View>
+      </TouchableOpacity>
+    </>
+  );
+
+  const renderSellerButtons = () => (
+    <>
+      <TouchableOpacity style={styles.buttonWrapper}>
+        <View style={[styles.baseButton, styles.outlinedButton]}>
+          <Text style={styles.outlinedText}>내 팔로워</Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.buttonWrapper}>
+        <View style={[styles.baseButton, styles.outlinedButton]}>
+          <Text style={styles.outlinedText}>프로필 편집</Text>
+        </View>
+      </TouchableOpacity>
+    </>
+  );
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.buttonWrapper}>
-        <View style={styles.followingButton}>
-          <Text style={styles.buttonText}>팔로잉</Text>
-        </View>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.buttonWrapper}>
-        <View style={styles.messageButton}>
-          <Text style={styles.buttonText}>메세지</Text>
-        </View>
-      </TouchableOpacity>
+      {userType === "customer" ? renderCustomerButtons() : renderSellerButtons()}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    display: "flex",
-    marginTop: 2,
-    marginBottom: 10,
-    width: 306,
-    maxWidth: "100%",
+    flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
     gap: 30,
-    fontSize: 16,
-    color: "rgba(231, 129, 130, 1)",
-    justifyContent: "center",
-    flexDirection: "row",
+    marginTop: 2,
+    marginBottom: 10,
   },
   buttonWrapper: {
-    borderRadius: 16,
-    alignSelf: "stretch",
-    marginTop: "auto",
-    marginBottom: "auto",
-    width: 130,
+    width: 150,
   },
-  followingButton: {
-    alignSelf: "stretch",
+  baseButton: {
     borderRadius: 16,
-    borderColor: "rgba(231, 129, 130, 1)",
-    borderStyle: "solid",
     borderWidth: 2,
-    minHeight: 43,
-    paddingLeft: 37,
-    paddingRight: 37,
-    paddingTop: 12,
-    paddingBottom: 12,
-    gap: 10,
+    paddingVertical: 12,
     justifyContent: "center",
     alignItems: "center",
   },
-  messageButton: {
-    alignSelf: "stretch",
-    borderRadius: 16,
-    borderColor: "rgba(231, 129, 130, 1)",
-    borderStyle: "solid",
-    borderWidth: 2,
-    minHeight: 43,
-    paddingLeft: 37,
-    paddingRight: 37,
-    paddingTop: 12,
-    paddingBottom: 12,
-    gap: 10,
-    justifyContent: "center",
-    alignItems: "center",
+  followingFilled: {
+    backgroundColor: "#E78182",
+    borderColor: "#E78182",
   },
-  buttonText: {
-    color: "rgba(231, 129, 130, 1)",
+  followingOutlined: {
+    borderColor: "#E78182",
+  },
+  outlinedButton: {
+    borderColor: "#E78182",
+  },
+  filledText: {
+    color: "white",
+    fontSize: 16,
+  },
+  outlinedText: {
+    color: "#E78182",
     fontSize: 16,
   },
 });

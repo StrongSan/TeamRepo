@@ -1,17 +1,18 @@
 import * as React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Platform, StatusBar } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Platform, StatusBar, ViewStyle } from "react-native";
 import AllowLeftIcon from "../../assets/icons/allowLeft.svg";
 import { useNavigation } from "@react-navigation/native";
 
 interface TopBarProps {
   title: string;
   onBackPress?: () => void;
+  style?: ViewStyle;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ title, onBackPress }) => {
+const TopBar: React.FC<TopBarProps> = ({ title, onBackPress, style }) => {
   const navigation = useNavigation();
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, style]}>
       <View style={styles.shadowContainer}>
         <View style={styles.container}>
           <TouchableOpacity onPress={onBackPress ?? (() => navigation.goBack())}>
@@ -26,7 +27,6 @@ const TopBar: React.FC<TopBarProps> = ({ title, onBackPress }) => {
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginBottom: 12, // 하단 공백
     backgroundColor: "#fff",
   },
   shadowContainer: {
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 16,
     backgroundColor: "#fff",
-  },
+  },  
   titleText: {
     fontSize: 20,
     fontWeight: "500",

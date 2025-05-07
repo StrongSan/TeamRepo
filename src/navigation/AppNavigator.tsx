@@ -29,7 +29,7 @@ export type RootStackParamList = {
   };
   MailScreen: undefined;       
   SellerWriting: undefined;   
-  ProfileScreen: undefined;
+  ProfileScreen: { userType: "seller" | "customer" };
   MoreScreen: undefined; 
 };
 

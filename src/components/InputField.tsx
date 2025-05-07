@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TextInput, StyleSheet, TouchableOpacity } from "react-native";
+import { View, TextInput, StyleSheet, TouchableOpacity, KeyboardTypeOptions } from "react-native";
 import ArrowRightIcon from "../../assets/icons/arrowRight.svg";
 
 interface InputFieldProps {
@@ -8,6 +8,7 @@ interface InputFieldProps {
   onChangeText: (text: string) => void;
   showArrow?: boolean;
   onPressArrow?: () => void;
+  keyboardType?: KeyboardTypeOptions;
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -16,6 +17,7 @@ const InputField: React.FC<InputFieldProps> = ({
   onChangeText,
   showArrow = false,
   onPressArrow,
+  keyboardType,
 }) => {
 
   return (
@@ -26,6 +28,7 @@ const InputField: React.FC<InputFieldProps> = ({
         value={value}
         onChangeText={onChangeText}
         editable={!showArrow}
+        keyboardType={keyboardType}
       />
       {showArrow && onPressArrow && (
         <TouchableOpacity onPress={onPressArrow} style={styles.arrowContainer}>

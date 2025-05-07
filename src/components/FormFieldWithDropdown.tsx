@@ -1,5 +1,5 @@
 import * as React from "react";
-import { View, Text, TextInput, StyleSheet } from "react-native";
+import { View, Text, TextInput, StyleSheet, TouchableOpacity } from "react-native";
 import ArrowBottom from "../../assets/icons/arrowBottom.svg";
 
 interface FormFieldWithDropdownProps {
@@ -8,6 +8,9 @@ interface FormFieldWithDropdownProps {
   value?: string;
   onChangeText?: (text: string) => void;
   onPress?: () => void;
+  visible?: boolean;
+  options?: string[];
+  onSelect?: (value: string) => void;
 }
 
 const FormFieldWithDropdown: React.FC<FormFieldWithDropdownProps> = ({
@@ -16,22 +19,41 @@ const FormFieldWithDropdown: React.FC<FormFieldWithDropdownProps> = ({
   value,
   onChangeText,
   onPress,
+  visible = false,
+  options = [],
+  onSelect = () => {},
 }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder={placeholder}
-          value={value}
-          onChangeText={onChangeText}
-          placeholderTextColor="rgba(0,0,0,0.5)"
-          editable={false}
-          onPressIn={onPress}
-        />
-        <ArrowBottom />
-      </View>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+  <View style={styles.inputContainer}>
+    <TextInput
+      style={styles.input}
+      placeholder={placeholder}
+      value={value}
+      pointerEvents="none" 
+      editable={false}
+      placeholderTextColor="rgba(0,0,0,0.5)"
+    />
+    <ArrowBottom />
+  </View>
+</TouchableOpacity>
+
+      {visible && (
+  <View style={styles.dropdown}>
+    {options.map((option) => (
+      <TouchableOpacity
+        key={option}
+        onPress={() => onSelect(option)}
+        style={styles.dropdownItem}
+      >
+        <Text>{option}</Text>
+      </TouchableOpacity>
+    ))}
+  </View>
+)}
+
     </View>
   );
 };
@@ -64,6 +86,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
+  dropdown: {
+    position: 'absolute',
+    top: 90, // input 아래에 위치
+    left: 0,
+    width: '100%',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    zIndex: 10,
+  },
+  
+  dropdownItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  
 });
 
 

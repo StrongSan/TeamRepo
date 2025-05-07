@@ -7,9 +7,17 @@ interface ProfileInfoProps {
   username: string;
   bio: string;
   rating: number;
+  userType: "customer" | "seller";
+  isFollowing: boolean;
 }
 
-const ProfileInfo: React.FC<ProfileInfoProps> = ({ username, bio, rating }) => {
+const ProfileInfo: React.FC<ProfileInfoProps> = ({
+  username,
+  bio,
+  rating,
+  userType,
+  isFollowing,
+}) => {
   return (
     <View style={styles.container}>
       <View style={styles.userInfoContainer}>
@@ -17,7 +25,10 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ username, bio, rating }) => {
         <Text style={styles.bio}>{bio}</Text>
       </View>
       <RatingDisplay rating={rating} />
-      <ProfileActionButtons />
+      <ProfileActionButtons
+        userType={userType}
+        isFollowing={isFollowing}
+      />
     </View>
   );
 };

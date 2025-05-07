@@ -23,7 +23,6 @@ const MainScreen: React.FC = () => {
         <SearchBar />
         <GridLayout />
       </ScrollView>
-      <SellerBottomBar />
       {userType === "seller" ? <SellerBottomBar /> : <CustomerBottomBar />}
     </SafeAreaView>
   );

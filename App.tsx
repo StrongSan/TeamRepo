@@ -21,7 +21,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 export default function App() {
   return (
     <NavigationContainer>
-      <ProfileSetupScreen />
+      <CakeOrderForm />
     </NavigationContainer>
   );
 }

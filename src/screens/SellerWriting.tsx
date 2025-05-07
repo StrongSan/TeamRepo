@@ -8,12 +8,39 @@ import {
   Platform,              
 } from "react-native";
 import TopBar from "../components/TopBar";
-import InputField from "../components/UploadInputField";
+import InputField from "../components/OrderFormInput";
 import ImageUpload from "../components/ImageUpload";
 import CakeTypeSelection from "../components/CakeTypeSelection";
 import SubmitButton from "../components/PrimaryButton";
+import FormFieldWithDropdown from "../components/FormFieldWithDropdown";
 
 const SellerWriting: React.FC = () => {
+
+  const [formData, setFormData] = React.useState({
+    type: "",
+    size: "",
+    sheet: "",
+    filling: "",
+  });
+
+  const [dropdownVisible, setDropdownVisible] = React.useState({
+    type: false,
+    size: false,
+    sheet: false,
+    filling: false,
+  });
+
+  const toggleDropdown = (field: keyof typeof dropdownVisible) => {
+    setDropdownVisible({
+      type: false,
+      size: false,
+      sheet: false,
+      filling: false,
+      [field]: !dropdownVisible[field],
+    });
+  };  
+  
+  
   const [title, setTitle] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [price, setPrice] = React.useState("");
@@ -52,25 +79,79 @@ const SellerWriting: React.FC = () => {
           contentContainerStyle={styles.scrollContainer} // 스크롤 내용 전체 영역을 채우도록 변경
         >
           <View style={styles.content}>
-            <InputField
-              placeholder="제목"
-              value={title}
-              onChangeText={setTitle}
-            />
-            <InputField
+          <InputField label="제목" placeholder="제목을 입력해 주세요." />
+
+          <InputField
+              label="케이크 설명"
               placeholder="케이크 설명을 작성해 주세요."
-              value={description}
-              onChangeText={setDescription}
               multiline
-              style={styles.descriptionInput}
+              height={120}
             />
+
             <InputField
-              placeholder="케이크 가격 입력"
-              value={price}
-              onChangeText={setPrice}
+              label="케이크 가격"
+              placeholder="케이크 가격을 입력해 주세요."
               keyboardType="numeric"
             />
-            <ImageUpload
+
+            <View style={styles.dropdownSpacing}>
+            <FormFieldWithDropdown
+              label="케이크 타입"
+              placeholder="케이크 타입 선택"
+              value={formData.type}
+              options={["레터링", "과일", "유아용", "떡", "포토", "이벤트트"]}
+              visible={dropdownVisible.type}
+              onPress={() => toggleDropdown("type")}
+              onSelect={(value) => {
+                setFormData({ ...formData, type: value });
+                setDropdownVisible({ ...dropdownVisible, type: false });
+              }}
+            />
+          </View>
+          <View style={styles.dropdownSpacing}>
+          <FormFieldWithDropdown
+              label="사이즈"
+              placeholder="케이크 사이즈 선택"
+              value={formData.size}
+              options={["도시락", "미니", "1호", "2호", "3호"]}
+              visible={dropdownVisible.size}
+              onPress={() => toggleDropdown("size")}
+              onSelect={(value) => {
+                setFormData({ ...formData, size: value });
+                setDropdownVisible({ ...dropdownVisible, size: false });
+              }}
+            />
+          </View>
+          <View style={styles.dropdownSpacing}>
+          <FormFieldWithDropdown
+              label="시트"
+              placeholder="케이크 시트 선택"
+              value={formData.sheet}
+              options={["초코", "바닐라"]}
+              visible={dropdownVisible.sheet}
+              onPress={() => toggleDropdown("sheet")}
+              onSelect={(value) => {
+                setFormData({ ...formData, sheet: value });
+                setDropdownVisible({ ...dropdownVisible, sheet: false });
+              }}
+            />
+          </View>
+
+	<View style={styles.dropdownSpacing}>
+          <FormFieldWithDropdown
+              label="필링"
+              placeholder="케이크 필링 선택"
+              value={formData.filling}
+              options={["초코", "오레오", "생크림", "딸기생크림", "크림치즈"]}
+              visible={dropdownVisible.filling}
+              onPress={() => toggleDropdown("filling")}
+              onSelect={(value) => {
+                setFormData({ ...formData, filling: value });
+                setDropdownVisible({ ...dropdownVisible, filling: false });
+              }}
+            />
+          </View>
+          <ImageUpload
               images={images}
               onAddImage={(uri: string) => setImages([...images, uri])}
             />
@@ -83,10 +164,12 @@ const SellerWriting: React.FC = () => {
                 />
               ))}
             </View>
+            {/*
             <CakeTypeSelection
               selectedTypes={selectedCakeTypes}
               onToggleType={handleCakeTypeToggle}
             />
+            /*}
 
             {/* 스크롤 안에 작성 버튼 포함시키고 정렬 */}
             <SubmitButton
@@ -127,11 +210,16 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 8,
     marginTop: 12,
+    marginBottom: 12,
   },
   thumbnail: {
     width: 80,
     height: 80,
     borderRadius: 8,
+  },
+  dropdownSpacing: {
+    marginBottom: 25,
+    paddingHorizontal: 0,
   },
 });
 
