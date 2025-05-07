@@ -5,7 +5,8 @@ import {
   ScrollView,
   Image,
   KeyboardAvoidingView, 
-  Platform,              
+  Platform,   
+  Alert           
 } from "react-native";
 import TopBar from "../components/TopBar";
 import InputField from "../components/OrderFormInput";
@@ -13,6 +14,8 @@ import ImageUpload from "../components/ImageUpload";
 import CakeTypeSelection from "../components/CakeTypeSelection";
 import SubmitButton from "../components/PrimaryButton";
 import FormFieldWithDropdown from "../components/FormFieldWithDropdown";
+import { submitPostForm } from '../api/postAPI';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 const SellerWriting: React.FC = () => {
 
@@ -46,7 +49,19 @@ const SellerWriting: React.FC = () => {
   const [price, setPrice] = React.useState("");
   const [selectedCakeTypes, setSelectedCakeTypes] = React.useState<string[]>([]);
   const [images, setImages] = React.useState<string[]>([]);
-
+  const [selectedImage, setSelectedImage] = React.useState<any>(null);
+  const handlePickImage = async () => {
+  const result = await launchImageLibrary({ mediaType: 'photo' });
+  
+    if (result.assets && result.assets.length > 0) {
+      const image = result.assets[0];
+      setSelectedImage(image);
+    
+      if (image.uri) {
+        setImages([...images, image.uri]);
+      }
+    }
+  };
   const handleCakeTypeToggle = (cakeType: string) => {
     if (selectedCakeTypes.includes(cakeType)) {
       setSelectedCakeTypes(
@@ -57,15 +72,32 @@ const SellerWriting: React.FC = () => {
     }
   };
 
-  const handleSubmit = () => {
-    console.log({
-      title,
-      description,
-      price,
-      selectedCakeTypes,
-      images,
-    });
+  const handleSubmit = async () => {
+    if (!title || !description || !price || selectedCakeTypes.length === 0 || !selectedImage) {
+      Alert.alert('모든 항목을 입력해주세요.');
+      return;
+    }
+  
+    try {
+      await submitPostForm({
+        title,
+        description,
+        price,
+        cakeTypes: selectedCakeTypes,
+        image: {
+          uri: selectedImage.uri,
+          type: selectedImage.type || 'image/jpeg',
+          name: selectedImage.fileName || 'image.jpg',
+        },
+      });
+  
+      Alert.alert('작성 완료', '케이크 글이 등록되었습니다.');
+    } catch (e) {
+      Alert.alert('업로드 실패', '잠시 후 다시 시도해주세요.');
+      console.error(e);
+    }
   };
+  
 
   return (
     <>

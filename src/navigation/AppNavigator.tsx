@@ -24,9 +24,7 @@ export type RootStackParamList = {
     userType?: 'seller' | 'customer' | null;
     selectedCakes?: number[];
   };
-  MainScreen: {
-    userType: "seller" | "customer";
-  };
+  MainScreen: { userType: "seller" | "customer";};
   MailScreen: undefined;       
   SellerWriting: undefined;   
   ProfileScreen: { userType: "seller" | "customer" };
