@@ -1,5 +1,5 @@
 import axios from 'axios';
-const API_BASE_URL = 'http://192.168.0.12:8080';
+const API_BASE_URL = 'http://172.25.19.245:8080';
 
 export const submitProfile = async (profileData: {
   nickname: string;

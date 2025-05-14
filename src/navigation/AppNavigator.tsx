@@ -4,11 +4,13 @@ import LoginScreen from '../screens/LoginScreen';
 import ProfileSetupScreen from '../screens/ProfileSetupScreen';
 import RegionSelectionScreen from '../screens/RegionSelectionScreen';
 import MainScreen from '../screens/MainScreen';
-//import MailScreen from '../screens/MailScreen';
+// import MailScreen from '../screens/MailScreen';
 import SellerWriting from '../screens/SellerWriting';
 import ProfileScreen from '../screens/ProfileScreen';
-//import MoreScreen from '../screens/MoreScreen';
+// import MoreScreen from '../screens/MoreScreen';
+import ProductDetailScreen from '../screens/ProductDetailScreen'; // ✅ 추가: 상세화면 import
 
+// ✅ 변경: ProductDetail route 타입 정의 추가
 export type RootStackParamList = {
   Login: undefined;
   RegionSelection: {
@@ -24,15 +26,26 @@ export type RootStackParamList = {
     userType?: 'seller' | 'customer' | null;
     selectedCakes?: number[];
   };
-  MainScreen: { userType: "seller" | "customer";};
-  MailScreen: undefined;       
-  SellerWriting: undefined;   
+  MainScreen: { userType: "seller" | "customer" };
+  // MailScreen: undefined; // ❌ 주석 처리 방식 수정
+  SellerWriting: undefined;
   ProfileScreen: { userType: "seller" | "customer" };
-  MoreScreen: undefined; 
+  // MoreScreen: undefined; // ❌ 주석 처리 방식 수정
+
+  // ✅ 추가: 상세 페이지 라우팅 타입
+  ProductDetail: {
+    userType: 'seller' | 'customer';
+    post: {
+      postId: number;
+      title: string;
+      imageUrl: string;
+      price: string;
+      description: string;
+    };
+  };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
 
 const AppNavigator = () => {
   return (
@@ -44,11 +57,12 @@ const AppNavigator = () => {
       <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
       <Stack.Screen name="RegionSelection" component={RegionSelectionScreen} />
       <Stack.Screen name="MainScreen" component={MainScreen} />
-      {/*<Stack.Screen name="MailScreen" component={MailScreen} />*/}
+      {/* ↓↓↓ 이런 방식은 Navigator 안에서 오류 유발하므로 제거 또는 JS 주석으로 */}
+      {/* <Stack.Screen name="MailScreen" component={MailScreen} /> */}
       <Stack.Screen name="SellerWriting" component={SellerWriting} />
       <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-      {/*<Stack.Screen name="MoreScreen" component={MoreScreen} />*/}
-
+      {/* <Stack.Screen name="MoreScreen" component={MoreScreen} /> */}
+      <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
     </Stack.Navigator>
   );
 };

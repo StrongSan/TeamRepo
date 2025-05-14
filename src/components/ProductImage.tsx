@@ -1,36 +1,17 @@
 import React from "react";
-import { View, StyleSheet, Image} from "react-native";
+import { Image, StyleSheet } from "react-native";
 
-const ProductImage: React.FC = () => {
-    return (
-      <View style={styles.imageContainer}>
-        <Image
-          style={styles.image}
-          source={{ uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_PubMSxSFV67yvE7k1ELhmbCIZ5O1NWznxQ&s" }}
-          resizeMode="cover"
-        />
-      </View>
-    );
-  };
-  
+// ✅ 변경: uri prop으로 이미지 경로 받음
+const ProductImage: React.FC<{ uri: string }> = ({ uri }) => (
+  <Image source={{ uri }} style={styles.image} />
+);
 
 const styles = StyleSheet.create({
-  imageContainer: {
-    display: "flex",
-    marginTop: 14,
-    width: "100%",
-    height: 350,
-    aspectRatio: 1,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 16,
-  },
   image: {
-  width: "100%",
-  aspectRatio: 1,
-  borderRadius: 16,
-  overflow: "hidden",
-}
-,
+    width: "100%",
+    height: 200,
+    resizeMode: "cover",
+  },
 });
 
 export default ProductImage;

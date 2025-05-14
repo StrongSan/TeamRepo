@@ -1,57 +1,99 @@
 import React from "react";
-import { View, StyleSheet, Dimensions, Image } from "react-native";
+import {
+  View,
+  Image,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 
-const imageList = [
-  require("../../assets/images/stcho3.jpg"),
-  require("../../assets/images/cho1.jpg"),
-  require("../../assets/images/stcho2.jpg"),
-  require("../../assets/images/stcho4.jpg"),
-  require("../../assets/images/st1.jpg"),
-  require("../../assets/images/cho2.jpg"),
-  require("../../assets/images/st2.jpg"),
-  require("../../assets/images/stcho1.jpg"),
-]
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack"; // ✅ 추가
 
-const GridLayout: React.FC = () => {
-  const gridItems = Array(10).fill(null);
+// ✅ Stack Param 타입 정의
+type RootStackParamList = {
+  ProductDetail: {
+    userType: "seller" | "customer";
+    post: {
+      postId: number;
+      title: string;
+      imageUrl: string;
+      price: string;
+      description: string;
+    };
+  };
+};
+
+// ✅ navigation 타입 정의
+type NavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "ProductDetail"
+>;
+
+interface GridLayoutProps {
+  posts: {
+    postId: number;
+    title: string;
+    imageUrl: string;
+    price: string;
+    description: string;
+  }[];
+}
+
+const GridLayout: React.FC<GridLayoutProps> = ({ posts }) => {
+  const navigation = useNavigation<NavigationProp>(); // ✅ 타입 명시
 
   return (
     <View style={styles.gridContainer}>
-      <View style={styles.gridContent}>
-        {imageList.map((img, index) => (
-          <View key={index} style={styles.gridItem} >
-            <Image source={img} style={styles.gridItem} />
-          </View>
-        ))}
-      </View>
+      {posts.map((post) => (
+        <TouchableOpacity
+          key={post.postId}
+          style={styles.postCard}
+          onPress={() =>
+            navigation.navigate("ProductDetail", {
+              userType: "customer", // ✅ 실제 상황에 따라 동적으로 변경 가능
+              post: post,
+            })
+          }
+        >
+          <Image source={{ uri: post.imageUrl }} style={styles.image} />
+          <Text style={styles.title}>{post.title}</Text>
+          <Text style={styles.price}>{post.price}원</Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 };
 
-const windowWidth = Dimensions.get('window').width;
-const itemWidth = (windowWidth - 34) / 2; 
-
 const styles = StyleSheet.create({
   gridContainer: {
-    paddingHorizontal:12,
-  },
-  gridContent: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
+    paddingHorizontal: 16,
   },
-  gridItem: {
-    width: itemWidth,
-    height: itemWidth,
+  postCard: {
+    width: "48%",
+    marginBottom: 16,
+    backgroundColor: "#f9f9f9",
     borderRadius: 10,
-    backgroundColor: "#F5F5F5",
-    overflow: "hidden",
-    marginBottom: 10,
+    padding: 8,
   },
   image: {
     width: "100%",
-    height: "100%",
-  }
+    height: 120,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  price: {
+    fontSize: 12,
+    color: "#888",
+  },
 });
 
 export default GridLayout;

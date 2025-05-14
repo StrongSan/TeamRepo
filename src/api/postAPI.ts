@@ -25,13 +25,19 @@ export const submitPostForm = async (data: PostPayload) => {
     uri: Platform.OS === 'ios' ? data.image.uri.replace('file://', '') : data.image.uri,
     type: data.image.type,
     name: data.image.name,
-  } as any); // TS 타입 오류 방지
+  } as any);
 
-  const response = await axios.post('http://<서버_IP>:8080/api/posts', formData, {
+  const response = await axios.post('http://172.25.19.245:8080/api/cake-posts', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
 
+  return response.data;
+};
+
+//게시글 불러오기
+export const fetchAllPosts = async () => {
+  const response = await axios.get('http://172.25.19.245:8080/api/cake-posts');
   return response.data;
 };
