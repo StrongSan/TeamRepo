@@ -5,6 +5,8 @@ import { KeyboardTypeOptions } from "react-native";
 interface FormInputProps {
     label: string;
     placeholder: string;
+    value: string; 
+    onChangeText: (text: string) => void;
     rightIcon?: React.ReactNode;
     multiline?: boolean;
     height?: number;
@@ -21,6 +23,8 @@ interface FormInputProps {
   const OrderFormInput: React.FC<FormInputProps> = ({
     label,
     placeholder,
+    value,
+    onChangeText,
     rightIcon,
     multiline,
     height,
@@ -36,6 +40,8 @@ interface FormInputProps {
           <TextInput
             style={[styles.input, multiline && { height: height! - 16 }]}
             placeholder={placeholder}
+            value={value} 
+            onChangeText={onChangeText}
             multiline={multiline}
             placeholderTextColor="rgba(0,0,0,0.5)"
             keyboardType={keyboardType}

@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
-import { RouteProp, useRoute } from "@react-navigation/native"; 
+import { RouteProp, useRoute } from "@react-navigation/native";
 
 import SellerHeader from "../components/SellerHeader";
 import ProductImage from "../components/ProductImage";
@@ -8,15 +8,28 @@ import ProductInfo from "../components/ProductInfo";
 import ProductActionButtons from "../components/ProductActionButtons";
 import Header from "../components/Header";
 
+
+// ✅ 변경: post 타입 정의
+type Post = {
+  postId: number;
+  title: string;
+  imageUrl: string;
+  price: string;
+  description: string;
+};
+
 type RootStackParamList = {
-  ProductDetail: { userType: "seller" | "customer" };
+  ProductDetail: {
+    userType: "seller" | "customer";
+    post: Post; // ✅ 변경: post 전체 받기
+  };
 };
 
 type ProductDetailRouteProp = RouteProp<RootStackParamList, "ProductDetail">;
 
 const ProductDetailScreen: React.FC = () => {
   const route = useRoute<ProductDetailRouteProp>();
-  const { userType } = route.params; 
+  const { userType, post } = route.params; // ✅ 변경: post 구조분해
 
   return (
     <View style={styles.container}>
@@ -24,12 +37,12 @@ const ProductDetailScreen: React.FC = () => {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <SellerHeader />
-        <ProductImage />
+        <ProductImage uri={post.imageUrl} /> {/* ✅ 변경: 이미지 표시 */}
         <ProductInfo
-          title="유아용 케이크"
-          price="50,000 ~"
-          description="유아용으로 만든 로보카폴리 케이크에요 ~^^\n피규어는 직접 보내주셔야 합니다.\n궁금하신 건 문의주세요~"
-        />
+          title={post.title}
+          price={post.price}
+          description={post.description}
+        /> {/* ✅ 변경: post 정보 렌더링 */}
         <ProductActionButtons userType={userType} />
       </ScrollView>
     </View>
