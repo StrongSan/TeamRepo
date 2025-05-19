@@ -5,12 +5,13 @@ import MailIcon from "../../assets/icons/mail-icon.svg";
 import HomeIcon from "../../assets/icons/home-icon.svg";
 import HeartIcon from "../../assets/icons/heart-icon.svg";
 import ProfileIcon from "../../assets/icons/bottom-profile-icon.svg";
+import MoreIcon from "../../assets/icons/bottom-more.svg";
 
 const CustomerBottomBar: React.FC = () => {
   return (
     <View style={styles.navContainer}>
       <View style={styles.navIcon}>
-        <SearchIcon width={25} height={25} />
+        <HeartIcon width={30} height={30} />
       </View>
       <View style={styles.navIcon}>
         <MailIcon width={30} height={30} />
@@ -19,10 +20,10 @@ const CustomerBottomBar: React.FC = () => {
       <HomeIcon width={33} height={33} />
       </View>
       <View style={styles.navIcon}>
-        <HeartIcon width={30} height={30} />
+        <ProfileIcon width={30} height={30} />
       </View>
       <View style={styles.navIcon}>
-        <ProfileIcon width={30} height={30} />
+        <MoreIcon width={30} height={30} />
       </View>
     </View>
   );

@@ -15,19 +15,22 @@ import ProductDetailScreen from './src/screens/ProductDetailScreen';
 import SellerWriting from './src/screens/SellerWriting';
 import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './src/navigation/AppNavigator';
+import SellerMypage from './src/screens/SellerMypage';
+import ModalTest from './src/screens/ModalTest';
+import MinimalTest from './src/screens/MinimalTest';
 
-/*
+
 //앱 화면 임시로 보이게
 export default function App() {
   return (
     <NavigationContainer>
-      <CakeOrderForm />
+      <ProductDetailScreen />
     </NavigationContainer>
   );
 }
-*/
 
 
+/*
 export default function App() {
   return (
     <NavigationContainer>
@@ -35,7 +38,7 @@ export default function App() {
     </NavigationContainer>
   );
 };
-
+*/
 
 
 

@@ -81,22 +81,20 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: "rgba(0,0,0,0.5)",
+    color: "rgba(0,0,0,0.9)",
     fontFamily: "Roboto",
     fontSize: 14,
     lineHeight: 20,
   },
-  dropdown: {
-    position: 'absolute',
-    top: 90, // input 아래에 위치
-    left: 0,
-    width: '100%',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    zIndex: 10,
-  },
+dropdown: {
+  position: 'relative', // ✅ 이거 변경
+  backgroundColor: '#fff',
+  borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 5,
+  zIndex: 10,
+}
+,
   
   dropdownItem: {
     padding: 15,

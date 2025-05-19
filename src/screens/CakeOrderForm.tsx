@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   Image
 } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState } from "react";
 import TopBar from "../components/TopBar";
 import OrderFormInput from "../components/OrderFormInput";
@@ -49,6 +50,10 @@ const CakeOrderForm = () => {
     type: false,
   });
 
+  // 날짜, 시간 picker 상태
+  const [showDatePicker, setShowDatePicker] = useState(false); 
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
   const toggleDropdown = (field: keyof typeof dropdownVisible) => {
     setDropdownVisible((prev) => ({
       size: false,
@@ -59,8 +64,26 @@ const CakeOrderForm = () => {
       [field]: !prev[field],
     }));
   };  
-  
 
+  // 날짜 변경 핸들러
+  const handleDateChange = (_: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      const dateStr = selectedDate.toISOString().split("T")[0];
+      setFormData({ ...formData, pickupDate: dateStr });
+    }
+  };
+
+  // 시간 변경 핸들러
+  const handleTimeChange = (_: any, selectedTime?: Date) => {
+    setShowTimePicker(false);
+    if (selectedTime) {
+      const hours = selectedTime.getHours().toString().padStart(2, "0");
+      const minutes = selectedTime.getMinutes().toString().padStart(2, "0");
+      setFormData({ ...formData, pickupTime: `${hours}:${minutes}` });
+    }
+  };
+  
   return (
     <SafeAreaView style={styles.safeContainer}>
       <TopBar title="케이크 주문하기" onBackPress={() => {}}
@@ -68,9 +91,42 @@ const CakeOrderForm = () => {
 
       <ScrollView style={styles.container}>
         <View style={styles.content}>
-          <OrderFormInput label="이름" placeholder="픽업자 이름 입력" />
-          <OrderFormInput label="픽업 날짜" placeholder="픽업 날짜 선택" rightIcon={<CalendarIcon />} />
-          <OrderFormInput label="픽업 시간" placeholder="픽업 시간 선택" rightIcon={<ClockIcon />} />
+          <OrderFormInput label="이름" 
+            placeholder="픽업자 이름 입력"
+              value={formData.name}
+              onChangeText={(text) => setFormData({ ...formData, name: text })}
+            />
+
+          <OrderFormInput
+              label="픽업 날짜"
+              placeholder="날짜 선택"
+              value={formData.pickupDate}
+              onPressRightIcon={() => setShowDatePicker(true)} // 아이콘 누르면 date picker 열림
+              rightIcon={<CalendarIcon />}
+            />
+            {showDatePicker && (
+            <DateTimePicker
+              value={new Date()}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+            />
+          )}
+          <OrderFormInput
+            label="픽업 시간"
+            placeholder="시간 선택"
+            value={formData.pickupTime}
+            onPressRightIcon={() => setShowTimePicker(true)}
+            rightIcon={<ClockIcon />}
+          />
+          {showTimePicker && (
+            <DateTimePicker
+              value={new Date()}
+              mode="time"
+              display="default"
+              onChange={handleTimeChange}
+            />
+          )}
           <View style={styles.dropdownSpacing}>
           <FormFieldWithDropdown
               label="케이크 타입"
@@ -85,7 +141,12 @@ const CakeOrderForm = () => {
               }}
             />
           </View>
-          <OrderFormInput label="레터링 문구" placeholder="레터링 문구(1 ~ 10글자 입력)" />
+          <OrderFormInput 
+              label="레터링 문구" 
+              placeholder="레터링 문구(1 ~ 10글자 입력)"
+              value={formData.letteringText}
+              onChangeText={(text) => setFormData({ ...formData, letteringText: text })}
+              />
 
           <View style={styles.dropdownSpacing}>
           <FormFieldWithDropdown
@@ -144,11 +205,18 @@ const CakeOrderForm = () => {
             />
           </View>
 
-          <OrderFormInput label="기타 전달사항" placeholder="사장님께 전달할 내용 입력" multiline height={90} />
+          <OrderFormInput 
+            label="기타 전달사항" 
+            placeholder="사장님께 전달할 내용 입력" 
+            multiline
+            height={90}
+            value={formData.notes}
+            onChangeText={(text) => setFormData({...formData, notes: text})}
+            />
 
           <View style={styles.uploadSection}>
             <Text style={styles.label}>참고 디자인</Text>
-            {/* 👇 여기서 UploadButton 대신 ImageUpload 사용 */}
+            {/* 여기서 UploadButton 대신 ImageUpload 사용 */}
             <ImageUpload
               images={images}
               onAddImage={(uri: string) => setImages([...images, uri])}
