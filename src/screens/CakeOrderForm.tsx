@@ -101,6 +101,7 @@ const CakeOrderForm = () => {
               label="픽업 날짜"
               placeholder="날짜 선택"
               value={formData.pickupDate}
+              onChangeText={() => {}} // ← 더미 함수 (아무런 의미 없는 함수)
               onPressRightIcon={() => setShowDatePicker(true)} // 아이콘 누르면 date picker 열림
               rightIcon={<CalendarIcon />}
             />
@@ -116,6 +117,7 @@ const CakeOrderForm = () => {
             label="픽업 시간"
             placeholder="시간 선택"
             value={formData.pickupTime}
+            onChangeText={() => {}} // ← 더미 함수 (아무런 의미 없는 함수)
             onPressRightIcon={() => setShowTimePicker(true)}
             rightIcon={<ClockIcon />}
           />

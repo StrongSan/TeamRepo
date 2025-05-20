@@ -24,14 +24,14 @@ import MinimalTest from './src/screens/MinimalTest';
 export default function App() {
   return (
     <NavigationContainer>
-      <ProductDetailScreen />
+      <CakeOrderForm />
     </NavigationContainer>
   );
 }
 
 
-/*
-export default function App() {
+
+/*export default function App() {
   return (
     <NavigationContainer>
       <AppNavigator />

@@ -54,6 +54,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     alignSelf: "center",
+    backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     width: "100%",
