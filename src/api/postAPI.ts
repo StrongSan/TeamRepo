@@ -27,7 +27,7 @@ export const submitPostForm = async (data: PostPayload) => {
     name: data.image.name,
   } as any);
 
-  const response = await axios.post('http://172.25.19.245:8080/api/cake-posts', formData, {
+  const response = await axios.post('http://172.24.5.225:8080/api/cake-posts', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -38,6 +38,6 @@ export const submitPostForm = async (data: PostPayload) => {
 
 //게시글 불러오기
 export const fetchAllPosts = async () => {
-  const response = await axios.get('http://172.25.19.245:8080/api/cake-posts');
+  const response = await axios.get('http://172.24.5.225:8080/api/cake-posts');
   return response.data;
 };
