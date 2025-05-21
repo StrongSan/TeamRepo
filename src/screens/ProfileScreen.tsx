@@ -2,17 +2,18 @@ import React from "react";
 import {
   View,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   StatusBar,
-  Platform,
+  SafeAreaView,
 } from "react-native";
+
 import TopBar from "../components/TopBar";
 import ProfileAvatarBlock from "../components/ProfileAvatarBlock";
 import ProfileInfo from "../components/ProfileInfo";
 import PhotoGrid from "../components/PhotoGrid";
 import CustomerBottomBar from "../components/CustomerBottomBar";
 import SellerBottomBar from "../components/SellerBottomBar";
+
 import { useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList } from "../navigation/AppNavigator";
@@ -22,18 +23,25 @@ type ProfileScreenRouteProp = RouteProp<RootStackParamList, "ProfileScreen">;
 const ProfileScreen = () => {
   const route = useRoute<ProfileScreenRouteProp>();
   const { userType } = route.params;
+
   return (
     <>
       <StatusBar
+        translucent
+        backgroundColor="transparent"
         barStyle="dark-content"
-        backgroundColor="#FFFFFF"
-        translucent={false}
       />
+
       <SafeAreaView style={styles.safeArea}>
-      <TopBar title=" " />
         <View style={styles.container}>
+          
+          {/* ✅ TopBar 외부 SafeAreaView로 감싸줌 */}
+          <SafeAreaView style={styles.topBarArea}>
+            <TopBar title="프로필" />
+          </SafeAreaView>
+
           <ScrollView contentContainerStyle={styles.scrollContent}>
-          <ProfileAvatarBlock />
+            <ProfileAvatarBlock />
             <View style={styles.profileContent}>
               <ProfileInfo
                 username="cakeee"
@@ -45,6 +53,7 @@ const ProfileScreen = () => {
               <PhotoGrid />
             </View>
           </ScrollView>
+
           {userType === "seller" ? <SellerBottomBar /> : <CustomerBottomBar />}
         </View>
       </SafeAreaView>
@@ -59,6 +68,9 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  topBarArea: {
     backgroundColor: "#FFFFFF",
   },
   scrollContent: {

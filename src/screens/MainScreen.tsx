@@ -66,13 +66,13 @@ const MainScreen: React.FC = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
-        refreshControl={ // ✅ 당겨서 새로고침 추가
+        refreshControl={ 
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
         <TitleSection />
         <SearchBar />
-        <GridLayout posts={posts} /> {/* ✅ 게시글 전달 */}
+        <GridLayout posts={posts} />
       </ScrollView>
       {userType === "seller" ? <SellerBottomBar /> : <CustomerBottomBar />}
     </SafeAreaView>
