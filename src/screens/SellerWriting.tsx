@@ -79,10 +79,11 @@ const SellerWriting: React.FC = () => {
   return (
     <>
       {/* ✅ TopBar는 SafeAreaView로 감싸지 않는다 */}
-      <TopBar title="글 작성" />
+      
 
       {/* ✅ 콘텐츠부터 SafeAreaView로 감싼다 */}
       <SafeAreaView style={{ flex: 1 }}>
+        <TopBar title="글 작성" />
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}

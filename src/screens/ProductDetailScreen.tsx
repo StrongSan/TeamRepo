@@ -36,7 +36,7 @@ const ProductDetailScreen: React.FC = () => {
   useEffect(() => {
     const logCakeView = async () => {
       try {
-        await axios.post("http://백엔드주소/api/view-log", {
+        await axios.post("http://172.25.6.95/api/view-log", {
           cakeId: post.cakeId,
         });
         console.log("조회 기록 전송 완료");

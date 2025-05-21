@@ -53,7 +53,7 @@ export const fetchAllPosts = async () => {
 
 // ✅ 추천 cakeId 리스트 가져오기
 export const fetchRecommendedCakeIds = async (): Promise<number[]> => {
-  const response = await axios.get('http://172.24.5.225:8080/api/recommendations');
+  const response = await axios.get('http://172.24.5.225:8080/api/recommendation');
   return response.data; // 예: [1, 7, 13]
 };
 
