@@ -1,6 +1,13 @@
-// MainScreen.tsx
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, ScrollView, SafeAreaView, StatusBar } from "react-native";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  StatusBar,
+  RefreshControl,
+} from "react-native";
+
 import TitleSection from "../components/TitleSection";
 import SearchBar from "../components/SearchBar";
 import GridLayout from "../components/GridLayout";
@@ -9,22 +16,27 @@ import SellerBottomBar from "../components/SellerBottomBar";
 import { useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList } from "../navigation/AppNavigator";
-import { fetchAllPosts } from "../api/postAPI"; // ✅ 추가
+import type { Post } from "../api/postAPI";
+
+import {
+  fetchAllPosts,
+  fetchRecommendedCakeIds,
+  fetchPostsByCakeIds,
+} from "../api/postAPI"; // ✅ API 함수들 가져오기
 
 type MainScreenRouteProp = RouteProp<RootStackParamList, "MainScreen">;
 
 const MainScreen: React.FC = () => {
   const route = useRoute<MainScreenRouteProp>();
   const { userType } = route.params || {};
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [refreshing, setRefreshing] = useState(false); // ✅ 새로고침 상태
 
-  // ✅ 추가: 게시글 상태 정의
-  const [posts, setPosts] = useState([]);
-
-  // ✅ 추가: 게시글 불러오기
+  // ✅ 최초 로딩 시 전체 게시글 불러오기
   useEffect(() => {
     const loadPosts = async () => {
       try {
-        const data = await fetchAllPosts();
+        const data = await fetchAllPosts(); // cakeId 포함된 게시글 리스트
         setPosts(data);
       } catch (error) {
         console.error("게시글 불러오기 실패", error);
@@ -34,13 +46,33 @@ const MainScreen: React.FC = () => {
     loadPosts();
   }, []);
 
+  // ✅ 새로고침 시 추천 게시글만 보여주기
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const cakeIds = await fetchRecommendedCakeIds(); // 추천 cakeId 리스트
+      const recommendedPosts = await fetchPostsByCakeIds(cakeIds); // cakeId로 게시글 정보 가져오기
+      setPosts(recommendedPosts); // 메인화면 갱신
+    } catch (error) {
+      console.error("추천 게시글 불러오기 실패", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
-      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        refreshControl={ // ✅ 당겨서 새로고침 추가
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <TitleSection />
         <SearchBar />
-        <GridLayout posts={posts} /> {/* ✅ 추가: 게시글 전달 */}
+        <GridLayout posts={posts} /> {/* ✅ 게시글 전달 */}
       </ScrollView>
       {userType === "seller" ? <SellerBottomBar /> : <CustomerBottomBar />}
     </SafeAreaView>

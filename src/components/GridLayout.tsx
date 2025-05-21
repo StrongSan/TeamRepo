@@ -8,9 +8,8 @@ import {
 } from "react-native";
 
 import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack"; // ✅ 추가
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-// ✅ Stack Param 타입 정의
 type RootStackParamList = {
   ProductDetail: {
     userType: "seller" | "customer";
@@ -20,11 +19,11 @@ type RootStackParamList = {
       imageUrl: string;
       price: string;
       description: string;
+      cakeId: number; // ✅ 추가됨
     };
   };
 };
 
-// ✅ navigation 타입 정의
 type NavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   "ProductDetail"
@@ -37,11 +36,12 @@ interface GridLayoutProps {
     imageUrl: string;
     price: string;
     description: string;
+    cakeId: number; // ✅ 추가됨
   }[];
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({ posts }) => {
-  const navigation = useNavigation<NavigationProp>(); // ✅ 타입 명시
+  const navigation = useNavigation<NavigationProp>();
 
   return (
     <View style={styles.gridContainer}>
@@ -51,7 +51,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({ posts }) => {
           style={styles.postCard}
           onPress={() =>
             navigation.navigate("ProductDetail", {
-              userType: "customer", // ✅ 실제 상황에 따라 동적으로 변경 가능
+              userType: "customer",
               post: post,
             })
           }
