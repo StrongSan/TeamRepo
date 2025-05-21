@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import NaverIcon from "../../assets/icons/naver-icon.svg";
+// import NaverIcon from "../../assets/icons/naver-icon.svg";
+import NaverIcon from '../../assets/icons/naver-icon.svg';
 import { useNaverLogin } from "../hooks/useNaverLogin";
 
 const NaverButton: React.FC = () => {

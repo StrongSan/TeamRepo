@@ -72,7 +72,7 @@ const MainScreen: React.FC = () => {
       >
         <TitleSection />
         <SearchBar />
-        <GridLayout posts={posts} />
+        <GridLayout posts={posts} /> 
       </ScrollView>
       {userType === "seller" ? <SellerBottomBar /> : <CustomerBottomBar />}
     </SafeAreaView>

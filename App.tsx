@@ -15,6 +15,9 @@ import ProductDetailScreen from './src/screens/ProductDetailScreen';
 import SellerWriting from './src/screens/SellerWriting';
 import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './src/navigation/AppNavigator';
+import ModalTest from './src/screens/ModalTest';
+import MinimalTest from './src/screens/MinimalTest';
+import PaymentScreen from './src/screens/PaymentScreen';
 
 /*
 //앱 화면 임시로 보이게
@@ -35,8 +38,6 @@ export default function App() {
     </NavigationContainer>
   );
 };
-
-
 
 
 const styles = StyleSheet.create({

@@ -27,7 +27,7 @@ const SellerBottomBar: React.FC = () => {
       <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("ProfileScreen", { userType: "seller" })}>
         <ProfileIcon width={30} height={30} />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("MoreScreen")}>
+      <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("MypageScreen", { userType: "seller" })}>
         <BottomMore width={30} height={30} />
       </TouchableOpacity>
     </View>

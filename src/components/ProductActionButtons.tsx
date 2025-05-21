@@ -1,45 +1,29 @@
 import React from "react";
-import { View, StyleSheet, Text, TouchableOpacity, Alert } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
 
 type Props = {
   userType: "seller" | "customer";
 };
 
 const ProductActionButtons: React.FC<Props> = ({ userType }) => {
-  const handleEdit = () => {
-    Alert.alert("수정하기 버튼 눌림");
-  };
-
-  const handleDelete = () => {
-    Alert.alert("삭제하기 버튼 눌림");
-  };
-
-  const handleInquiry = () => {
-    Alert.alert("문의하기 버튼 눌림");
-  };
-
-  const handleOrder = () => {
-    Alert.alert("주문하기 버튼 눌림");
-  };
-
   return (
     <View style={styles.container}>
       {userType === "seller" ? (
         <>
-          <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-            <Text style={styles.editButtonText}>수정하기</Text>
+          <TouchableOpacity style={styles.outlineButton}>
+            <Text style={styles.outlineButtonText}>수정하기</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-            <Text style={styles.deleteButtonText}>삭제하기</Text>
+          <TouchableOpacity style={styles.filledButton}>
+            <Text style={styles.filledButtonText}>삭제하기</Text>
           </TouchableOpacity>
         </>
       ) : (
         <>
-          <TouchableOpacity style={styles.editButton} onPress={handleInquiry}>
-            <Text style={styles.editButtonText}>문의하기</Text>
+          <TouchableOpacity style={styles.outlineButton}>
+            <Text style={styles.outlineButtonText}>문의하기</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.deleteButton} onPress={handleOrder}>
-            <Text style={styles.deleteButtonText}>주문하기</Text>
+          <TouchableOpacity style={styles.filledButton}>
+            <Text style={styles.filledButtonText}>주문하기</Text>
           </TouchableOpacity>
         </>
       )}
@@ -50,38 +34,37 @@ const ProductActionButtons: React.FC<Props> = ({ userType }) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
+    width: "90%",
+    maxWidth: 360,
     justifyContent: "space-between",
     marginTop: 20,
-    width: "100%",
-    maxWidth: 354,
-    alignSelf: "center",
-    gap: 14,
+    gap: 12,
   },
-  editButton: {
-    width: 160,
-    height: 52,
+  outlineButton: {
+    flex: 1,
+    height: 48,
     borderRadius: 10,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: "#E78182",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
   },
-  editButtonText: {
+  outlineButtonText: {
     color: "#E78182",
     fontSize: 16,
     fontWeight: "600",
   },
-  deleteButton: {
-    width: 160,
-    height: 52,
+  filledButton: {
+    flex: 1,
+    height: 48,
     borderRadius: 10,
     backgroundColor: "#E78182",
     alignItems: "center",
     justifyContent: "center",
   },
-  deleteButtonText: {
-    color: "#ffffff",
+  filledButtonText: {
+    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },

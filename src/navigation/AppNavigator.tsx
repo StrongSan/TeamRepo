@@ -7,7 +7,7 @@ import MainScreen from '../screens/MainScreen';
 // import MailScreen from '../screens/MailScreen';
 import SellerWriting from '../screens/SellerWriting';
 import ProfileScreen from '../screens/ProfileScreen';
-// import MoreScreen from '../screens/MoreScreen';
+import MypageScreen from '../screens/MypageScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen'; // ✅ 추가: 상세화면 import
 
 // ✅ 변경: ProductDetail route 타입 정의 추가
@@ -30,7 +30,7 @@ export type RootStackParamList = {
   // MailScreen: undefined; // ❌ 주석 처리 방식 수정
   SellerWriting: undefined;
   ProfileScreen: { userType: "seller" | "customer" };
-  // MoreScreen: undefined; // ❌ 주석 처리 방식 수정
+  MypageScreen: { userType: "seller" | "customer" };
 
   // ✅ 추가: 상세 페이지 라우팅 타입
   ProductDetail: {
@@ -61,7 +61,7 @@ const AppNavigator = () => {
       {/* <Stack.Screen name="MailScreen" component={MailScreen} /> */}
       <Stack.Screen name="SellerWriting" component={SellerWriting} />
       <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-      {/* <Stack.Screen name="MoreScreen" component={MoreScreen} /> */}
+      <Stack.Screen name="MypageScreen" component={MypageScreen} />
       <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
     </Stack.Navigator>
   );

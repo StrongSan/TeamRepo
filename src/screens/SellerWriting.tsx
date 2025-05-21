@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  TouchableOpacity, Text
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -77,136 +78,135 @@ const SellerWriting: React.FC = () => {
   };
 
   return (
-    <>
-      {/* ✅ TopBar는 SafeAreaView로 감싸지 않는다 */}
-      
+    <SafeAreaView style={{ flex: 1 }} edges={['bottom', 'left', 'right']}>
+      {/* ✅ 상단 고정 TopBar (Top inset은 컴포넌트 내부에서 처리) */}
+      <TopBar title="글 작성" />
 
-      {/* ✅ 콘텐츠부터 SafeAreaView로 감싼다 */}
-      <SafeAreaView style={{ flex: 1 }}>
-        <TopBar title="글 작성" />
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-        >
-          <ScrollView contentContainerStyle={styles.scrollContainer}>
-            <View style={styles.content}>
-              <InputField
-                label="제목"
-                placeholder="제목을 입력해 주세요."
-                value={title}
-                onChangeText={setTitle}
-              />
-              <InputField
-                label="케이크 설명"
-                placeholder="케이크 설명을 작성해 주세요."
-                multiline
-                height={120}
-                value={description}
-                onChangeText={setDescription}
-              />
-              <InputField
-                label="케이크 가격"
-                placeholder="케이크 가격을 입력해 주세요."
-                keyboardType="numeric"
-                value={price}
-                onChangeText={setPrice}
-              />
+      {/* ✅ 아래 스크롤 콘텐츠 */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView 
+        style={{ backgroundColor: '#fff'}}
+        contentContainerStyle={styles.scrollContainer}>
+          <View style={styles.content}>
+            <InputField
+              label="제목"
+              placeholder="제목을 입력해 주세요."
+              value={title}
+              onChangeText={setTitle}
+            />
+            <InputField
+              label="케이크 설명"
+              placeholder="케이크 설명을 작성해 주세요."
+              multiline
+              height={120}
+              value={description}
+              onChangeText={setDescription}
+            />
+            <InputField
+              label="케이크 가격"
+              placeholder="케이크 가격을 입력해 주세요."
+              keyboardType="numeric"
+              value={price}
+              onChangeText={setPrice}
+            />
 
-              <View style={styles.dropdownSpacing}>
-                <FormFieldWithDropdown
-                  label="케이크 타입"
-                  placeholder="케이크 타입 선택"
-                  value={formData.type}
-                  options={["레터링", "과일", "유아용", "떡", "포토", "이벤트트"]}
-                  visible={dropdownVisible.type}
-                  onPress={() => toggleDropdown("type")}
-                  onSelect={(value) => {
-                    setFormData({ ...formData, type: value });
-                    setDropdownVisible({ ...dropdownVisible, type: false });
-                  }}
-                />
-              </View>
-
-              <View style={styles.dropdownSpacing}>
-                <FormFieldWithDropdown
-                  label="사이즈"
-                  placeholder="케이크 사이즈 선택"
-                  value={formData.size}
-                  options={["도시락", "미니", "1호", "2호", "3호"]}
-                  visible={dropdownVisible.size}
-                  onPress={() => toggleDropdown("size")}
-                  onSelect={(value) => {
-                    setFormData({ ...formData, size: value });
-                    setDropdownVisible({ ...dropdownVisible, size: false });
-                  }}
-                />
-              </View>
-
-              <View style={styles.dropdownSpacing}>
-                <FormFieldWithDropdown
-                  label="시트"
-                  placeholder="케이크 시트 선택"
-                  value={formData.sheet}
-                  options={["초코", "바닐라"]}
-                  visible={dropdownVisible.sheet}
-                  onPress={() => toggleDropdown("sheet")}
-                  onSelect={(value) => {
-                    setFormData({ ...formData, sheet: value });
-                    setDropdownVisible({ ...dropdownVisible, sheet: false });
-                  }}
-                />
-              </View>
-
-              <View style={styles.dropdownSpacing}>
-                <FormFieldWithDropdown
-                  label="필링"
-                  placeholder="케이크 필링 선택"
-                  value={formData.filling}
-                  options={["초코", "오레오", "생크림", "딸기생크림", "크림치즈"]}
-                  visible={dropdownVisible.filling}
-                  onPress={() => toggleDropdown("filling")}
-                  onSelect={(value) => {
-                    setFormData({ ...formData, filling: value });
-                    setDropdownVisible({ ...dropdownVisible, filling: false });
-                  }}
-                />
-              </View>
-
-              <ImageUpload
-                images={images}
-                onAddImage={(uri: string) => {
-                  setImages([...images, uri]);
-                  setSelectedImage({
-                    uri,
-                    type: "image/jpeg",
-                    fileName: "image.jpg",
-                  });
-                }}
-              />
-
-              <View style={styles.thumbnailContainer}>
-                {images.map((uri, index) => (
-                  <Image key={index} source={{ uri }} style={styles.thumbnail} />
-                ))}
-              </View>
-
-              <SubmitButton
-                title="작성하기"
-                onPress={handleSubmit}
-                style={{
-                  marginBottom: 40,
-                  height: 48,
-                  width: "100%",
-                  borderRadius: 10,
-                  backgroundColor: "#E78182",
-                  alignSelf: "center",
+            <View style={styles.dropdownSpacing}>
+              <FormFieldWithDropdown
+                label="케이크 타입"
+                placeholder="케이크 타입 선택"
+                value={formData.type}
+                options={["레터링", "과일", "유아용", "떡", "포토", "이벤트트"]}
+                visible={dropdownVisible.type}
+                onPress={() => toggleDropdown("type")}
+                onSelect={(value) => {
+                  setFormData({ ...formData, type: value });
+                  setDropdownVisible({ ...dropdownVisible, type: false });
                 }}
               />
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </>
+
+            <View style={styles.dropdownSpacing}>
+              <FormFieldWithDropdown
+                label="사이즈"
+                placeholder="케이크 사이즈 선택"
+                value={formData.size}
+                options={["도시락", "미니", "1호", "2호", "3호"]}
+                visible={dropdownVisible.size}
+                onPress={() => toggleDropdown("size")}
+                onSelect={(value) => {
+                  setFormData({ ...formData, size: value });
+                  setDropdownVisible({ ...dropdownVisible, size: false });
+                }}
+              />
+            </View>
+
+            <View style={styles.dropdownSpacing}>
+              <FormFieldWithDropdown
+                label="시트"
+                placeholder="케이크 시트 선택"
+                value={formData.sheet}
+                options={["초코", "바닐라"]}
+                visible={dropdownVisible.sheet}
+                onPress={() => toggleDropdown("sheet")}
+                onSelect={(value) => {
+                  setFormData({ ...formData, sheet: value });
+                  setDropdownVisible({ ...dropdownVisible, sheet: false });
+                }}
+              />
+            </View>
+
+            <View style={styles.dropdownSpacing}>
+              <FormFieldWithDropdown
+                label="필링"
+                placeholder="케이크 필링 선택"
+                value={formData.filling}
+                options={["초코", "오레오", "생크림", "딸기생크림", "크림치즈"]}
+                visible={dropdownVisible.filling}
+                onPress={() => toggleDropdown("filling")}
+                onSelect={(value) => {
+                  setFormData({ ...formData, filling: value });
+                  setDropdownVisible({ ...dropdownVisible, filling: false });
+                }}
+              />
+            </View>
+
+            <ImageUpload
+              images={images}
+              onAddImage={(uri: string) => {
+                setImages([...images, uri]);
+                setSelectedImage({
+                  uri,
+                  type: "image/jpeg",
+                  fileName: "image.jpg",
+                });
+              }}
+            />
+
+            <View style={styles.thumbnailContainer}>
+              {images.map((uri, index) => (
+                <Image key={index} source={{ uri }} style={styles.thumbnail} />
+              ))}
+            </View>
+
+            <SubmitButton
+              title="작성하기"
+              onPress={handleSubmit}
+              style={{
+                marginBottom: 40,
+                height: 48,
+                width: "100%",
+                borderRadius: 10,
+                backgroundColor: "#E78182",
+                alignSelf: "center",
+              }}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -216,6 +216,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 40,
     paddingTop: 20,
+    backgroundColor: 'f0f0f0',
   },
   content: {
     width: "90%",
