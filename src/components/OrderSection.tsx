@@ -6,33 +6,40 @@ import MyReview from '../../assets/icons/myReview.svg';
 import LogoutIcon from '../../assets/icons/logout-icon.svg';
 import ArrowRightIcon from '../../assets/icons/arrowRight.svg';
 
-console.log('MyOrder:', MyOrder);
-console.log('MyReview:', MyReview);
-console.log('LogoutIcon:', LogoutIcon);
-console.log('ArrowRightIcon:', ArrowRightIcon);
+
+interface OrderSectionProps {
+  userType: 'seller' | 'customer';
+}
 
 
-const OrderSection: React.FC = () => {
+const OrderSection: React.FC<OrderSectionProps> = ({ userType }) => {
+
+  console.log('dddd[OrderSection] userType:', userType);
+
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>주문</Text>
+
+      {/* ✅ 텍스트만 userType에 따라 변경 */}
       <MenuOption
         icon={MyReview}
-        title="내 가게 리뷰"
+        title={userType === 'seller' ? '내 가게 리뷰' : '내 리뷰'}
         rightIcon={ArrowRightIcon}
         iconProps={{ width: 20, height: 20 }}
       />
+
       <MenuOption
         icon={MyOrder}
-        title="마이 예약"
+        title={userType === 'seller' ? '마이 예약' : '주문내역'}
         rightIcon={ArrowRightIcon}
       />
+
       <MenuOption
         icon={LogoutIcon}
         title="로그아웃"
         customStyles={styles.logoutButton}
         textColor="#FFF"
-        iconProps={{width: 20, height: 20}}
+        iconProps={{ width: 20, height: 20 }}
       />
     </View>
   );

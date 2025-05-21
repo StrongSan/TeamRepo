@@ -1,13 +1,14 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import NaverIcon from "../../assets/icons/naver-icon.svg";
+// import NaverIcon from "../../assets/icons/naver-icon.svg";
+import NaverIcon from '../../assets/icons/naver-icon.svg';
 import { useNaverLogin } from "../hooks/useNaverLogin";
 
 const NaverButton: React.FC = () => {
   const { handleNaverLogin } = useNaverLogin(); 
 
   return (
-    <TouchableOpacity style={styles.button} onPress={handleNaverLogin}> {/* ✅ 연결 */}
+    <TouchableOpacity style={styles.button} onPress={handleNaverLogin}>
       <View style={styles.buttonContent}>
         <NaverIcon width={32} height={32} />
         <Text style={styles.buttonText}>네이버 로그인</Text>

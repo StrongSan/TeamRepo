@@ -40,7 +40,7 @@ const MainScreen: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <TitleSection />
         <SearchBar />
-        <GridLayout posts={posts} /> {/* ✅ 추가: 게시글 전달 */}
+        <GridLayout posts={posts} /> 
       </ScrollView>
       {userType === "seller" ? <SellerBottomBar /> : <CustomerBottomBar />}
     </SafeAreaView>

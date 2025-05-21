@@ -1,50 +1,32 @@
-import * as React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Platform, StatusBar, ViewStyle } from "react-native";
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AllowLeftIcon from "../../assets/icons/allowLeft.svg";
 import { useNavigation } from "@react-navigation/native";
 
-interface TopBarProps {
-  title: string;
-  onBackPress?: () => void;
-  style?: ViewStyle;
-}
-
-const TopBar: React.FC<TopBarProps> = ({ title, onBackPress, style }) => {
+const TopBar: React.FC<{ title: string; onBackPress?: () => void }> = ({ title, onBackPress }) => {
   const navigation = useNavigation();
+
   return (
-    <View style={[styles.wrapper, style]}>
-      <View style={styles.shadowContainer}>
-        <View style={styles.container}>
-          <TouchableOpacity onPress={onBackPress ?? (() => navigation.goBack())}>
-            <AllowLeftIcon width={24} height={24} />
-          </TouchableOpacity>
-          <Text style={styles.titleText}>{title}</Text>
-        </View>
+    <SafeAreaView edges={['top']} style={{ backgroundColor: "#fff" }}>
+      <View style={styles.container}>
+        <TouchableOpacity onPress={onBackPress ?? (() => navigation.goBack())}>
+          <AllowLeftIcon width={24} height={24} />
+        </TouchableOpacity>
+        <Text style={styles.titleText}>{title}</Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  wrapper: {
-    backgroundColor: "#fff",
-  },
-  shadowContainer: {
-    width: "100%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 4,
-    backgroundColor: "#fff",
-  },
   container: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 15,
     paddingHorizontal: 16,
     backgroundColor: "#fff",
-  },  
+  },
   titleText: {
     fontSize: 20,
     fontWeight: "500",

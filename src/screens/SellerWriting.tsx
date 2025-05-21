@@ -6,7 +6,8 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  Alert
+  Alert,
+  TouchableOpacity, Text
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -16,7 +17,6 @@ import ImageUpload from "../components/ImageUpload";
 import SubmitButton from "../components/PrimaryButton";
 import FormFieldWithDropdown from "../components/FormFieldWithDropdown";
 import { submitPostForm } from "../api/postAPI";
-import { launchImageLibrary } from "react-native-image-picker";
 
 const SellerWriting: React.FC = () => {
   const [formData, setFormData] = React.useState({
@@ -78,13 +78,18 @@ const SellerWriting: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1 }} edges={['bottom', 'left', 'right']}>
+      {/* ✅ 상단 고정 TopBar (Top inset은 컴포넌트 내부에서 처리) */}
       <TopBar title="글 작성" />
+
+      {/* ✅ 아래 스크롤 콘텐츠 */}
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <ScrollView 
+        style={{ backgroundColor: '#fff'}}
+        contentContainerStyle={styles.scrollContainer}>
           <View style={styles.content}>
             <InputField
               label="제목"
@@ -107,6 +112,7 @@ const SellerWriting: React.FC = () => {
               value={price}
               onChangeText={setPrice}
             />
+
             <View style={styles.dropdownSpacing}>
               <FormFieldWithDropdown
                 label="케이크 타입"
@@ -121,6 +127,7 @@ const SellerWriting: React.FC = () => {
                 }}
               />
             </View>
+
             <View style={styles.dropdownSpacing}>
               <FormFieldWithDropdown
                 label="사이즈"
@@ -135,6 +142,7 @@ const SellerWriting: React.FC = () => {
                 }}
               />
             </View>
+
             <View style={styles.dropdownSpacing}>
               <FormFieldWithDropdown
                 label="시트"
@@ -149,6 +157,7 @@ const SellerWriting: React.FC = () => {
                 }}
               />
             </View>
+
             <View style={styles.dropdownSpacing}>
               <FormFieldWithDropdown
                 label="필링"
@@ -163,6 +172,7 @@ const SellerWriting: React.FC = () => {
                 }}
               />
             </View>
+
             <ImageUpload
               images={images}
               onAddImage={(uri: string) => {
@@ -174,11 +184,13 @@ const SellerWriting: React.FC = () => {
                 });
               }}
             />
+
             <View style={styles.thumbnailContainer}>
               {images.map((uri, index) => (
                 <Image key={index} source={{ uri }} style={styles.thumbnail} />
               ))}
             </View>
+
             <SubmitButton
               title="작성하기"
               onPress={handleSubmit}
@@ -204,6 +216,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 40,
     paddingTop: 20,
+    backgroundColor: 'f0f0f0',
   },
   content: {
     width: "90%",

@@ -83,9 +83,13 @@ MainScreen 임시 사진 입력
 
 5/19
 1. 주문하기 창 드롭다운 잘리는 버그 수정
-2. productdetailScreen UI 수정 (정사각형, 둥근 모서리리)
+2. productdetailScreen UI 수정 (정사각형, 둥근 모서리)
+3. modal창 구현
+
+5/20 
+1. 앱에 뜨는 자잘한 에러 제거 ( text error , FlatList error )
 
 --예정--
 10. 손님것도 profile 네비게이터 추가
-11. 주문하면 창으로 주문이 완료되었습니다 창 뜨기 (모달 창)
 12. 사진 업로드 할때 정사각형으로 잘라 올리는 기능 
+13. 주문확인 창 UI
