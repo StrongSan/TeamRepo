@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 dropdown: {
-  position: 'relative', // ✅ 이거 변경
+  position: 'relative',
   backgroundColor: '#fff',
   borderWidth: 1,
   borderColor: '#ccc',

@@ -4,12 +4,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AllowLeftIcon from "../../assets/icons/allowLeft.svg";
 import { useNavigation } from "@react-navigation/native";
 
-const TopBar: React.FC<{ title: string; onBackPress?: () => void }> = ({ title, onBackPress }) => {
+import { StyleProp, ViewStyle } from "react-native";
+
+interface TopBarProps {
+  title: string;
+  onBackPress?: () => void;
+  style?: StyleProp<ViewStyle>;  
+}
+
+const TopBar: React.FC<TopBarProps> = ({ title, onBackPress, style }) => {
   const navigation = useNavigation();
 
   return (
     <SafeAreaView edges={['top']} style={{ backgroundColor: "#fff" }}>
-      <View style={styles.container}>
+      <View style={[styles.container, style]}>
         <TouchableOpacity onPress={onBackPress ?? (() => navigation.goBack())}>
           <AllowLeftIcon width={24} height={24} />
         </TouchableOpacity>

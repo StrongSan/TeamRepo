@@ -9,7 +9,7 @@ import SellerBottomBar from "../components/SellerBottomBar";
 import { useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList } from "../navigation/AppNavigator";
-import { fetchAllPosts } from "../api/postAPI"; // ✅ 추가
+import { fetchAllPosts } from "../api/postAPI";
 
 type MainScreenRouteProp = RouteProp<RootStackParamList, "MainScreen">;
 
@@ -17,10 +17,8 @@ const MainScreen: React.FC = () => {
   const route = useRoute<MainScreenRouteProp>();
   const { userType } = route.params || {};
 
-  // ✅ 추가: 게시글 상태 정의
   const [posts, setPosts] = useState([]);
 
-  // ✅ 추가: 게시글 불러오기
   useEffect(() => {
     const loadPosts = async () => {
       try {

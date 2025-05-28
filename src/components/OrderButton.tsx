@@ -23,7 +23,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     gap: 8,
-    paddingHorizontal: 12,
     marginBottom: 25,
   },
   cancelButton: {
