@@ -15,6 +15,7 @@ interface OrderCardProps {
   onInquiry: () => void;
 }
 
+
 const OrderCard: React.FC<OrderCardProps> = ({ orderDetails, onOrderDetails, onInquiry }) => {
   return (
     <View style={styles.container}>
@@ -54,6 +55,8 @@ const OrderCard: React.FC<OrderCardProps> = ({ orderDetails, onOrderDetails, onI
     </View>
   );
 };
+
+console.log('OrderCard:', OrderCard);
 
 const styles = StyleSheet.create({
   container: {

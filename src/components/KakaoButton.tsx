@@ -14,7 +14,6 @@ const isMediumScreen = width >= 375 && width < 768;
 
 
 const KakaoButton: React.FC<KakaoButtonProps> = ({ onPress }) => {
-  // Calculate icon size based on screen size
   const getIconSize = () => {
     if (isSmallScreen) return 28;
     if (isMediumScreen) return 32;

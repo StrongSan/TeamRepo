@@ -1,12 +1,13 @@
-import axios from 'axios';
-const API_BASE_URL = 'http://172.24.5.225:8080';
+import apiClient from "./apiClient";
+import { BASE_URL } from "./config";
 
+// 프로필 등록 요청
 export const submitProfile = async (profileData: {
   nickname: string;
   location: string;
-  userType: 'seller' | 'customer';
+  userType: "seller" | "customer";
   selectedCakes: number[];
 }) => {
-  const response = await axios.post(`${API_BASE_URL}/api/users`, profileData);
+  const response = await apiClient.post("/api/users", profileData);
   return response.data;
 };

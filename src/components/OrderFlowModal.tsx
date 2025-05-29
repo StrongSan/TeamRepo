@@ -22,7 +22,7 @@ const OrderFlowModal: React.FC<Props> = ({ visible, onClose, type, cakeName, pri
           title: '주문 요청이 완료되었어요!',
           sub: '사장님이 승인하면 알려드릴게요',
             buttons: [
-               { label: '주문 요청 취소하기', onPress: onNext },
+               { label: '주문내역 보기', onPress: onNext },
                { label: '확인', onPress: onClose, outline: true },
                 ],
         };
@@ -56,7 +56,7 @@ return (
     <View style={styles.overlay}>
       <View style={styles.modalBox}>
         
-        {/* ✅ 오른쪽 상단 X 버튼 */}
+        {/* 오른쪽 상단 X 버튼 */}
         <Pressable onPress={onClose} style={styles.closeButton}>
           <Text style={styles.closeButtonText}>×</Text>
         </Pressable>
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
 
   iconBox: {
-    marginTop: 30,
+  marginTop: 30,
   marginBottom: 30,
   alignItems: 'center',
   justifyContent: 'center',

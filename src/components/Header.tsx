@@ -4,42 +4,44 @@ import {
   StyleSheet,
   TouchableOpacity,
   StatusBar,
+  SafeAreaView,
   Platform,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import AllowLeft from "../../assets/icons/allowLeft.svg";
+import { useNavigation } from "@react-navigation/native";
 
 const Header = () => {
-  const navigation = useNavigation(); // ✅ 뒤로가기 기능
-
-  const topPadding = Platform.OS === "android" ? StatusBar.currentHeight ?? 0 : 0;
-
+  const navigation = useNavigation();
   return (
-    <View style={[styles.safeArea, { paddingTop: topPadding }]}>
+    <SafeAreaView style={styles.safeArea}>
       <StatusBar
         barStyle="dark-content"
-        backgroundColor="#fff"
+        backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
       />
       <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <AllowLeft width={24} height={24} />
-        </TouchableOpacity>
+    <TouchableOpacity onPress={() => navigation.goBack()}>
+      <AllowLeft width={24} height={24} />
+    </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {
     backgroundColor: "#fff",
-    width: "100%",
   },
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
-    height: 60,
     paddingHorizontal: 16,
+
+    // ✅ Android는 상태바 높이만큼 위쪽 여백 확보
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+
+    // ✅ 높이는 고정하지 않고, 내부 padding 기준으로 구성
+    paddingBottom: 12,
   },
 });
 

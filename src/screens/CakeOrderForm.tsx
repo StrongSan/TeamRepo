@@ -1,11 +1,6 @@
 import React, { useState } from "react";
 import {
-  ScrollView,
-  View,
-  StyleSheet,
-  Text,
-  SafeAreaView,
-  Image,
+  ScrollView, View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import TopBar from "../components/TopBar";
@@ -14,13 +9,43 @@ import FormFieldWithDropdown from "../components/FormFieldWithDropdown";
 import OrderButton from "../components/OrderButton";
 import CalendarIcon from "../../assets/icons/calendar-icon.svg";
 import ClockIcon from "../../assets/icons/clock-icon.svg";
+/* 사용 안하는 임포트 
 import UploadButton from "../components/UploadButton";
 import CakeTypeSelection from "../components/CakeTypeSelection";
 import ImageUpload from "../components/ImageUpload";
-import OrderFlowModal from "../components/OrderFlowModal"; //  주문 모달 import 추가
+*/
+import OrderFlowModal from "../components/OrderFlowModal"; //  주문 모달
+
+import { launchImageLibrary } from "react-native-image-picker";
+import UploadIcon from "../../assets/icons/upload-icon.svg";
+import PlusIcon from "../../assets/icons/bottom-plus.svg";
 
 const CakeOrderForm = () => {
   const [images, setImages] = useState<string[]>([]);
+
+  // 대표 이미지 (1장만 백엔드 보낼 경우)
+  const [selectedImage, setSelectedImage] = React.useState<any>(null);
+
+  // 이미지 선택 함수
+  const handlePickImage = async () => {
+    const result = await launchImageLibrary({
+      mediaType: "photo",
+      quality: 1,
+    });
+
+    if (!result.didCancel && result.assets && result.assets.length > 0) {
+      const uri = result.assets[0].uri;
+      if (uri) {
+        setImages((prev) => [...prev, uri]);
+        setSelectedImage({
+          uri,
+          type: result.assets[0].type || "image/jpeg",
+          fileName: result.assets[0].fileName || "image.jpg",
+        });
+      }
+    }
+  };
+
   const [formData, setFormData] = useState({
     name: "",
     pickupDate: "",
@@ -53,8 +78,8 @@ const CakeOrderForm = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
-  const [modalVisible, setModalVisible] = useState(false); // ✅ 모달 표시 여부
-  const [modalType, setModalType] = useState<'requested' | 'approved' | 'success'>('requested'); // ✅ 모달 종류
+  const [modalVisible, setModalVisible] = useState(false); // 모달 표시 여부
+  const [modalType, setModalType] = useState<'requested' | 'approved' | 'success'>('requested'); // 모달 종류
 
   const toggleDropdown = (field: keyof typeof dropdownVisible) => {
     setDropdownVisible((prev) => ({
@@ -83,6 +108,7 @@ const CakeOrderForm = () => {
       setFormData({ ...formData, pickupTime: `${hours}:${minutes}` });
     }
   };
+
 
   return (
     <SafeAreaView style={styles.safeContainer}>
@@ -131,21 +157,31 @@ const CakeOrderForm = () => {
             />
           )}
 
-          <View style={styles.dropdownSpacing}>
-            <FormFieldWithDropdown
-              label="케이크 타입"
-              placeholder="케이크 타입 선택"
-              value={formData.type}
-              options={["레터링", "과일", "유아용", "떡", "포토", "이벤트"]}
-              visible={dropdownVisible.type}
-              onPress={() => toggleDropdown("type")}
-              onSelect={(value) => {
-                setFormData({ ...formData, type: value });
-                setDropdownVisible({ ...dropdownVisible, type: false });
-              }}
-            />
-          </View>
-
+          {['type', 'size', 'sheet', 'filling'].map((field) => (
+            <View style={styles.dropdownSpacing} key={field}>
+              <FormFieldWithDropdown
+                label={field === 'type' ? '케이크 타입' : field === 'size' ? '케이크 사이즈' : field === 'sheet' ? '시트' : '필링'}
+                placeholder={field === 'type' ? '케이크 타입 선택' : field === 'size' ? '케이크 사이즈 선택' : field === 'sheet' ? '케이크 시트 선택' : '케이크 필링 선택'}
+                value={formData[field as keyof typeof formData]}
+                options={
+                  field === 'type'
+                    ? ['레터링', '과일', '유아용', '떡', '포토', '이벤트']
+                    : field === 'size'
+                    ? ['도시락', '미니', '1호', '2호', '3호']
+                    : field === 'sheet'
+                    ? ['초코', '바닐라']
+                    : ['초코', '오레오', '생크림', '딸기생크림', '크림치즈']
+                }
+                visible={dropdownVisible[field as keyof typeof dropdownVisible]}
+                onPress={() => toggleDropdown(field as keyof typeof dropdownVisible)}
+                onSelect={(value) => {
+                  setFormData({ ...formData, [field]: value });
+                  setDropdownVisible({ ...dropdownVisible, [field]: false });
+                }}
+              />
+            </View>
+          ))}
+          
           <OrderFormInput
             label="레터링 문구"
             placeholder="레터링 문구(1 ~ 10글자 입력)"
@@ -166,17 +202,42 @@ const CakeOrderForm = () => {
 
           <View style={styles.uploadSection}>
             <Text style={styles.label}>참고 디자인</Text>
-            <ImageUpload
-              images={images}
-              onAddImage={(uri: string) => setImages([...images, uri])}
-            />
-            <View style={styles.thumbnailContainer}>
-              {images.map((uri, index) => (
-                <Image key={index} source={{ uri }} style={styles.thumbnail} />
-              ))}
-            </View>
+
+            {images.length === 0 ? (
+              // 이미지 없을 때: 업로드 버튼만
+              <TouchableOpacity style={styles.uploadButton} onPress={handlePickImage}>
+                <View style={styles.uploadContent}>
+                  <UploadIcon width={18} height={18} fill="#E78182" />
+                  <Text style={styles.uploadText}>사진 업로드</Text>
+                </View>
+              </TouchableOpacity>
+            ) : (
+              // 이미지 있을 때: 썸네일 + 삭제(x) + +버튼
+              <View style={styles.thumbnailContainer}>
+                {images.map((uri, index) => (
+                  <View key={index} style={styles.imageWrapper}>
+                    <Image source={{ uri }} style={styles.thumbnail} />
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => {
+                        const newImages = [...images];
+                        newImages.splice(index, 1);
+                        setImages(newImages);
+                      }}
+                    >
+                      <Text style={styles.deleteText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                <TouchableOpacity onPress={handlePickImage}>
+                  <View style={styles.addButton}>
+                    <PlusIcon width={24} height={24} />
+                  </View>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
-        </View>
+
 
         {/* ✅ 주문 버튼 누르면 모달 표시 */}
         <OrderButton
@@ -186,6 +247,7 @@ const CakeOrderForm = () => {
             setModalVisible(true);
           }}
         />
+        </View>
       </ScrollView>
 
       {/* ✅ 모달 렌더링 */}
@@ -229,17 +291,67 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   thumbnailContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 12,
-    marginBottom: 12,
-  },
-  thumbnail: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-  },
+  flexDirection: "row",
+  flexWrap: "wrap",
+  gap: 8,
+  marginTop: 12,
+  marginBottom: 12,
+},
+thumbnail: {
+  width: 80,
+  height: 80,
+  borderRadius: 8,
+},
+addButton: {
+  width: 80,
+  height: 80,
+  borderRadius: 8,
+  backgroundColor: "#d9d9d9",
+  justifyContent: "center",
+  alignItems: "center",
+},
+uploadButton: {
+  backgroundColor: "#ffffff",
+  borderColor: "#E78182",
+  borderWidth: 1,
+  height: 48,
+  justifyContent: "center",
+  alignItems: "center",
+  borderRadius: 10,
+  marginTop: 12,
+  marginBottom: 8,
+},
+uploadText: {
+  color: "#E78182",
+  fontSize: 16,
+  fontWeight: "500",
+  marginLeft: 6,
+},
+uploadContent: {
+  flexDirection: "row",
+  alignItems: "center",
+},
+imageWrapper: {
+  position: "relative",
+},
+deleteButton: {
+  position: "absolute",
+  top: -6,
+  right: -6,
+  width: 20,
+  height: 20,
+  borderRadius: 10,
+  backgroundColor: "#000",
+  justifyContent: "center",
+  alignItems: "center",
+  zIndex: 1,
+},
+deleteText: {
+  color: "#fff",
+  fontSize: 14,
+  fontWeight: "bold",
+},
+
 });
 
 export default CakeOrderForm;
