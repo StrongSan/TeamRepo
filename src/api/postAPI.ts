@@ -17,14 +17,18 @@ export interface PostPayload {
 }
 
 // 게시글 타입 정의
-export interface Post {
-  postId: number;
+export type Post = {
+  postId: number;            // 👈 이름을 이렇게 맞추자
   title: string;
-  description: string;
-  price: string;
   imageUrl: string;
-  cakeId: number;
-}
+  price: string;
+  description: string;
+  variantId: number;
+  sheetId: number;
+  fillingId: number;
+  sizeId: number;
+  typeId: number;
+};
 
 // ✅ 게시글 등록 (multipart/form-data)
 export const submitPostForm = async (data: PostPayload) => {
@@ -56,8 +60,12 @@ export const submitPostForm = async (data: PostPayload) => {
 // ✅ 전체 게시글 불러오기
 export const fetchAllPosts = async (): Promise<Post[]> => {
   const response = await apiClient.get("/api/cake-posts");
-  return response.data;
+  return response.data.map((item: any) => ({
+    ...item,
+    postId: item.postId ?? item.id, // 💡 핵심: postId가 없으면 id 사용
+  }));
 };
+
 
 // ✅ 추천 Cake ID 리스트 가져오기 (FastAPI)
 export const fetchRecommendedCakeIds = async (): Promise<number[]> => {
@@ -91,4 +99,9 @@ export const resolveVariantId = async (
     console.error("variantId 조회 실패:", error);
     return null;
   }
+};
+// 그.. 그거 주문창 게시글 불러오기
+export const fetchPostById = async (postId: number): Promise<Post> => {
+  const response = await apiClient.get(`/api/cake-posts/${postId}`);
+  return response.data;
 };

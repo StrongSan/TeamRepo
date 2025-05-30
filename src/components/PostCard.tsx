@@ -8,6 +8,7 @@ import type { Post } from "../api/postAPI";
 
 type Props = {
   post: Post;
+  userType: "seller" | "customer";
 };
 
 const PostCard: React.FC<Props> = ({ post }) => {

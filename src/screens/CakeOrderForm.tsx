@@ -7,22 +7,34 @@ import TopBar from "../components/TopBar";
 import OrderFormInput from "../components/OrderFormInput";
 import FormFieldWithDropdown from "../components/FormFieldWithDropdown";
 import OrderButton from "../components/OrderButton";
+import { useRoute, RouteProp } from "@react-navigation/native";
+import { RootStackParamList } from "../navigation/AppNavigator";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import CalendarIcon from "../../assets/icons/calendar-icon.svg";
 import ClockIcon from "../../assets/icons/clock-icon.svg";
-/* 사용 안하는 임포트 
-import UploadButton from "../components/UploadButton";
-import CakeTypeSelection from "../components/CakeTypeSelection";
-import ImageUpload from "../components/ImageUpload";
-*/
 import OrderFlowModal from "../components/OrderFlowModal"; //  주문 모달
 
 import { launchImageLibrary } from "react-native-image-picker";
 import UploadIcon from "../../assets/icons/upload-icon.svg";
 import PlusIcon from "../../assets/icons/bottom-plus.svg";
 
-const CakeOrderForm = () => {
-  const [images, setImages] = useState<string[]>([]);
+/* 사용 안하는 임포트 
+import UploadButton from "../components/UploadButton";
+import CakeTypeSelection from "../components/CakeTypeSelection";
+import ImageUpload from "../components/ImageUpload";
+*/
 
+type CakeOrderFormRouteProp = RouteProp<RootStackParamList, "CakeOrderForm">;
+
+const CakeOrderForm = () => {
+  const route = useRoute<CakeOrderFormRouteProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { postId } = route.params;
+
+  const [images, setImages] = useState<string[]>([]);
+  
+  console.log("주문화면으로 전달된 postId:", postId);
   // 대표 이미지 (1장만 백엔드 보낼 경우)
   const [selectedImage, setSelectedImage] = React.useState<any>(null);
 
@@ -256,6 +268,10 @@ const CakeOrderForm = () => {
         onClose={() => setModalVisible(false)}
         type={modalType}
         cakeName={formData.type + " 케이크"}
+        onNext={() => {
+        setModalVisible(false);
+        navigation.navigate("Payment", { postId });
+      }}
       />
     </SafeAreaView>
   );

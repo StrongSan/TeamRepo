@@ -101,7 +101,10 @@ const loadMore = async () => {
         }
         renderItem={({ item }) =>
           item && (
-            <GridItem post={item} /> // ✅ PostCard로 각 게시글 렌더링
+            <>
+            {console.log("👉 MainScreen에서 넘기는 item:", item)}
+            <GridItem post={item} userType={userType} />
+            </>
           )
         }
         onEndReached={loadMore}

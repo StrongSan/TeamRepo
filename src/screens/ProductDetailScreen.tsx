@@ -31,6 +31,7 @@ const ProductDetailScreen: React.FC = () => {
   const route = useRoute<ProductDetailRouteProp>();
   const { userType, post } = route.params; // ✅ 변경: post 구조분해
 
+  console.log("✅ 전달된 postId:", post.postId);
   return (
     <View style={styles.container}>
       <Header />
@@ -43,7 +44,7 @@ const ProductDetailScreen: React.FC = () => {
           price={post.price}
           description={post.description}
         />
-        <ProductActionButtons userType={userType} />
+        <ProductActionButtons userType={userType} postId={post.postId} />
       </ScrollView>
     </View>
   );
