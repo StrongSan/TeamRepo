@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { RouteProp, useRoute } from "@react-navigation/native";
 
@@ -7,21 +7,15 @@ import ProductImage from "../components/ProductImage";
 import ProductInfo from "../components/ProductInfo";
 import ProductActionButtons from "../components/ProductActionButtons";
 import Header from "../components/Header";
+import { saveViewedCake } from "../api/postAPI";
+import type { Post } from "../api/postAPI"; // ✅ Post 타입 import
 
-
-// ✅ 변경: post 타입 정의
-type Post = {
-  postId: number;
-  title: string;
-  imageUrl: string;
-  price: string;
-  description: string;
-};
-
+// ✅ 네비게이션 파라미터 타입 정의
 type RootStackParamList = {
   ProductDetail: {
     userType: "seller" | "customer";
-    post: Post; // ✅ 변경: post 전체 받기
+    post: Post;       // ✅ variantId 포함된 타입
+    userId: number;   // ✅ 백엔드 전송용 userId
   };
 };
 
@@ -29,13 +23,17 @@ type ProductDetailRouteProp = RouteProp<RootStackParamList, "ProductDetail">;
 
 const ProductDetailScreen: React.FC = () => {
   const route = useRoute<ProductDetailRouteProp>();
-  const { userType, post } = route.params; // ✅ 변경: post 구조분해
+  const { userType, post, userId } = route.params;
 
-  console.log("✅ 전달된 postId:", post.postId);
+  // ✅ 진입 시 조회 기록 저장
+  useEffect(() => {
+    saveViewedCake(userId, post.variantId);
+  }, [post.postId]);
+  console.log("✅ 조회 기록 저장할 variantId:", post.variantId); // 꼭 확인
+
   return (
     <View style={styles.container}>
       <Header />
-
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <SellerHeader />
         <ProductImage uri={post.imageUrl} />

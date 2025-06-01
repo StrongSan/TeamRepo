@@ -1,3 +1,4 @@
+// ✅ MainScreen.tsx (수정 완료본)
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -10,9 +11,10 @@ import {
 
 import TitleSection from "../components/TitleSection";
 import SearchBar from "../components/SearchBar";
-import GridItem from "../components/PostCard"; // ✅ 게시글 카드 컴포넌트
+import GridItem from "../components/PostCard";
 import CustomerBottomBar from "../components/CustomerBottomBar";
 import SellerBottomBar from "../components/SellerBottomBar";
+
 import { useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList } from "../navigation/AppNavigator";
@@ -20,34 +22,26 @@ import type { Post } from "../api/postAPI";
 
 import {
   fetchAllPosts,
-  fetchRecommendedCakeIds,
-  fetchPostsByCakeIds,
+  fetchRecommendedPostsByUserId,
 } from "../api/postAPI";
 
+// ✅ 타입 정의
 type MainScreenRouteProp = RouteProp<RootStackParamList, "MainScreen">;
 
 const MainScreen: React.FC = () => {
   const route = useRoute<MainScreenRouteProp>();
-  const { userType } = route.params || {};
+  const { userType, userId } = route.params || {}; // ✅ userId도 route에서 받음
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [page, setPage] = useState(1); // ✅ 페이징
+  const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const loadInitialPosts = async () => {
-    try {
-      const data = await fetchAllPosts(); // 초기 로딩
-      setPosts(data);
-    } catch (error) {
-      console.error("게시글 불러오기 실패", error);
-    }
-  };
-
+  // 🔁 새로고침 시 호출되는 함수
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      const cakeIds = await fetchRecommendedCakeIds();
-      const recommendedPosts = await fetchPostsByCakeIds(cakeIds);
+      const recommendedPosts = await fetchRecommendedPostsByUserId(userId);
       setPosts(recommendedPosts);
     } catch (error) {
       console.error("추천 게시글 불러오기 실패", error);
@@ -56,28 +50,27 @@ const MainScreen: React.FC = () => {
     }
   };
 
-const loadMore = async () => {
-  if (loadingMore) return;
-
-  setLoadingMore(true);
-  try {
-    const data = await fetchAllPosts();
-    setPosts((prev) => {
-      const existingIds = new Set(prev.map((post) => post.postId));
-      const newUnique = data.filter((post) => !existingIds.has(post.postId));
-      return [...prev, ...newUnique];
-    });
-    setPage((prev) => prev + 1);
-  } catch (e) {
-    console.error("추가 로딩 실패", e);
-  } finally {
-    setLoadingMore(false);
-  }
-};
-
+  // 🔽 무한스크롤용 추가 게시글 로딩
+  const loadMore = async () => {
+    if (loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const data = await fetchAllPosts();
+      setPosts((prev) => {
+        const existingIds = new Set(prev.map((post) => post.postId));
+        const newUnique = data.filter((post) => !existingIds.has(post.postId));
+        return [...prev, ...newUnique];
+      });
+      setPage((prev) => prev + 1);
+    } catch (e) {
+      console.error("추가 로딩 실패", e);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
-    loadInitialPosts();
+    onRefresh(); // 앱 시작 시 자동 로딩
   }, []);
 
   return (
@@ -100,12 +93,7 @@ const loadMore = async () => {
           </View>
         }
         renderItem={({ item }) =>
-          item && (
-            <>
-            {console.log("👉 MainScreen에서 넘기는 item:", item)}
-            <GridItem post={item} userType={userType} />
-            </>
-          )
+          item && <GridItem post={item} userType={userType} />
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.6}

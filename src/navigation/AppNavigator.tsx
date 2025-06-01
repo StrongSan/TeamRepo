@@ -1,3 +1,4 @@
+// ✅ AppNavigator.tsx (수정 완료본)
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/LoginScreen';
@@ -9,7 +10,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import MypageScreen from '../screens/MypageScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
 import CakeOrderForm from '../screens/CakeOrderForm';
-import PaymentScreen from '../screens/PaymentScreen'; // ✅ 추가
+import PaymentScreen from '../screens/PaymentScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -26,10 +27,13 @@ export type RootStackParamList = {
     userType?: 'seller' | 'customer' | null;
     selectedCakes?: number[];
   };
-  MainScreen: { userType: "seller" | "customer" };
+  MainScreen: {
+    userId: number; // ✅ 추가됨
+    userType: 'seller' | 'customer';
+  };
   SellerWriting: undefined;
-  ProfileScreen: { userType: "seller" | "customer" };
-  MypageScreen: { userType: "seller" | "customer" };
+  ProfileScreen: { userType: 'seller' | 'customer' };
+  MypageScreen: { userType: 'seller' | 'customer' };
   ProductDetail: {
     userType: 'seller' | 'customer';
     post: {
@@ -39,9 +43,10 @@ export type RootStackParamList = {
       price: string;
       description: string;
     };
+    userId: number;
   };
   CakeOrderForm: { postId: number };
-  Payment: { postId: number }; // ✅ 추가됨
+  Payment: { postId: number };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

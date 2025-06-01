@@ -27,7 +27,7 @@ const ProfileSetupScreen: React.FC = () => {
   const [selectedCakes, setSelectedCakes] = useState<number[]>([]);
   const [randomCakes, setRandomCakes] = useState<{ variantId: number; imageUrl: string }[]>([]);
 
-  // ✅ 케이크 랜덤 추천 API 호출 (apiClient 사용)
+  // ✅ 케이크 랜덤 추천 API 호출
   useEffect(() => {
     const fetchRandomCakes = async () => {
       try {
@@ -63,16 +63,6 @@ const ProfileSetupScreen: React.FC = () => {
       return;
     }
 
-    navigation.reset({
-      index: 0,
-      routes: [
-        {
-          name: "MainScreen",
-          params: { userType },
-        } as never,
-      ],
-    });
-
     try {
       const response = await submitProfile({
         nickname,
@@ -80,14 +70,27 @@ const ProfileSetupScreen: React.FC = () => {
         userType,
         selectedCakes,
       });
-      console.log("보내는 프로필 데이터:", {
-        nickname,
-        location,
-        userType,
-        selectedCakes,
-      });
+
+      const createdUserId = response.user.userId;
+
+      if (!createdUserId) {
+        throw new Error("userId가 응답에 없습니다.");
+      }
 
       console.log("프로필 저장 성공:", response);
+
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: "MainScreen",
+            params: {
+              userType,
+              userId: createdUserId, // ✅ 여기 핵심!
+            },
+          } as never,
+        ],
+      });
     } catch (error) {
       console.error("프로필 저장 실패:", error);
       Alert.alert("저장 중 오류가 발생했습니다.");

@@ -1,7 +1,7 @@
 // src/components/PostCard.tsx
 import React from "react";
 import { TouchableOpacity, Image, Text, StyleSheet, View } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import type { Post } from "../api/postAPI";
@@ -11,10 +11,8 @@ type Props = {
   userType: "seller" | "customer";
 };
 
-const PostCard: React.FC<Props> = ({ post }) => {
+const PostCard: React.FC<Props> = ({ post, userType }) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const route = useRoute();
-  const { userType } = (route.params as any) || {}; // ✅ userType도 넘겨주기
 
   return (
     <TouchableOpacity
@@ -23,6 +21,7 @@ const PostCard: React.FC<Props> = ({ post }) => {
         navigation.navigate("ProductDetail", {
           post,
           userType,
+          userId: 1, // ✅ userId를 1로 고정
         })
       }
     >
