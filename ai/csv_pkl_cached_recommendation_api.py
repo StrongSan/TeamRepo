@@ -47,6 +47,7 @@ class CakePost(BaseModel):
 # ✅ 추천 API (최소 15개, 최대 25개)
 @app.post("/recommend")
 async def recommend_cakes(request: VariantRequest):
+    print("🔥 [FastAPI] 추천 요청 수신 - variant_ids:", request.variant_ids)
     selected_ids = request.variant_ids
     if not selected_ids:
         return {"recommended_cakes": []}

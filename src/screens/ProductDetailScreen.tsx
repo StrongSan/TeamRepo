@@ -27,7 +27,7 @@ const ProductDetailScreen: React.FC = () => {
 
   // ✅ 진입 시 조회 기록 저장
   useEffect(() => {
-    saveViewedCake(userId, post.variantId);
+    saveViewedCake(userId, post.postId);
   }, [post.postId]);
   console.log("✅ 조회 기록 저장할 variantId:", post.variantId); // 꼭 확인
 

@@ -93,7 +93,7 @@ const MainScreen: React.FC = () => {
           </View>
         }
         renderItem={({ item }) =>
-          item && <GridItem post={item} userType={userType} />
+          item && <GridItem post={item} userType={userType} userId={userId} />
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.6}

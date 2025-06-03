@@ -1,30 +1,31 @@
-// src/components/PostCard.tsx
 import React from "react";
 import { TouchableOpacity, Image, Text, StyleSheet, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import type { Post } from "../api/postAPI";
+import { saveViewedCake } from "../api/postAPI"; // ✅ 추가
 
 type Props = {
   post: Post;
   userType: "seller" | "customer";
+  userId: number; // ✅ userId를 props로 받도록 수정
 };
 
-const PostCard: React.FC<Props> = ({ post, userType }) => {
+const PostCard: React.FC<Props> = ({ post, userType, userId }) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
+  const handlePress = async () => {
+    await saveViewedCake(userId, post.postId); // ✅ 조회 기록 저장
+    navigation.navigate("ProductDetail", {
+      post,
+      userType,
+      userId,
+    });
+  };
+
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() =>
-        navigation.navigate("ProductDetail", {
-          post,
-          userType,
-          userId: 1, // ✅ userId를 1로 고정
-        })
-      }
-    >
+    <TouchableOpacity style={styles.card} onPress={handlePress}>
       <Image source={{ uri: post.imageUrl }} style={styles.image} />
       <View style={styles.textContainer}>
         <Text numberOfLines={1} style={styles.title}>
