@@ -69,6 +69,7 @@ const CakeOrderForm = () => {
     type: "",
     sheet: "",
     filling: "",
+    price: "",
   });
 
   const [selectedCakeTypes, setSelectedCakeTypes] = useState<string[]>([]);
@@ -124,7 +125,7 @@ const CakeOrderForm = () => {
 
   return (
     <SafeAreaView style={styles.safeContainer}>
-      <TopBar title="케이크 주문하기" onBackPress={() => {}} style={{ paddingBottom: 20 }} />
+      <TopBar title="케이크 주문하기" onBackPress={() => navigation.goBack()} style={{ paddingBottom: 20 }} />
 
       <ScrollView style={styles.container}>
         <View style={styles.content}>
@@ -264,15 +265,18 @@ const CakeOrderForm = () => {
 
       {/* ✅ 모달 렌더링 */}
       <OrderFlowModal
+        postId={postId}
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         type={modalType}
-        cakeName={formData.type + " 케이크"}
+        cakeName={`${formData.size || ""} ${formData.filling || ""} ${formData.type || ""} 케이크`.trim()}
+        price={formData.price || "0"}
+        orderDate={new Date().toISOString().split("T")[0]}
         onNext={() => {
-        setModalVisible(false);
-        navigation.navigate("Payment", { postId });
-      }}
-      />
+          setModalVisible(false);
+          navigation.navigate("Payment", { postId });
+  }}
+/>
     </SafeAreaView>
   );
 };

@@ -14,7 +14,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { launchImageLibrary } from "react-native-image-picker";
 import PlusIcon from "../../assets/icons/bottom-plus.svg";
 import UploadIcon from "../../assets/icons/upload-icon.svg";
-
 import TopBar from "../components/TopBar";
 import InputField from "../components/OrderFormInput";
 import SubmitButton from "../components/PrimaryButton";

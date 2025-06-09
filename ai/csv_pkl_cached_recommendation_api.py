@@ -26,15 +26,15 @@ else:
     with open(pickle_path, "wb") as f:
         pickle.dump((df, mlb, tag_vectors, cosine_sim_matrix), f)
 
-# ✅ 추천 요청 모델
+# 추천 요청 모델
 class VariantRequest(BaseModel):
     variant_ids: List[int]
 
-# ✅ 게시글 상세 조회 요청 모델
+# 게시글 상세 조회 요청 모델
 class VariantIdRequest(BaseModel):
     variant_ids: List[int]
 
-# ✅ 게시글 응답 모델
+# 게시글 응답 모델
 class CakePost(BaseModel):
     postId: int
     sellerId: int
@@ -44,10 +44,10 @@ class CakePost(BaseModel):
     price: str
     variantId: int
 
-# ✅ 추천 API (최소 15개, 최대 25개)
+# 추천 API (최소 15개, 최대 25개)
 @app.post("/recommend")
 async def recommend_cakes(request: VariantRequest):
-    print("🔥 [FastAPI] 추천 요청 수신 - variant_ids:", request.variant_ids)
+    print("[FastAPI] 추천 요청 수신 - variant_ids:", request.variant_ids)
     selected_ids = request.variant_ids
     if not selected_ids:
         return {"recommended_cakes": []}
@@ -72,7 +72,7 @@ async def recommend_cakes(request: VariantRequest):
 
     recommended_variant_ids = df.iloc[recommended_indices]["variant_id"].tolist()
 
-    # ✅ 최소 15개 보장: 부족하면 랜덤으로 보완
+    # 최소 15개 보장: 부족하면 랜덤으로 보완
     if len(recommended_variant_ids) < 15:
         already_used = set(selected_ids + recommended_variant_ids)
         remaining_df = df[~df["variant_id"].isin(already_used)]
@@ -84,7 +84,7 @@ async def recommend_cakes(request: VariantRequest):
 
     return {"recommended_cakes": recommended_variant_ids}
 
-# ✅ variant_id 기반 게시글 정보 반환 API
+# variant_id 기반 게시글 정보 반환 API
 @app.post("/posts/by-variants", response_model=List[CakePost])
 async def get_posts_by_variants(request: VariantIdRequest):
     variant_ids = request.variant_ids

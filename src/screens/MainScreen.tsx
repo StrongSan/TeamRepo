@@ -25,19 +25,17 @@ import {
   fetchRecommendedPostsByUserId,
 } from "../api/postAPI";
 
-// ✅ 타입 정의
 type MainScreenRouteProp = RouteProp<RootStackParamList, "MainScreen">;
 
 const MainScreen: React.FC = () => {
   const route = useRoute<MainScreenRouteProp>();
-  const { userType, userId } = route.params || {}; // ✅ userId도 route에서 받음
-
+  const { userType, userId } = route.params || {}; 
   const [posts, setPosts] = useState<Post[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // 🔁 새로고침 시 호출되는 함수
+  // 새로고침 시 호출되는 함수
   const onRefresh = async () => {
     setRefreshing(true);
     try {
@@ -50,7 +48,7 @@ const MainScreen: React.FC = () => {
     }
   };
 
-  // 🔽 무한스크롤용 추가 게시글 로딩
+  // 무한스크롤용 추가 게시글 로딩
   const loadMore = async () => {
     if (loadingMore) return;
     setLoadingMore(true);

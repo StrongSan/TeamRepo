@@ -57,7 +57,6 @@ export const fetchAllPosts = async (): Promise<Post[]> => {
   }));
 };
 
-// ✅ postAPI.ts 수정
 export const fetchRecommendedPostsByUserId = async (
   userId: number
 ): Promise<Post[]> => {

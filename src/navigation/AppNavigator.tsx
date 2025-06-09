@@ -46,7 +46,9 @@ export type RootStackParamList = {
     userId: number;
   };
   CakeOrderForm: { postId: number };
-  Payment: { postId: number };
+  Payment: { 
+    postId: number;
+   };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

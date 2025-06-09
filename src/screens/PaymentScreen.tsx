@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, SafeAreaView } from "react-native";
-import { useRoute, RouteProp } from "@react-navigation/native";
+import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
 import TopBar from "../components/TopBar";
 import OrderCard from "../components/OrderCard";
 import KakaoPayButton from "../components/KakaoPayButton";
 import { RootStackParamList } from "../navigation/AppNavigator";
-import { fetchPostById } from "../api/postAPI"; // ✅ 게시글 하나 불러오는 API
+import { fetchPostById } from "../api/postAPI";
+import OrderFlowModal from "../components/OrderFlowModal";
 
 type PaymentRouteProp = RouteProp<RootStackParamList, "Payment">;
 
 const PaymentScreen: React.FC = () => {
+  const navigation = useNavigation();
   const route = useRoute<PaymentRouteProp>();
-  const { postId } = route.params ?? {}; // ❗ null-safe 처리
+  const { postId } = route.params;
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalType, setModalType] = useState<'requested' | 'approved' | 'success'>('success');
 
   const [post, setPost] = useState<{
     title: string;
@@ -60,25 +65,43 @@ const PaymentScreen: React.FC = () => {
     totalPrice: post.price,
   };
 
+  const handleOrderDetails = () => {};
+  const handleInquiry = () => {};
+  const handlePayment = () => {
+    setModalType("success");
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => setModalVisible(false);
+
+  const handleNext = () => {
+    setModalVisible(false);
+    // TODO: 주문 완료 이후 동작 (예: 메인으로 이동)
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <TopBar title="결제하기" onBackPress={() => {}} />
+      <TopBar title="결제하기" onBackPress={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.orderCount}>주문 케이크 총 1개</Text>
         <View style={styles.content}>
           <OrderCard
             orderDetails={orderDetails}
-            onOrderDetails={() => {
-              console.log("주문 상세 보기 눌림");
-          }}
-            onInquiry={() => {
-              console.log("문의하기 눌림");
-          }}
-/>
-
-          <KakaoPayButton onPress={() => {}} />
+            onOrderDetails={handleOrderDetails}
+            onInquiry={handleInquiry}
+          />
+          <KakaoPayButton onPress={handlePayment} />
         </View>
       </ScrollView>
+      <OrderFlowModal
+        visible={modalVisible}
+        onClose={handleCloseModal}
+        type={modalType}
+        cakeName={post.title} // ✅ 정확한 제목 전달
+        price={post.price}     // ✅ 정확한 가격 전달
+        postId={postId}
+        orderDate={orderDetails.orderDate} // ✅ 주문일시도 같이 전달
+        onNext={handleNext}
+      />
     </SafeAreaView>
   );
 };

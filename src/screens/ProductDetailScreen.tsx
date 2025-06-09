@@ -8,14 +8,14 @@ import ProductInfo from "../components/ProductInfo";
 import ProductActionButtons from "../components/ProductActionButtons";
 import Header from "../components/Header";
 import { saveViewedCake } from "../api/postAPI";
-import type { Post } from "../api/postAPI"; // ✅ Post 타입 import
+import type { Post } from "../api/postAPI"; //  Post 타입 import
 
-// ✅ 네비게이션 파라미터 타입 정의
+// 네비게이션 파라미터 타입 정의
 type RootStackParamList = {
   ProductDetail: {
     userType: "seller" | "customer";
-    post: Post;       // ✅ variantId 포함된 타입
-    userId: number;   // ✅ 백엔드 전송용 userId
+    post: Post;       // variantId 포함된 타입
+    userId: number;   // 백엔드 전송용 userId
   };
 };
 
@@ -25,12 +25,11 @@ const ProductDetailScreen: React.FC = () => {
   const route = useRoute<ProductDetailRouteProp>();
   const { userType, post, userId } = route.params;
 
-  // ✅ 진입 시 조회 기록 저장
+  // 진입 시 조회 기록 저장
   useEffect(() => {
     saveViewedCake(userId, post.postId);
   }, [post.postId]);
-  console.log("✅ 조회 기록 저장할 variantId:", post.variantId); // 꼭 확인
-
+  console.log(" 조회 기록 저장 variantId:", post.variantId);
   return (
     <View style={styles.container}>
       <Header />

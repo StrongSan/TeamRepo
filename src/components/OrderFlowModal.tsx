@@ -4,16 +4,33 @@ import OrderRequestIcon from '../../assets/icons/order-request.svg';
 import OrderApprovedIcon from '../../assets/icons/order-approved.svg';
 import OrderSuccessIcon from '../../assets/icons/order-success.svg';
 
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
+
 interface Props {
   visible: boolean;
   onClose: () => void;
   type: 'requested' | 'approved' | 'success';
   cakeName: string;
   price?: string;
+  postId: number;
   onNext?: () => void;
+  orderDate?: string; // ✅ 추가
 }
 
-const OrderFlowModal: React.FC<Props> = ({ visible, onClose, type, cakeName, price, onNext }) => {
+const OrderFlowModal: React.FC<Props> = ({
+  visible,
+  onClose,
+  type,
+  cakeName,
+  price,
+  postId,
+  onNext,
+  orderDate,
+}) => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
   const renderContent = () => {
     switch (type) {
       case 'requested':
@@ -21,10 +38,21 @@ const OrderFlowModal: React.FC<Props> = ({ visible, onClose, type, cakeName, pri
           icon: <OrderRequestIcon width={56} height={56} />,
           title: '주문 요청이 완료되었어요!',
           sub: '사장님이 승인하면 알려드릴게요',
-            buttons: [
-               { label: '결제하기', onPress: onNext },
-               { label: '확인', onPress: onClose, outline: true },
-                ],
+          buttons: [
+            {
+              label: '주문내역 보기',
+              onPress: onNext,
+            },
+            {
+              label: '결제하기',
+              onPress: () => {
+                navigation.navigate('Payment', {
+                  postId,
+                });
+              },
+              outline: true,
+            },
+          ],
         };
       case 'approved':
         return {
@@ -51,43 +79,51 @@ const OrderFlowModal: React.FC<Props> = ({ visible, onClose, type, cakeName, pri
 
   const content = renderContent();
 
-return (
-  <Modal visible={visible} transparent animationType="fade">
-    <View style={styles.overlay}>
-      <View style={styles.modalBox}>
-        
-        {/* 오른쪽 상단 X 버튼 */}
-        <Pressable onPress={onClose} style={styles.closeButton}>
-          <Text style={styles.closeButtonText}>×</Text>
-        </Pressable>
-        
-        <View style={styles.iconBox}>{content.icon}</View>
-
-        <Text style={styles.title}>{content.title}</Text>
-        <Text style={styles.sub}>{content.sub}</Text>
-
-        <View style={styles.detailBox}>
-          <View style={styles.row}><Text style={styles.label}>주문 내역</Text></View>
-          <View style={styles.row}>
-            <Text>{cakeName}</Text>
-            {price && <Text>{price}</Text>}
-          </View>
-        </View>
-
-        {content.buttons.map((btn, idx) => (
-          <Pressable
-            key={idx}
-            style={[styles.button, btn.outline && styles.outlineButton]}
-            onPress={btn.onPress}
-          >
-            <Text style={[styles.buttonText, btn.outline && styles.outlineText]}>{btn.label}</Text>
+  return (
+    <Modal visible={visible} transparent animationType="fade">
+      <View style={styles.overlay}>
+        <View style={styles.modalBox}>
+          {/* 오른쪽 상단 X 버튼 */}
+          <Pressable onPress={onClose} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>×</Text>
           </Pressable>
-        ))}
-      </View>
-    </View>
-  </Modal>
-);
 
+          <View style={styles.iconBox}>{content.icon}</View>
+
+          <Text style={styles.title}>{content.title}</Text>
+          <Text style={styles.sub}>{content.sub}</Text>
+
+          {/* ✅ 주문내역 영역 */}
+          <View style={styles.detailBox}>
+            <View style={styles.row}>
+              <Text style={styles.label}>주문일시</Text>
+              <Text>{orderDate ?? new Date().toISOString().split('T')[0]}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>주문내역</Text>
+              <Text>{cakeName}</Text>
+            </View>
+            {price && (
+              <View style={styles.row}>
+                <Text style={styles.label}>결제금액</Text>
+                <Text>{parseInt(price).toLocaleString()}원</Text>
+              </View>
+            )}
+          </View>
+
+          {content.buttons.map((btn, idx) => (
+            <Pressable
+              key={idx}
+              style={[styles.button, btn.outline && styles.outlineButton]}
+              onPress={btn.onPress}
+            >
+              <Text style={[styles.buttonText, btn.outline && styles.outlineText]}>{btn.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+    </Modal>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -141,7 +177,7 @@ const styles = StyleSheet.create({
   outlineText: {
     color: '#E78182',
   },
-    closeButton: {
+  closeButton: {
     position: 'absolute',
     top: 12,
     right: 12,
@@ -153,15 +189,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#aaa',
   },
-
   iconBox: {
-  marginTop: 30,
-  marginBottom: 30,
-  alignItems: 'center',
-  justifyContent: 'center',
-}
-
-
+    marginTop: 30,
+    marginBottom: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
 
 export default OrderFlowModal;
