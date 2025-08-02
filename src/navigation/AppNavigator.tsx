@@ -11,6 +11,7 @@ import MypageScreen from '../screens/MypageScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
 import CakeOrderForm from '../screens/CakeOrderForm';
 import PaymentScreen from '../screens/PaymentScreen';
+import KakaoLoginTestScreen from '../screens/KakaoLoginTestScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -49,11 +50,13 @@ export type RootStackParamList = {
   Payment: { 
     postId: number;
    };
+   KakaoLoginTest: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => (
+  
   <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
@@ -65,6 +68,7 @@ const AppNavigator = () => (
     <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
     <Stack.Screen name="CakeOrderForm" component={CakeOrderForm} />
     <Stack.Screen name="Payment" component={PaymentScreen} />
+    <Stack.Screen name="KakaoLoginTest" component={KakaoLoginTestScreen} />
   </Stack.Navigator>
 );
 

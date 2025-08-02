@@ -11,6 +11,27 @@
       android:allowBackup="false"
       android:theme="@style/AppTheme"
       android:supportsRtl="true">
+
+      <!-- ✅ 카카오 SDK 앱 키 등록 -->
+      <meta-data
+        android:name="com.kakao.sdk.AppKey"
+        android:value="5ae018f7eea7593b18cdc2b2c6ed1bb7" />
+
+      <!-- ✅ 카카오 인증 중간 처리 Activity -->
+      <activity
+        android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+        android:exported="true">
+        <intent-filter>
+          <action android:name="android.intent.action.VIEW" />
+          <category android:name="android.intent.category.DEFAULT" />
+          <category android:name="android.intent.category.BROWSABLE" />
+          <data 
+            android:scheme="kakao5ae018f7eea7593b18cdc2b2c6ed1bb7"
+            android:host="oauth" />
+        </intent-filter>
+      </activity>
+
+      <!-- ✅ MainActivity: 앱 진입점 -->
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
@@ -18,10 +39,13 @@
         android:launchMode="singleTask"
         android:windowSoftInputMode="adjustResize"
         android:exported="true">
+
+        <!-- 앱 실행용 -->
         <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
+          <action android:name="android.intent.action.MAIN" />
+          <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
+
       </activity>
     </application>
 </manifest>

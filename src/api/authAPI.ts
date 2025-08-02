@@ -5,7 +5,7 @@ import { BASE_URL } from "./config"; // 혹시 BASE_URL이 필요할 경우 대�
 export const loginWithKakao = async (kakaoAccessToken: string) => {
   try {
     const response = await apiClient.post("/auth/kakao", {
-      token: kakaoAccessToken,
+      accessToken: kakaoAccessToken,
     });
 
     console.log("응답:", response.data); // { nickname, token }
