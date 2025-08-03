@@ -13,29 +13,48 @@ export const useKakaoLogin = () => {
   
   const handleKakaoLogin = useCallback(async () => {
     try {
-      console.log('🟡 [카카오 로그인 시도] 시작');
-      console.log('🔧 현재 환경:', __DEV__ ? '개발' : '프로덕션');
+      console.log(' [카카오 로그인 시도] 시작');
+      console.log(' 현재 환경:', __DEV__ ? '개발' : '프로덕션');
       
       // 실제 카카오 로그인 시도
       console.log('📱 실제 카카오 로그인 시도...');
       
       const result = await KakaoNativeLogin.login();
       
-      console.log('✅ 카카오 로그인 성공');
-      console.log('🎉 액세스 토큰 (전체):', result.accessToken);
-      console.log('🎉 리프레시 토큰 (전체):', result.refreshToken);
-      console.log('🎉 만료 시간:', result.expiresAt);
-      console.log('🎉 스코프:', result.scopes);
+      console.log(' 카카오 로그인 성공');
+      console.log(' 액세스 토큰 (전체):', result.accessToken);
+      console.log(' 리프레시 토큰 (전체):', result.refreshToken);
+      console.log(' 만료 시간:', result.expiresAt);
+      console.log(' 스코프:', result.scopes);
       
-      // 로그인 성공 시 ProfileSetupScreen으로 이동
-      console.log('🔄 ProfileSetupScreen으로 이동...');
-      navigation.navigate('ProfileSetup', {});
-      console.log('✅ ProfileSetupScreen 이동 완료');
+      // 사용자 프로필 정보 가져오기 (고유 ID 포함)
+      console.log(' 사용자 프로필 정보 조회 중...');
+      const profile = await KakaoNativeLogin.getProfile();
       
-      console.log('🎉 카카오 로그인 프로세스 완료');
+      console.log(' 사용자 프로필 조회 성공');
+      console.log(' 카카오 사용자 고유 ID:', profile.id);
+      console.log(' 닉네임:', profile.nickname);
+      console.log(' 이메일:', profile.email);
+      console.log(' 프로필 이미지:', profile.profileImage);
+      console.log(' 썸네일 이미지:', profile.thumbnailImage);
+      
+      // 백엔드로 액세스 토큰 전달
+      console.log('🌐 백엔드로 액세스 토큰 전송 중...');
+      const backendResponse = await loginWithKakao(result.accessToken);
+      
+      console.log('✅ 백엔드 응답 성공:', backendResponse);
+      
+      // 백엔드에서 받은 사용자 정보로 MainScreen 이동
+      console.log('✅ 로그인 완료 - MainScreen으로 이동');
+      navigation.navigate('MainScreen', {
+        userId: backendResponse.user?.id || parseInt(profile.id),
+        userType: backendResponse.user?.userType || 'customer',
+      });
+      
+      console.log(' 카카오 로그인 프로세스 완료');
       
     } catch (error) {
-      console.error('❌ 카카오 로그인 실패:', error);
+      console.error(' 카카오 로그인 실패:', error);
       
       let errorMessage = '카카오 로그인 중 오류가 발생했습니다.';
       
