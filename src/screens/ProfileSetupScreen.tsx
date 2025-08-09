@@ -12,7 +12,7 @@ import UserTypeSection from "../components/UserTypeSection";
 import CakePreferencesSection from "../components/CakePreferencesSection";
 import PrimaryButton from "../components/PrimaryButton";
 
-import { submitProfile } from "../api/profileAPI";
+import { registerKakaoUser } from "../api/authAPI"; // ✅ 카카오 회원가입 API
 import apiClient from "../api/apiClient"; // ✅ axios 인스턴스
 
 type ProfileSetupRouteProp = RouteProp<RootStackParamList, "ProfileSetup">;
@@ -42,11 +42,12 @@ const ProfileSetupScreen: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const { location, nickname, userType, selectedCakes } = route.params || {};
+    const { location, nickname, userType, selectedCakes, kakaoId, profileImg } = route.params || {};
     if (location) setLocation(location);
     if (nickname) setNickname(nickname);
     if (userType !== undefined) setUserType(userType);
     if (selectedCakes) setSelectedCakes(selectedCakes);
+    // kakaoId와 profileImg는 상태로 관리하지 않고 route.params에서 직접 사용
   }, [route.params]);
 
   const handleCakeSelection = (variantId: number) => {
@@ -64,20 +65,31 @@ const ProfileSetupScreen: React.FC = () => {
     }
 
     try {
-      const response = await submitProfile({
+      // 카카오 회원가입만 처리 (kakaoId는 필수)
+      const { kakaoId } = route.params || {};
+      
+      if (!kakaoId) {
+        Alert.alert("오류", "카카오 로그인 정보가 없습니다.");
+        return;
+      }
+
+      console.log("🎯 카카오 회원가입 진행:", { kakaoId, nickname, location, userType });
+      
+      const response = await registerKakaoUser(
+        kakaoId,
         nickname,
         location,
         userType,
-        selectedCakes,
-      });
+        selectedCakes
+      );
 
-      const createdUserId = response.user.userId;
+      const createdUserId = response.user?.userId || response.user?.id;
 
       if (!createdUserId) {
         throw new Error("userId가 응답에 없습니다.");
       }
 
-      console.log("프로필 저장 성공:", response);
+      console.log("카카오 회원가입 성공:", response);
 
       navigation.reset({
         index: 0,
@@ -86,14 +98,14 @@ const ProfileSetupScreen: React.FC = () => {
             name: "MainScreen",
             params: {
               userType,
-              userId: createdUserId, // ✅ 여기 핵심!
+              userId: createdUserId,
             },
           } as never,
         ],
       });
     } catch (error) {
-      console.error("프로필 저장 실패:", error);
-      Alert.alert("저장 중 오류가 발생했습니다.");
+      console.error("카카오 회원가입 실패:", error);
+      Alert.alert("회원가입 중 오류가 발생했습니다.");
     }
   };
 

@@ -44,12 +44,27 @@ export const useKakaoLogin = () => {
       
       console.log('✅ 백엔드 응답 성공:', backendResponse);
       
-      // 백엔드에서 받은 사용자 정보로 MainScreen 이동
-      console.log('✅ 로그인 완료 - MainScreen으로 이동');
-      navigation.navigate('MainScreen', {
-        userId: backendResponse.user?.id || parseInt(profile.id),
-        userType: backendResponse.user?.userType || 'customer',
-      });
+      // 백엔드 응답에 따른 분기 처리
+      if (backendResponse.status === 'NEED_REGISTER') {
+        console.log('🆕 신규 사용자 - 회원가입 필요');
+        // ProfileSetupScreen으로 이동 (회원가입 정보 입력)
+        navigation.navigate('ProfileSetup', {
+          kakaoId: profile.id,
+          nickname: profile.nickname || '',
+          profileImg: profile.profileImage || '',
+        });
+      } else if (backendResponse.status === 'OK') {
+        console.log('✅ 기존 사용자 - 로그인 완료');
+        // MainScreen으로 이동 (백엔드에서 받은 정보 사용)
+        navigation.navigate('MainScreen', {
+          userId: backendResponse.user?.id || parseInt(profile.id),
+          userType: backendResponse.user?.userType || 'customer',
+        });
+      } else {
+        // 예상치 못한 응답
+        console.warn('⚠️ 예상치 못한 백엔드 응답:', backendResponse);
+        Alert.alert('오류', '로그인 처리 중 문제가 발생했습니다.');
+      }
       
       console.log(' 카카오 로그인 프로세스 완료');
       

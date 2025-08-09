@@ -27,6 +27,8 @@ export type RootStackParamList = {
     nickname?: string;
     userType?: 'seller' | 'customer' | null;
     selectedCakes?: number[];
+    kakaoId?: string;
+    profileImg?: string;
   };
   MainScreen: {
     userId: number; // ✅ 추가됨

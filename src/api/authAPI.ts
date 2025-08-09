@@ -16,6 +16,31 @@ export const loginWithKakao = async (kakaoAccessToken: string) => {
   }
 };
 
+// ✅ 카카오 회원가입 요청 (신규 사용자)
+export const registerKakaoUser = async (
+  kakaoId: string,
+  nickname: string,
+  location: string,
+  userType: string,
+  selectedCakes: number[]
+) => {
+  try {
+    const response = await apiClient.post("/api/users/kakao/register", {
+      kakaoId: parseInt(kakaoId),
+      nickname: nickname,
+      location: location,
+      userType: userType,
+      selectedCakes: selectedCakes,
+    });
+
+    console.log("카카오 회원가입 응답:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("[카카오 회원가입 실패]", error);
+    throw error;
+  }
+};
+
 // ✅ 네이버 로그인 요청
 export const loginWithNaver = async (naverToken: string) => {
   try {
