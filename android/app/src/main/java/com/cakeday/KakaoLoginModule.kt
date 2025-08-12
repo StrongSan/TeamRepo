@@ -2,6 +2,7 @@ package com.cakeday
 
 import android.app.Activity
 import android.content.Intent
+import android.util.Log
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.kakao.sdk.auth.AuthApiClient
@@ -9,6 +10,7 @@ import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
+import com.kakao.sdk.auth.TokenManagerProvider
 import kotlinx.coroutines.*
 
 class KakaoLoginModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -149,21 +151,34 @@ class KakaoLoginModule(reactContext: ReactApplicationContext) : ReactContextBase
     @ReactMethod
     fun getProfile(promise: Promise) {
         try {
+            Log.d("KakaoLoginModule", "getProfile 시작")
+            
             UserApiClient.instance.me { user, error ->
                 if (error != null) {
+                    Log.e("KakaoLoginModule", "getProfile error: ${error.message}")
                     promise.reject("PROFILE_ERROR", error.message ?: "Unknown error")
                 } else {
+                    Log.d("KakaoLoginModule", "getProfile user: $user")
+                    Log.d("KakaoLoginModule", "getProfile user.id: ${user?.id}")
+                    Log.d("KakaoLoginModule", "getProfile user.id type: ${user?.id?.javaClass}")
+                    
+                    val userId = user?.id?.toString() ?: ""
+                    Log.d("KakaoLoginModule", "getProfile userId: $userId")
+                    
                     val result = Arguments.createMap().apply {
-                        putString("id", user?.id?.toString() ?: "")
+                        putString("id", userId)
                         putString("nickname", user?.kakaoAccount?.profile?.nickname ?: "")
                         putString("email", user?.kakaoAccount?.email ?: "")
                         putString("profileImage", user?.kakaoAccount?.profile?.profileImageUrl ?: "")
                         putString("thumbnailImage", user?.kakaoAccount?.profile?.thumbnailImageUrl ?: "")
                     }
+                    
+                    Log.d("KakaoLoginModule", "getProfile result: $result")
                     promise.resolve(result)
                 }
             }
         } catch (e: Exception) {
+            Log.e("KakaoLoginModule", "getProfile exception: ${e.message}")
             promise.reject("PROFILE_ERROR", "Exception during getProfile: ${e.message}")
         }
     }

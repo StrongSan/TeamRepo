@@ -30,6 +30,7 @@ const RegionSelectionScreen: React.FC = () => {
       nickname: previousData?.nickname,
       userType: previousData?.userType,
       selectedCakes: previousData?.selectedCakes,
+      kakaoId: previousData?.kakaoId, // ✅ kakaoId 전달
     });
   };
     return (

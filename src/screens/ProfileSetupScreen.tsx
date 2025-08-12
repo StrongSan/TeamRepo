@@ -26,6 +26,7 @@ const ProfileSetupScreen: React.FC = () => {
   const [userType, setUserType] = useState<"seller" | "customer" | null>(null);
   const [selectedCakes, setSelectedCakes] = useState<number[]>([]);
   const [randomCakes, setRandomCakes] = useState<{ variantId: number; imageUrl: string }[]>([]);
+  const [kakaoId, setKakaoId] = useState<string>(""); // ✅ kakaoId 상태 추가
 
   // ✅ 케이크 랜덤 추천 API 호출
   useEffect(() => {
@@ -42,13 +43,20 @@ const ProfileSetupScreen: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const { location, nickname, userType, selectedCakes, kakaoId, profileImg } = route.params || {};
+    const { location, nickname, userType, selectedCakes, kakaoId: routeKakaoId, profileImg } = route.params || {};
+    console.log('🔍 ProfileSetup useEffect - route.params:', route.params);
+    console.log('🔍 ProfileSetup useEffect - routeKakaoId:', routeKakaoId);
+    console.log('🔍 ProfileSetup useEffect - routeKakaoId 타입:', typeof routeKakaoId);
+    
     if (location) setLocation(location);
     if (nickname) setNickname(nickname);
     if (userType !== undefined) setUserType(userType);
     if (selectedCakes) setSelectedCakes(selectedCakes);
-    // kakaoId와 profileImg는 상태로 관리하지 않고 route.params에서 직접 사용
-  }, [route.params]);
+    if (routeKakaoId && !kakaoId) { // ✅ kakaoId가 없을 때만 설정
+      console.log('🔍 ProfileSetup - kakaoId 상태 설정:', routeKakaoId);
+      setKakaoId(routeKakaoId);
+    }
+  }, [route.params, kakaoId]); // ✅ kakaoId 의존성 추가
 
   const handleCakeSelection = (variantId: number) => {
     if (selectedCakes.includes(variantId)) {
@@ -66,7 +74,9 @@ const ProfileSetupScreen: React.FC = () => {
 
     try {
       // 카카오 회원가입만 처리 (kakaoId는 필수)
-      const { kakaoId } = route.params || {};
+      console.log(" ProfileSetup - route.params:", route.params);
+      console.log(" ProfileSetup - kakaoId 상태:", kakaoId);
+      console.log(" ProfileSetup - kakaoId 타입:", typeof kakaoId);
       
       if (!kakaoId) {
         Alert.alert("오류", "카카오 로그인 정보가 없습니다.");
@@ -74,6 +84,7 @@ const ProfileSetupScreen: React.FC = () => {
       }
 
       console.log("🎯 카카오 회원가입 진행:", { kakaoId, nickname, location, userType });
+      console.log("🎯 selectedCakes:", selectedCakes);
       
       const response = await registerKakaoUser(
         kakaoId,
@@ -128,15 +139,16 @@ const ProfileSetupScreen: React.FC = () => {
             value={location}
             onChangeText={setLocation}
             showArrow
-            onPressArrow={() =>
-              navigation.navigate("RegionSelection", {
-                previousData: {
-                  nickname,
-                  userType,
-                  selectedCakes,
-                },
-              })
-            }
+                         onPressArrow={() =>
+               navigation.navigate("RegionSelection", {
+                 previousData: {
+                   nickname,
+                   userType,
+                   selectedCakes,
+                   kakaoId, // ✅ kakaoId 추가
+                 },
+               })
+             }
           />
         </View>
 

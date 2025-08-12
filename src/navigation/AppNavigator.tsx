@@ -20,6 +20,7 @@ export type RootStackParamList = {
       nickname: string;
       userType: 'seller' | 'customer' | null;
       selectedCakes: number[];
+      kakaoId?: string; // ✅ kakaoId 추가
     };
   };
   ProfileSetup: {

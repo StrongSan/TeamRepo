@@ -25,6 +25,14 @@ export const registerKakaoUser = async (
   selectedCakes: number[]
 ) => {
   try {
+    console.log("📤 백엔드로 전송할 데이터:", {
+      kakaoId: parseInt(kakaoId),
+      nickname,
+      location,
+      userType,
+      selectedCakes,
+    });
+    
     const response = await apiClient.post("/api/users/kakao/register", {
       kakaoId: parseInt(kakaoId),
       nickname: nickname,
@@ -33,7 +41,8 @@ export const registerKakaoUser = async (
       selectedCakes: selectedCakes,
     });
 
-    console.log("카카오 회원가입 응답:", response.data);
+    console.log("📥 카카오 회원가입 응답:", response.data);
+    console.log("📥 응답 상태:", response.status);
     return response.data;
   } catch (error) {
     console.error("[카카오 회원가입 실패]", error);
