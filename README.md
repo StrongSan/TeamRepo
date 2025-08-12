@@ -112,3 +112,8 @@ MainScreen 임시 사진 입력
     - 글 상세보기는 전체 이미지 전부 전달하는 코드 작성 (백엔드도 테이블 만들어야함)
     - CakePostImage라는 서브 테이블 만들어서,
       cake_post_id로 연결하면 좋음
+
+      
+8/12
+1. PhoneAuthScreen 제작
+2. AppNavigator 수정

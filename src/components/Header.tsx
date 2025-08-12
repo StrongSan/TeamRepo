@@ -3,40 +3,32 @@ import {
   View,
   StyleSheet,
   TouchableOpacity,
-  StatusBar,
-  SafeAreaView,
   Platform,
+  StatusBar,
 } from "react-native";
 import AllowLeft from "../../assets/icons/allowLeft.svg";
+import { useNavigation } from "@react-navigation/native";
 
 const Header = () => {
+  const navigation = useNavigation();
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
-      />
-      <View style={styles.headerContainer}>
-        <TouchableOpacity>
-          <AllowLeft width={24} height={24} />
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+    <View style={styles.headerContainer}>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <AllowLeft width={24} height={24} />
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: "#fff",
-  },
   headerContainer: {
-    flexDirection: "row",       // 가로 정렬
-    alignItems: "center",       // 세로 중앙 정렬
-    justifyContent: "flex-start", // 왼쪽 정렬
-    height: 60,
+    backgroundColor: "#fff",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
     paddingHorizontal: 16,
-    paddingBottom: 0,
-    marginBottom: 0
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
 });
 

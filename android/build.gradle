@@ -10,11 +10,23 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        // ✅ 카카오 SDK 저장소 추가
+        maven { url 'https://devrepo.kakao.com/nexus/content/groups/public/' }
     }
     dependencies {
         classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+    }
+}
+
+// ✅ 추가 위치 #2: 프로젝트 전역에 적용될 저장소들
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        // ✅ 카카오 SDK 저장소 다시 한 번 추가 (확실하게)
+        maven { url 'https://devrepo.kakao.com/nexus/content/groups/public/' }
     }
 }
 

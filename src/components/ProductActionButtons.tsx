@@ -1,11 +1,17 @@
 import React from "react";
 import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../navigation/AppNavigator";
 
 type Props = {
   userType: "seller" | "customer";
+  postId: number;
 };
 
-const ProductActionButtons: React.FC<Props> = ({ userType }) => {
+const ProductActionButtons: React.FC<Props> = ({ userType, postId }) => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
   return (
     <View style={styles.container}>
       {userType === "seller" ? (
@@ -22,7 +28,10 @@ const ProductActionButtons: React.FC<Props> = ({ userType }) => {
           <TouchableOpacity style={styles.outlineButton}>
             <Text style={styles.outlineButtonText}>문의하기</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.filledButton}>
+          <TouchableOpacity
+            style={styles.filledButton}
+            onPress={() => navigation.navigate("CakeOrderForm", { postId })}
+          >
             <Text style={styles.filledButtonText}>주문하기</Text>
           </TouchableOpacity>
         </>

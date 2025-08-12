@@ -1,37 +1,24 @@
 import React from "react";
-import { View, Text, StyleSheet, FlatList, Image } from "react-native";
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
 import CheckboxCard from "./CheckboxCard";
 import ProfileCakeIcon from "../../assets/icons/profileCake-icon.svg";
 
-interface CakePreferencesSectionProps {
-  selectedCakes: number[];
-  onSelectCake: (index: number) => void;
+interface Cake {
+  variantId: number;
+  imageUrl: string;
 }
 
-const cakeImages = [
-  require("../../assets/images/pre_cho1.jpg"),
-  require("../../assets/images/pre_cho2.jpg"),
-  require("../../assets/images/pre_stcho.jpg"),
-  require("../../assets/images/pre_figure.jpg"),
-  require("../../assets/images/pre_letter.jpg"),
-  require("../../assets/images/pre_flower.jpg"),
-  require("../../assets/images/pre_fru.jpg"),
-  require("../../assets/images/pre_rice.jpg"),
-]
+interface CakePreferencesSectionProps {
+  cakeOptions: Cake[];
+  selectedCakes: number[];
+  onSelectCake: (variantId: number) => void;
+}
 
 const CakePreferencesSection: React.FC<CakePreferencesSectionProps> = ({
+  cakeOptions,
   selectedCakes,
   onSelectCake,
 }) => {
-  
-
-
-  const cakeOptions = cakeImages.map((img, index) => ({
-    id: index,
-    image: img,
-    selected: selectedCakes.includes(index),
-  }));
-
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
@@ -48,12 +35,12 @@ const CakePreferencesSection: React.FC<CakePreferencesSectionProps> = ({
           numColumns={2}
           renderItem={({ item }) => (
             <CheckboxCard
-              selected={item.selected}
-              image={item.image}
-              onSelect={() => onSelectCake(item.id)}
+              selected={selectedCakes.includes(item.variantId)}
+              image={{ uri: item.imageUrl }} // ✅ URI 방식으로 이미지 처리
+              onSelect={() => onSelectCake(item.variantId)}
             />
           )}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.variantId.toString()}
           scrollEnabled={false}
           contentContainerStyle={styles.gridContent}
         />

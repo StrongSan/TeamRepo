@@ -18,7 +18,7 @@ const SellerBottomBar: React.FC = () => {
       <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("MainScreen", { userType: "seller" })}>        
         <HomeIcon width={28} height={28} fill="#E78182" />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("MailScreen")}>
+       <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("MailScreen")}> 
         <MailIcon width={30} height={30} />
       </TouchableOpacity>
       <TouchableOpacity style={[styles.navIcon, styles.homeIconContainer]} onPress={() => navigation.navigate("SellerWriting")}>
