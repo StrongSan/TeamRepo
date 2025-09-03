@@ -97,7 +97,7 @@ const MainScreen: React.FC = () => {
         onEndReachedThreshold={0.6}
         contentContainerStyle={{ paddingBottom: 100 }}
       />
-      {userType === "seller" ? <SellerBottomBar /> : <CustomerBottomBar />}
+      {userType === "seller" ? <SellerBottomBar userId={userId} /> : <CustomerBottomBar userId={userId} />}
     </SafeAreaView>
   );
 };

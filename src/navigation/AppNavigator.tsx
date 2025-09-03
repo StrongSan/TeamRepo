@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/LoginScreen';
 import ProfileSetupScreen from '../screens/ProfileSetupScreen';
 import RegionSelectionScreen from '../screens/RegionSelectionScreen';
+import PhoneAuthScreen from '../screens/PhoneAuthScreen';
 import MainScreen from '../screens/MainScreen';
 import SellerWriting from '../screens/SellerWriting';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -11,7 +12,7 @@ import MypageScreen from '../screens/MypageScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
 import CakeOrderForm from '../screens/CakeOrderForm';
 import PaymentScreen from '../screens/PaymentScreen';
-import KakaoLoginTestScreen from '../screens/KakaoLoginTestScreen';
+import WishListScreen from '../screens/WishListScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -31,13 +32,19 @@ export type RootStackParamList = {
     kakaoId?: string;
     profileImg?: string;
   };
+  PhoneAuth: { 
+    userId: string; 
+    kakaoId: string; 
+    nickname: string; 
+    profileImg?: string; 
+  };
   MainScreen: {
-    userId: number; // ✅ 추가됨
-    userType: 'seller' | 'customer';
+  userId: string; 
+  userType: 'seller' | 'customer';
   };
   SellerWriting: undefined;
-  ProfileScreen: { userType: 'seller' | 'customer' };
-  MypageScreen: { userType: 'seller' | 'customer' };
+  ProfileScreen: { userType: 'seller' | 'customer'; userId: string };
+  MypageScreen: { userType: 'seller' | 'customer'; userId: string };
   ProductDetail: {
     userType: 'seller' | 'customer';
     post: {
@@ -47,13 +54,13 @@ export type RootStackParamList = {
       price: string;
       description: string;
     };
-    userId: number;
+    userId: string;
   };
   CakeOrderForm: { postId: number };
   Payment: { 
     postId: number;
    };
-   KakaoLoginTest: undefined;
+   WishList: { userId: string; userType: 'seller' | 'customer' };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -64,6 +71,7 @@ const AppNavigator = () => (
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
     <Stack.Screen name="RegionSelection" component={RegionSelectionScreen} />
+    <Stack.Screen name="PhoneAuth" component={PhoneAuthScreen} />
     <Stack.Screen name="MainScreen" component={MainScreen} />
     <Stack.Screen name="SellerWriting" component={SellerWriting} />
     <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
@@ -71,7 +79,7 @@ const AppNavigator = () => (
     <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
     <Stack.Screen name="CakeOrderForm" component={CakeOrderForm} />
     <Stack.Screen name="Payment" component={PaymentScreen} />
-    <Stack.Screen name="KakaoLoginTest" component={KakaoLoginTestScreen} />
+    <Stack.Screen name="WishList" component={WishListScreen} />
   </Stack.Navigator>
 );
 

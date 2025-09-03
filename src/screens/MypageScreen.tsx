@@ -12,7 +12,7 @@ type MypageRouteProp = RouteProp<RootStackParamList, 'MypageScreen'>;
 
 const MypageScreen: React.FC = () => {
   const route = useRoute<MypageRouteProp>();
-  const { userType } = route.params; // 
+  const { userType, userId } = route.params; // userId 추가
 
   return (
     <>

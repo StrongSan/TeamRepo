@@ -15,7 +15,7 @@ type RootStackParamList = {
   ProductDetail: {
     userType: "seller" | "customer";
     post: Post;       // variantId 포함된 타입
-    userId: number;   // 백엔드 전송용 userId
+    userId: string;   // 백엔드 전송용 userId
   };
 };
 
@@ -40,6 +40,8 @@ const ProductDetailScreen: React.FC = () => {
           title={post.title}
           price={post.price}
           description={post.description}
+          userId={userId}
+          postId={post.postId}
         />
         <ProductActionButtons userType={userType} postId={post.postId} />
       </ScrollView>

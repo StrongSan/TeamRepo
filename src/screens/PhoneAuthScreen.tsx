@@ -8,18 +8,22 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/AppNavigator';
-import { Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import BackHeader from '../components/BackHeader';
+import { sendOtp, verifyOtp } from '../api/authAPI';
 
-// 파일 상단에 6자리 목업 코드
-const MOCK_CODE = '123456';
+type PhoneAuthRouteProp = RouteProp<RootStackParamList, 'PhoneAuth'>;
 
 export default function PhoneAuthScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute<PhoneAuthRouteProp>();
+  const { userId, kakaoId, nickname, profileImg } = route.params;
 
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
@@ -27,6 +31,7 @@ export default function PhoneAuthScreen() {
   const [sent, setSent] = useState(false);          // 전송됨
   const [verified, setVerified] = useState(false);  // 인증 성공
   const [errorMsg, setErrorMsg] = useState('');     // 실패 메시지
+  const [loading, setLoading] = useState(false);    // 로딩 상태
 
   // 타이머
   const [sec, setSec] = useState(0);
@@ -39,57 +44,95 @@ export default function PhoneAuthScreen() {
   const timerText = useMemo(() => `00:${String(sec).padStart(2, '0')}`, [sec]);
 
   // 전송 클릭
-  const handleSend = () => {
-    setSent(true);
-    setVerified(false);
-    setErrorMsg('');
-    setSec(57); // 디자인과 동일
-    setCode('');
+  const handleSend = async () => {
+    if (!phone.trim()) {
+      setErrorMsg('전화번호를 입력해주세요.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await sendOtp(phone.trim());
+      setSent(true);
+      setVerified(false);
+      setErrorMsg('');
+      setSec(57);
+      setCode('');
+      Alert.alert('성공', '인증번호가 전송되었습니다.');
+    } catch (error) {
+      setErrorMsg('인증번호 전송에 실패했습니다.');
+      console.error('OTP 전송 오류:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // 큰 확인 버튼(전송 후 단계)
-  const handleVerify = () => {
-    if (!sent || verified) return;
-    if (code === MOCK_CODE) {
-      setVerified(true);
-      setErrorMsg('');
-    } else {
+  // 인증 확인
+  const handleVerify = async () => {
+    if (!sent || verified || !code || code.length !== 6) return;
+    
+    setLoading(true);
+    try {
+      const result = await verifyOtp(userId, phone.trim(), code);
+      
+      if (result.verified && result.token) {
+        // JWT 토큰 저장
+        await AsyncStorage.setItem('accessToken', result.token);
+        console.log('JWT 토큰 저장 완료:', result.token);
+        
+        setVerified(true);
+        setErrorMsg('');
+        Alert.alert('성공', '인증이 완료되었습니다.');
+      } else {
+        setVerified(false);
+        setErrorMsg('인증번호가 일치하지 않습니다.');
+      }
+    } catch (error) {
       setVerified(false);
-      setErrorMsg('인증번호가 일치하지 않습니다.');
+      setErrorMsg('인증 처리 중 오류가 발생했습니다.');
+      console.error('OTP 인증 오류:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   // 재전송
-  const handleResend = () => {
-    setSec(57);
-    setErrorMsg('');
-    setCode('');
+  const handleResend = async () => {
+    try {
+      setLoading(true);
+      await sendOtp(phone.trim());
+      setSec(57);
+      setErrorMsg('');
+      setCode('');
+      Alert.alert('성공', '인증번호가 재전송되었습니다.');
+    } catch (error) {
+      setErrorMsg('인증번호 재전송에 실패했습니다.');
+      console.error('OTP 재전송 오류:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 다음으로
   const handleNext = () => {
     if (!verified) return;
-    navigation.replace('ProfileSetup', {}); // 타입 요구로 빈 객체 전달
+    navigation.navigate('ProfileSetup', {
+      kakaoId,
+      nickname,
+      profileImg,
+    });
   };
 
-
-
-
-// 흰색 확인 버튼 핸들러
-const handleSmallVerify = () => {
-  if (!code || code.length !== 6) {
-    setErrorMsg('6자리 인증번호를 입력하세요.');
-    return;
-  }
-  if (code === MOCK_CODE) {
-    setVerified(true);
-    setErrorMsg('');
-  } else {
-    setVerified(false);
-    setErrorMsg('인증번호가 일치하지 않습니다.');
-  }
-};
-
+  // 흰색 확인 버튼 핸들러
+  const handleSmallVerify = async () => {
+    if (!code || code.length !== 6) {
+      setErrorMsg('6자리 인증번호를 입력하세요.');
+      return;
+    }
+    
+    // handleVerify 함수 재사용
+    await handleVerify();
+  };
 
 
   return (
@@ -263,3 +306,4 @@ const s = StyleSheet.create({
 
 
 });
+

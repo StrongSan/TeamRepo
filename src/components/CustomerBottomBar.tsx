@@ -11,13 +11,16 @@ import HeartIcon from "../../assets/icons/heart-icon.svg";
 import ProfileIcon from "../../assets/icons/bottom-profile-icon.svg";
 import MoreIcon from "../../assets/icons/bottom-more.svg";
 
-const CustomerBottomBar: React.FC = () => {
+type Props = {
+  userId: string;
+};
+
+const CustomerBottomBar: React.FC<Props> = ({ userId }) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   return (
     <View style={styles.navContainer}>
-
-      {/* ✅ 검색 버튼 - 프로필 화면 이동 */}
+      {/* 검색 */}
       <View style={styles.navIcon}>
         <SearchIcon width={24} height={24} />
       </View>
@@ -26,24 +29,29 @@ const CustomerBottomBar: React.FC = () => {
         <MailIcon width={30} height={30} />
       </View>
 
-      {/* ✅ 홈 버튼 - 메인 화면 이동 */}
+      {/* 홈 */}
       <TouchableOpacity
         style={[styles.navIcon, styles.homeIconContainer]}
-        onPress={() => navigation.navigate("MainScreen", { userType: "customer" })}
+        onPress={() => {
+          navigation.navigate("MainScreen", { userId, userType: "customer" });
+        }}
       >
         <HomeIcon width={33} height={33} />
       </TouchableOpacity>
 
-
-
-      <View style={styles.navIcon}>
-        <HeartIcon width={30} height={30} />
-      </View>
-
-      {/* ✅ 더보기 버튼 - 마이페이지로 이동 */}
+      {/* 찜(하트) → WishListScreen 이동 */}
       <TouchableOpacity
         style={styles.navIcon}
-        onPress={() => navigation.navigate("MypageScreen", { userType: "customer" })}
+        onPress={() => navigation.navigate("WishList", { userId, userType: "customer" })}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <HeartIcon width={30} height={30} />
+      </TouchableOpacity>
+
+      {/* 더보기 → 마이페이지 */}
+      <TouchableOpacity
+        style={styles.navIcon}
+        onPress={() => navigation.navigate("MypageScreen", { userId, userType: "customer" })}
       >
         <MoreIcon width={30} height={30} />
       </TouchableOpacity>

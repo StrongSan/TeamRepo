@@ -10,12 +10,16 @@ import HomeIcon from "../../assets/icons/pink-home-icon.svg";
 import BottomPlus from "../../assets/icons/bottom-plus.svg";
 import ProfileIcon from "../../assets/icons/bottom-profile-icon.svg";
 
-const SellerBottomBar: React.FC = () => {
+type Props = {
+  userId: string;
+};
+
+const SellerBottomBar: React.FC<Props> = ({ userId }) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   return (
     <View style={styles.navContainer}>
-      <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("MainScreen", { userType: "seller" })}>        
+      <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("MainScreen", { userId, userType: "seller" })}>        
         <HomeIcon width={28} height={28} fill="#E78182" />
       </TouchableOpacity>
        <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("MailScreen")}> 
@@ -24,10 +28,10 @@ const SellerBottomBar: React.FC = () => {
       <TouchableOpacity style={[styles.navIcon, styles.homeIconContainer]} onPress={() => navigation.navigate("SellerWriting")}>
         <BottomPlus width={25} height={25} />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("ProfileScreen", { userType: "seller" })}>
+      <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("ProfileScreen", { userId, userType: "seller" })}>
         <ProfileIcon width={30} height={30} />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("MypageScreen", { userType: "seller" })}>
+      <TouchableOpacity style={styles.navIcon} onPress={() => navigation.navigate("MypageScreen", { userId, userType: "seller" })}>
         <BottomMore width={30} height={30} />
       </TouchableOpacity>
     </View>

@@ -1,19 +1,54 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, Text, TouchableOpacity, Alert } from "react-native";
 import HeartIcon from "../../assets/icons/heart-outline.svg";
 import HeartFilledIcon from "../../assets/icons/heart-filled.svg";
+import { toggleFavorite, checkFavorite } from "../api/favoriteAPI";
 
 interface ProductInfoProps {
   title: string;
   price: string;
   description: string;
+  userId: string;
+  postId: number;
 }
 
-const ProductInfo: React.FC<ProductInfoProps> = ({ title, price, description }) => {
+const ProductInfo: React.FC<ProductInfoProps> = ({ 
+  title, 
+  price, 
+  description, 
+  userId, 
+  postId 
+}) => {
   const [liked, setLiked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const toggleLike = () => {
-    setLiked((prev) => !prev);
+  // 컴포넌트 마운트 시 찜 상태 확인
+  useEffect(() => {
+    checkFavoriteStatus();
+  }, [userId, postId]);
+
+  const checkFavoriteStatus = async () => {
+    try {
+      const response = await checkFavorite(userId, postId);
+      setLiked(response.favorited || false);
+    } catch (error) {
+      console.error("찜 상태 확인 실패:", error);
+    }
+  };
+
+  const handleToggleLike = async () => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await toggleFavorite(userId, postId);
+      setLiked(response.favorited || false);
+    } catch (error) {
+      console.error("찜 토글 실패:", error);
+      Alert.alert("오류", "찜 기능을 처리하는 중 문제가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -26,7 +61,11 @@ const ProductInfo: React.FC<ProductInfoProps> = ({ title, price, description }) 
           </Text>
         </View>
 
-        <TouchableOpacity onPress={toggleLike} style={styles.heartButton}>
+        <TouchableOpacity 
+          onPress={handleToggleLike} 
+          style={styles.heartButton}
+          disabled={isLoading}
+        >
           {liked ? (
             <HeartFilledIcon width={24} height={24} />
           ) : (

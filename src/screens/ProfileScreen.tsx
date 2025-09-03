@@ -21,7 +21,7 @@ type ProfileScreenRouteProp = RouteProp<RootStackParamList, "ProfileScreen">;
 
 const ProfileScreen = () => {
   const route = useRoute<ProfileScreenRouteProp>();
-  const { userType } = route.params;
+  const { userType, userId } = route.params;
   return (
     <>
       <StatusBar
@@ -45,7 +45,7 @@ const ProfileScreen = () => {
               <PhotoGrid />
             </View>
           </ScrollView>
-          {userType === "seller" ? <SellerBottomBar /> : <CustomerBottomBar />}
+          {userType === "seller" ? <SellerBottomBar /> : <CustomerBottomBar userId={userId} />}
         </View>
       </SafeAreaView>
     </>

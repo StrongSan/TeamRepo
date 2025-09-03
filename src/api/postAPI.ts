@@ -58,7 +58,7 @@ export const fetchAllPosts = async (): Promise<Post[]> => {
 };
 
 export const fetchRecommendedPostsByUserId = async (
-  userId: number
+  userId: string
 ): Promise<Post[]> => {
   const response = await apiClient.get(`/api/recommendation/${userId}`);
   return response.data.map((item: any) => ({
@@ -110,7 +110,7 @@ export const fetchPostById = async (postId: number): Promise<Post> => {
   return response.data;
 };
 
-export const saveViewedCake = async (userId: number, cakeId: number) => {
+export const saveViewedCake = async (userId: string, cakeId: number) => {
   try {
     await apiClient.post("/api/viewed-cake", {
       userId,

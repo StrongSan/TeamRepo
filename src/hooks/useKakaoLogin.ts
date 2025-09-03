@@ -41,27 +41,35 @@ export const useKakaoLogin = () => {
       const backendResponse = await loginWithKakao(result.accessToken);
       
       console.log(' 백엔드 응답 성공:', backendResponse);
+      console.log(' 백엔드 응답 전체 구조:', JSON.stringify(backendResponse, null, 2));
       
       // 백엔드 응답에 따른 분기 처리
       if (backendResponse.status === 'NEED_REGISTER') {
-        console.log('🆕 신규 사용자 - 회원가입 필요');
-        console.log('🔍 ProfileSetup으로 전달할 데이터:', {
+        console.log('🆕 신규 사용자 - 전화번호 인증 필요');
+        console.log('🔍 PhoneAuth로 전달할 데이터:', {
           kakaoId: profile.id,
-          kakaoIdType: typeof profile.id,
           nickname: profile.nickname || '',
           profileImg: profile.profileImage || '',
         });
-        // ProfileSetupScreen으로 이동 (회원가입 정보 입력)
-        navigation.navigate('ProfileSetup', {
+        // PhoneAuth로 이동 (전화번호 인증)
+        navigation.navigate('PhoneAuth', {
+          userId: profile.id,
           kakaoId: profile.id,
           nickname: profile.nickname || '',
           profileImg: profile.profileImage || '',
         });
       } else if (backendResponse.status === 'OK') {
         console.log(' 기존 사용자 - 로그인 완료');
+        
+        // JWT 토큰 저장
+        if (backendResponse.token) {
+          await AsyncStorage.setItem('accessToken', backendResponse.token);
+          console.log(' JWT 토큰 저장 완료');
+        }
+        
         // MainScreen으로 이동 (백엔드에서 받은 정보 사용)
         navigation.navigate('MainScreen', {
-          userId: backendResponse.user?.id || parseInt(profile.id),
+          userId: (backendResponse.user?.id || profile.id).toString(),
           userType: backendResponse.user?.userType || 'customer',
         });
       } else {

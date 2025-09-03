@@ -62,3 +62,29 @@ export const loginWithNaver = async (naverToken: string) => {
     throw error;
   }
 };
+
+// ✅ OTP 전송
+export const sendOtp = async (phone: string) => {
+  try {
+    const response = await apiClient.post("/otp/send", { phone });
+    return response.data;
+  } catch (error) {
+    console.error("[OTP 전송 실패]", error);
+    throw error;
+  }
+};
+
+// ✅ OTP 인증
+export const verifyOtp = async (userId: string, phone: string, code: string) => {
+  try {
+    const response = await apiClient.post("/otp/verify", {
+      userId: parseInt(userId),
+      phone,
+      code
+    });
+    return response.data;
+  } catch (error) {
+    console.error("[OTP 인증 실패]", error);
+    throw error;
+  }
+};

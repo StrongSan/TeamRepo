@@ -9,7 +9,7 @@ import { saveViewedCake } from "../api/postAPI"; // ✅ 추가
 type Props = {
   post: Post;
   userType: "seller" | "customer";
-  userId: number; // ✅ userId를 props로 받도록 수정
+  userId: string; // ✅ userId를 props로 받도록 수정
 };
 
 const PostCard: React.FC<Props> = ({ post, userType, userId }) => {
