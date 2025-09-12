@@ -23,9 +23,9 @@ const MypageScreen: React.FC = () => {
           <View style={styles.sectionsContainer}>
             <SettingsSection />
             {userType === 'seller' ? (
-              <OrderSection userType="seller" />
+              <OrderSection userType="seller" userId={userId} />
             ) : (
-              <OrderSection userType="customer" />
+              <OrderSection userType="customer" userId={userId} />
             )}
           </View>
         </View>

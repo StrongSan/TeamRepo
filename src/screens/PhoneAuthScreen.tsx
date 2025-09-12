@@ -17,6 +17,7 @@ import type { RootStackParamList } from '../navigation/AppNavigator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BackHeader from '../components/BackHeader';
 import { sendOtp, verifyOtp } from '../api/authAPI';
+import { TokenManager } from '../utils/tokenManager';
 
 type PhoneAuthRouteProp = RouteProp<RootStackParamList, 'PhoneAuth'>;
 
@@ -76,9 +77,14 @@ export default function PhoneAuthScreen() {
       const result = await verifyOtp(userId, phone.trim(), code);
       
       if (result.verified && result.token) {
-        // JWT 토큰 저장
-        await AsyncStorage.setItem('accessToken', result.token);
-        console.log('JWT 토큰 저장 완료:', result.token);
+        // JWT 토큰 저장 (액세스 토큰 + 리프레시 토큰)
+        if (result.refreshToken) {
+          await TokenManager.saveTokens(result.token, result.refreshToken);
+          console.log('JWT 토큰 쌍 저장 완료');
+        } else {
+          await TokenManager.saveAccessToken(result.token);
+          console.log('JWT 액세스 토큰 저장 완료');
+        }
         
         setVerified(true);
         setErrorMsg('');

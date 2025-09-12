@@ -30,7 +30,7 @@ type CakeOrderFormRouteProp = RouteProp<RootStackParamList, "CakeOrderForm">;
 const CakeOrderForm = () => {
   const route = useRoute<CakeOrderFormRouteProp>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { postId } = route.params;
+  const { postId, userId, userType } = route.params;
 
   const [images, setImages] = useState<string[]>([]);
   
@@ -274,7 +274,7 @@ const CakeOrderForm = () => {
         orderDate={new Date().toISOString().split("T")[0]}
         onNext={() => {
           setModalVisible(false);
-          navigation.navigate("Payment", { postId });
+          navigation.navigate("Payment", { postId, userId, userType });
   }}
 />
     </SafeAreaView>

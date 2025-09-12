@@ -98,7 +98,7 @@ const WishListScreen: React.FC = () => {
           post: {
             postId: item.cakeId,
             title: item.title,
-            imageUrl: item.imageUrl,
+            imageUrl: item.cakeImg,
             price: item.price,
             description: ""
           }

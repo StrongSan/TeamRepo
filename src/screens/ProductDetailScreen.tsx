@@ -43,7 +43,7 @@ const ProductDetailScreen: React.FC = () => {
           userId={userId}
           postId={post.postId}
         />
-        <ProductActionButtons userType={userType} postId={post.postId} />
+        <ProductActionButtons userType={userType} postId={post.postId} userId={userId} />
       </ScrollView>
     </View>
   );

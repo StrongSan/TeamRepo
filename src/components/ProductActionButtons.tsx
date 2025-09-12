@@ -7,9 +7,10 @@ import { RootStackParamList } from "../navigation/AppNavigator";
 type Props = {
   userType: "seller" | "customer";
   postId: number;
+  userId: string;
 };
 
-const ProductActionButtons: React.FC<Props> = ({ userType, postId }) => {
+const ProductActionButtons: React.FC<Props> = ({ userType, postId, userId }) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   return (
@@ -30,7 +31,7 @@ const ProductActionButtons: React.FC<Props> = ({ userType, postId }) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.filledButton}
-            onPress={() => navigation.navigate("CakeOrderForm", { postId })}
+            onPress={() => navigation.navigate("CakeOrderForm", { postId, userId, userType })}
           >
             <Text style={styles.filledButtonText}>주문하기</Text>
           </TouchableOpacity>

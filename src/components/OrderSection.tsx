@@ -1,20 +1,29 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import MenuOption from './MenuOption';
 import MyOrder from '../../assets/icons/myOrder.svg';
 import MyReview from '../../assets/icons/myReview.svg';
 import LogoutIcon from '../../assets/icons/logout-icon.svg';
 import ArrowRightIcon from '../../assets/icons/arrowRight.svg';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 
 interface OrderSectionProps {
   userType: 'seller' | 'customer';
+  userId: string;
 }
 
 
-const OrderSection: React.FC<OrderSectionProps> = ({ userType }) => {
+const OrderSection: React.FC<OrderSectionProps> = ({ userType, userId }) => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   console.log('dddd[OrderSection] userType:', userType);
+
+  const handleOrderHistoryPress = () => {
+    navigation.navigate('MyReservations', { userId, userType });
+  };
 
   return (
     <View style={styles.container}>
@@ -32,6 +41,7 @@ const OrderSection: React.FC<OrderSectionProps> = ({ userType }) => {
         icon={MyOrder}
         title={userType === 'seller' ? '마이 예약' : '주문내역'}
         rightIcon={ArrowRightIcon}
+        onPress={handleOrderHistoryPress}
       />
 
       <MenuOption

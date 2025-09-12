@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import { loginWithKakao } from '../api/authAPI';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { TokenManager } from '../utils/tokenManager';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -61,10 +61,15 @@ export const useKakaoLogin = () => {
       } else if (backendResponse.status === 'OK') {
         console.log(' 기존 사용자 - 로그인 완료');
         
-        // JWT 토큰 저장
-        if (backendResponse.token) {
-          await AsyncStorage.setItem('accessToken', backendResponse.token);
-          console.log(' JWT 토큰 저장 완료');
+        // JWT 토큰 저장 (액세스 토큰 + 리프레시 토큰)
+        if (backendResponse.accessToken) {
+          if (backendResponse.refreshToken) {
+            await TokenManager.saveTokens(backendResponse.accessToken, backendResponse.refreshToken);
+            console.log(' JWT 토큰 쌍 저장 완료');
+          } else {
+            await TokenManager.saveAccessToken(backendResponse.accessToken);
+            console.log(' JWT 액세스 토큰 저장 완료');
+          }
         }
         
         // MainScreen으로 이동 (백엔드에서 받은 정보 사용)

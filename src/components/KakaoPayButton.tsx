@@ -1,16 +1,27 @@
 import React from 'react';
-import { TouchableOpacity, Text, Image, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import KakaoIcon from '../../assets/icons/kakao-icon.svg'; 
 
 interface KakaoPayButtonProps {
   onPress: () => void;
+  loading?: boolean;
 }
 
-const KakaoPayButton: React.FC<KakaoPayButtonProps> = ({ onPress }) => {
+const KakaoPayButton: React.FC<KakaoPayButtonProps> = ({ onPress, loading = false }) => {
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
+    <TouchableOpacity 
+      style={[styles.button, loading && styles.buttonDisabled]} 
+      onPress={onPress}
+      disabled={loading}
+    >
+      {loading ? (
+        <ActivityIndicator size="small" color="#363a33" />
+      ) : (
         <KakaoIcon width={18} height={18} />
-      <Text style={styles.text}>카카오페이로 결제하기</Text>
+      )}
+      <Text style={styles.text}>
+        {loading ? '주문 처리 중...' : '카카오페이로 결제하기'}
+      </Text>
     </TouchableOpacity>
   );
 };
@@ -37,6 +48,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
     lineHeight: 26,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });
 

@@ -13,6 +13,8 @@ import ProductDetailScreen from '../screens/ProductDetailScreen';
 import CakeOrderForm from '../screens/CakeOrderForm';
 import PaymentScreen from '../screens/PaymentScreen';
 import WishListScreen from '../screens/WishListScreen';
+import MyReservationsScreen from '../screens/MyReservationsScreen';
+import ReviewWriteScreen from '../screens/ReviewWriteScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -56,11 +58,22 @@ export type RootStackParamList = {
     };
     userId: string;
   };
-  CakeOrderForm: { postId: number };
+  CakeOrderForm: { 
+    postId: number; 
+    userId?: string; 
+    userType?: 'seller' | 'customer'; 
+  };
   Payment: { 
     postId: number;
+    userId?: string;
+    userType?: 'seller' | 'customer';
    };
    WishList: { userId: string; userType: 'seller' | 'customer' };
+   MyReservations: { userId: string; userType: 'seller' | 'customer' };
+   OrderDetail: { orderId: string };
+   InquiryChat: { orderId: string };
+   ReorderFlow: { orderId: string };
+   WriteReview: { orderId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -80,6 +93,14 @@ const AppNavigator = () => (
     <Stack.Screen name="CakeOrderForm" component={CakeOrderForm} />
     <Stack.Screen name="Payment" component={PaymentScreen} />
     <Stack.Screen name="WishList" component={WishListScreen} />
+    <Stack.Screen name="MyReservations" component={MyReservationsScreen} />
+    <Stack.Screen 
+      name="WriteReview" 
+      component={ReviewWriteScreen}
+      options={{
+        headerShown: false,
+      }}
+    />
   </Stack.Navigator>
 );
 

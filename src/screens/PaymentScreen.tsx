@@ -1,22 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, SafeAreaView } from "react-native";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import TopBar from "../components/TopBar";
 import OrderCard from "../components/OrderCard";
 import KakaoPayButton from "../components/KakaoPayButton";
 import { RootStackParamList } from "../navigation/AppNavigator";
 import { fetchPostById } from "../api/postAPI";
 import OrderFlowModal from "../components/OrderFlowModal";
+import apiClient from "../api/apiClient";
 
 type PaymentRouteProp = RouteProp<RootStackParamList, "Payment">;
 
 const PaymentScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<PaymentRouteProp>();
-  const { postId } = route.params;
+  const { postId, userId, userType } = route.params;
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<'requested' | 'approved' | 'success'>('success');
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
   const [post, setPost] = useState<{
     title: string;
@@ -67,16 +71,53 @@ const PaymentScreen: React.FC = () => {
 
   const handleOrderDetails = () => {};
   const handleInquiry = () => {};
-  const handlePayment = () => {
-    setModalType("success");
-    setModalVisible(true);
+  const handlePayment = async () => {
+    try {
+      setIsCreatingOrder(true);
+      
+      // TODO: 실제 결제 API 호출
+      // 현재는 주문 생성만 시뮬레이션
+      const orderData = {
+        postId: postId,
+        quantity: 1,
+        totalPrice: parseInt(post.price),
+        orderDate: new Date().toISOString(),
+        status: 'IN_PROGRESS'
+      };
+
+      // 주문 생성 API 호출 (실제 백엔드와 연동 필요)
+      const response = await apiClient.post('/orders', orderData);
+      const orderId = response.data.orderId || `order_${Date.now()}`;
+      
+      setCreatedOrderId(orderId);
+      setModalType("success");
+      setModalVisible(true);
+    } catch (error) {
+      console.error('주문 생성 오류:', error);
+      // 오류 발생 시에도 모달은 표시 (실제 환경에서는 에러 처리)
+      setModalType("success");
+      setModalVisible(true);
+    } finally {
+      setIsCreatingOrder(false);
+    }
   };
 
-  const handleCloseModal = () => setModalVisible(false);
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    // 모달 닫을 때 메인 화면으로 이동
+    navigation.navigate('MainScreen', {
+      userId: userId || 'temp_user',
+      userType: (userType || 'customer') as 'seller' | 'customer'
+    });
+  };
 
   const handleNext = () => {
     setModalVisible(false);
-    // TODO: 주문 완료 이후 동작 (예: 메인으로 이동)
+    // 주문 내역 화면으로 이동
+    navigation.navigate('MyReservations', {
+      userId: userId || 'temp_user',
+      userType: (userType || 'customer') as 'seller' | 'customer'
+    });
   };
 
   return (
@@ -89,7 +130,10 @@ const PaymentScreen: React.FC = () => {
             onOrderDetails={handleOrderDetails}
             onInquiry={handleInquiry}
           />
-          <KakaoPayButton onPress={handlePayment} />
+          <KakaoPayButton 
+            onPress={handlePayment} 
+            loading={isCreatingOrder}
+          />
         </View>
       </ScrollView>
       <OrderFlowModal
