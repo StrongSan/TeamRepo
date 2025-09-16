@@ -25,9 +25,13 @@ const CustomerBottomBar: React.FC<Props> = ({ userId }) => {
         <SearchIcon width={24} height={24} />
       </View>
 
-      <View style={styles.navIcon}>
+      <TouchableOpacity
+        style={styles.navIcon}
+        onPress={() => navigation.navigate("ChatList", { userId, userType: "customer" })}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
         <MailIcon width={30} height={30} />
-      </View>
+      </TouchableOpacity>
 
       {/* 홈 */}
       <TouchableOpacity

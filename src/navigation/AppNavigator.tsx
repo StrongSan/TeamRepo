@@ -15,6 +15,8 @@ import PaymentScreen from '../screens/PaymentScreen';
 import WishListScreen from '../screens/WishListScreen';
 import MyReservationsScreen from '../screens/MyReservationsScreen';
 import ReviewWriteScreen from '../screens/ReviewWriteScreen';
+import ChatListScreen from '../screens/ChatListScreen';
+import ChatRoomScreen from '../screens/ChatRoomScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -74,6 +76,8 @@ export type RootStackParamList = {
    InquiryChat: { orderId: string };
    ReorderFlow: { orderId: string };
    WriteReview: { orderId: string };
+   ChatList: { userId: string; userType: 'seller' | 'customer' };
+   ChatRoom: { roomId: string; userId: string; userType: 'seller' | 'customer' };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -97,6 +101,20 @@ const AppNavigator = () => (
     <Stack.Screen 
       name="WriteReview" 
       component={ReviewWriteScreen}
+      options={{
+        headerShown: false,
+      }}
+    />
+    <Stack.Screen 
+      name="ChatList" 
+      component={ChatListScreen}
+      options={{
+        headerShown: false,
+      }}
+    />
+    <Stack.Screen 
+      name="ChatRoom" 
+      component={ChatRoomScreen}
       options={{
         headerShown: false,
       }}
