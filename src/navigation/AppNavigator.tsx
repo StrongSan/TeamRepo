@@ -14,7 +14,9 @@ import CakeOrderForm from '../screens/CakeOrderForm';
 import PaymentScreen from '../screens/PaymentScreen';
 import WishListScreen from '../screens/WishListScreen';
 import MyReservationsScreen from '../screens/MyReservationsScreen';
+import OrderDetailScreen from '../screens/OrderDetailScreen';
 import ReviewWriteScreen from '../screens/ReviewWriteScreen';
+import MyReviewsScreen from '../screens/MyReviewsScreen';
 import ChatListScreen from '../screens/ChatListScreen';
 import ChatRoomScreen from '../screens/ChatRoomScreen';
 
@@ -63,7 +65,8 @@ export type RootStackParamList = {
   CakeOrderForm: { 
     postId: number; 
     userId?: string; 
-    userType?: 'seller' | 'customer'; 
+    userType?: 'seller' | 'customer';
+    price?: string; // 게시글 가격 정보 추가
   };
   Payment: { 
     postId: number;
@@ -72,10 +75,11 @@ export type RootStackParamList = {
    };
    WishList: { userId: string; userType: 'seller' | 'customer' };
    MyReservations: { userId: string; userType: 'seller' | 'customer' };
-   OrderDetail: { orderId: string };
+   OrderDetail: { orderId: string; userId: string };
    InquiryChat: { orderId: string };
    ReorderFlow: { orderId: string };
-   WriteReview: { orderId: string };
+   WriteReview: { orderId: string; userId: string };
+   MyReviews: { userId: string };
    ChatList: { userId: string; userType: 'seller' | 'customer' };
    ChatRoom: { roomId: string; userId: string; userType: 'seller' | 'customer' };
 };
@@ -98,6 +102,7 @@ const AppNavigator = () => (
     <Stack.Screen name="Payment" component={PaymentScreen} />
     <Stack.Screen name="WishList" component={WishListScreen} />
     <Stack.Screen name="MyReservations" component={MyReservationsScreen} />
+    <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
     <Stack.Screen 
       name="WriteReview" 
       component={ReviewWriteScreen}
@@ -105,6 +110,7 @@ const AppNavigator = () => (
         headerShown: false,
       }}
     />
+    <Stack.Screen name="MyReviews" component={MyReviewsScreen} />
     <Stack.Screen 
       name="ChatList" 
       component={ChatListScreen}

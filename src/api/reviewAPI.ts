@@ -62,7 +62,7 @@ export interface PaginatedResponse<T> {
  * @param reviewData 리뷰 생성 데이터
  */
 export const createReview = async (reviewData: ReviewCreateRequest): Promise<{ reviewId: number }> => {
-  const response = await apiClient.post('/reviews', reviewData);
+  const response = await apiClient.post('/api/reviews', reviewData);
   return response.data;
 };
 
@@ -75,7 +75,7 @@ export const updateReview = async (
   reviewId: number,
   updateData: ReviewUpdateRequest
 ): Promise<void> => {
-  await apiClient.patch(`/reviews/${reviewId}`, updateData);
+  await apiClient.patch(`/api/reviews/${reviewId}`, updateData);
 };
 
 /**
@@ -84,7 +84,7 @@ export const updateReview = async (
  * @param userId 사용자 ID
  */
 export const deleteReview = async (reviewId: number, userId: number): Promise<void> => {
-  await apiClient.delete(`/reviews/${reviewId}?userId=${userId}`);
+  await apiClient.delete(`/api/reviews/${reviewId}?userId=${userId}`);
 };
 
 /**
@@ -98,7 +98,7 @@ export const getReviewsByCake = async (
   page: number = 0,
   size: number = 10
 ): Promise<PaginatedResponse<ReviewResponse>> => {
-  const response = await apiClient.get(`/reviews/cakes/${cakeId}`, {
+  const response = await apiClient.get(`/api/reviews/cakes/${cakeId}`, {
     params: { page, size },
   });
   return response.data;
@@ -115,7 +115,7 @@ export const getReviewsByShop = async (
   page: number = 0,
   size: number = 10
 ): Promise<PaginatedResponse<ReviewResponse>> => {
-  const response = await apiClient.get(`/reviews/shops/${shopId}`, {
+  const response = await apiClient.get(`/api/reviews/shops/${shopId}`, {
     params: { page, size },
   });
   return response.data;
@@ -126,7 +126,7 @@ export const getReviewsByShop = async (
  * @param cakeId 케이크 ID
  */
 export const getReviewSummaryByCake = async (cakeId: number): Promise<ReviewSummary> => {
-  const response = await apiClient.get(`/reviews/cakes/${cakeId}/summary`);
+  const response = await apiClient.get(`/api/reviews/cakes/${cakeId}/summary`);
   return response.data;
 };
 
@@ -139,7 +139,7 @@ export const createReviewReply = async (
   reviewId: number,
   replyData: ReviewReplyCreateRequest
 ): Promise<{ replyId: number }> => {
-  const response = await apiClient.post(`/reviews/${reviewId}/reply`, replyData);
+  const response = await apiClient.post(`/api/reviews/${reviewId}/reply`, replyData);
   return response.data;
 };
 
@@ -154,7 +154,7 @@ export const updateReviewReply = async (
   replyId: number,
   updateData: ReviewReplyUpdateRequest
 ): Promise<void> => {
-  await apiClient.patch(`/reviews/${reviewId}/reply/${replyId}`, updateData);
+  await apiClient.patch(`/api/reviews/${reviewId}/reply/${replyId}`, updateData);
 };
 
 /**
@@ -168,7 +168,7 @@ export const deleteReviewReply = async (
   replyId: number,
   ownerId: number
 ): Promise<void> => {
-  await apiClient.delete(`/reviews/${reviewId}/reply/${replyId}?ownerId=${ownerId}`);
+  await apiClient.delete(`/api/reviews/${reviewId}/reply/${replyId}?ownerId=${ownerId}`);
 };
 
 /**
@@ -176,6 +176,25 @@ export const deleteReviewReply = async (
  * @param reviewId 리뷰 ID
  */
 export const getReviewReply = async (reviewId: number): Promise<ReviewReplyResponse | null> => {
-  const response = await apiClient.get(`/reviews/${reviewId}/reply`);
+  const response = await apiClient.get(`/api/reviews/${reviewId}/reply`);
+  return response.data;
+};
+
+/**
+ * 특정 사용자가 작성한 리뷰 목록을 조회합니다
+ * 백엔드에 사용자별 리뷰 조회 API가 없으므로, 상점별 조회를 사용합니다.
+ * @param userId 사용자 ID (실제로는 shopId로 사용)
+ * @param page 페이지 번호 (기본값: 0)
+ * @param size 페이지 크기 (기본값: 10)
+ */
+export const getReviewsByUser = async (
+  userId: number,
+  page: number = 0,
+  size: number = 10
+): Promise<PaginatedResponse<ReviewResponse>> => {
+  // 임시로 상점별 조회를 사용 (실제로는 사용자별 조회 API가 필요)
+  const response = await apiClient.get(`/api/reviews/shops/${userId}`, {
+    params: { page, size },
+  });
   return response.data;
 };

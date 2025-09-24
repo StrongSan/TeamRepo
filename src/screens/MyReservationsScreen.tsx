@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,57 +7,20 @@ import {
   FlatList,
   Image,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import CustomerBottomBar from '../components/CustomerBottomBar';
 import SellerBottomBar from '../components/SellerBottomBar';
+import { getOrderListV2, OrderItem, OrderListResponse } from '../api/orderAPI';
 
 /** ───────────────────────── Types ───────────────────────── **/
 type OrderStatus = 'IN_PROGRESS' | 'COMPLETED';
 
-type OrderItem = {
-  id: string;
-  thumbnail: string;          // 이미지 URL
-  title: string;              // 케이크명 혹은 주문 타이틀
-  pickupDate: string;         // YYYY-MM-DD
-  options: string;            // ex) '레터링 x1'
-  price: number;              // 원화
-  status: OrderStatus;
-};
-
 type Props = NativeStackScreenProps<RootStackParamList, 'MyReservations'>;
 
-/** ─────────────────────── Mock Data (교체 예정) ─────────────────────── **/
-const MOCK_ORDERS: OrderItem[] = [
-  {
-    id: 'o-1001',
-    thumbnail: 'https://placehold.co/64x64',
-    title: '픽업 대기 중',
-    pickupDate: '2025-03-22',
-    options: '베이비 x1',
-    price: 48900,
-    status: 'IN_PROGRESS',
-  },
-  {
-    id: 'o-0901',
-    thumbnail: 'https://placehold.co/64x64',
-    title: '픽업 완료',
-    pickupDate: '2025-04-10',
-    options: '베이비 x1',
-    price: 48900,
-    status: 'COMPLETED',
-  },
-  {
-    id: 'o-0900',
-    thumbnail: 'https://placehold.co/64x64',
-    title: '픽업 완료',
-    pickupDate: '2025-02-12',
-    options: '레터링 케이크 x1',
-    price: 43000,
-    status: 'COMPLETED',
-  },
-];
+/** ─────────────────────── State Management ─────────────────────── **/
 
 /** 날짜 포맷 유틸 */
 const formatKRW = (n: number) => n.toLocaleString('ko-KR');
@@ -66,26 +29,81 @@ export default function MyReservationsScreen({ navigation, route }: Props) {
   const { userId, userType } = route.params;
   const [tab, setTab] = useState<OrderStatus>('IN_PROGRESS');
   const [refreshing, setRefreshing] = useState(false);
+  const [orders, setOrders] = useState<OrderItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
 
-  // TODO: API에서 주문 목록 가져오기 (status별 페이지네이션)
-  const orders = useMemo(
-    () => MOCK_ORDERS.filter((o) => o.status === tab),
-    [tab]
-  );
+      // API에서 주문 목록 가져오기
+      const fetchOrders = useCallback(async (status: OrderStatus, pageNum: number = 0, isRefresh: boolean = false) => {
+        try {
+          setLoading(true);
+          const response = await getOrderListV2(userId, status, pageNum, 10);
+          
+          console.log('주문 목록 응답:', JSON.stringify(response, null, 2));
+          
+          if (isRefresh) {
+            setOrders(response.orders || []);
+          } else {
+            setOrders(prev => [...prev, ...(response.orders || [])]);
+          }
+          
+          setHasNext(response.hasNext || false);
+          setPage(pageNum);
+        } catch (error) {
+          console.error('주문 목록 조회 실패:', error);
+          Alert.alert('오류', '주문 목록을 불러오는데 실패했습니다.');
+        } finally {
+          setLoading(false);
+        }
+      }, [userId]);
+
+  // 탭 변경 시 주문 목록 다시 가져오기
+  useEffect(() => {
+    setOrders([]);
+    setPage(0);
+    fetchOrders(tab, 0, true);
+  }, [tab, fetchOrders]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    // TODO: API refetch
-    await new Promise((r) => setTimeout(r, 600));
+    await fetchOrders(tab, 0, true);
     setRefreshing(false);
-  }, []);
+  }, [tab, fetchOrders]);
+
+  const loadMore = useCallback(() => {
+    if (!loading && hasNext) {
+      fetchOrders(tab, page + 1, false);
+    }
+  }, [loading, hasNext, tab, page, fetchOrders]);
 
   const renderItem = useCallback(
-    ({ item }: { item: OrderItem }) => (
-      <View style={styles.card}>
-        <View style={styles.row}>
-          <Image source={{ uri: item.thumbnail }} style={styles.thumb} />
-          <View style={styles.infoCol}>
+    ({ item }: { item: OrderItem }) => {
+      console.log('주문 아이템 이미지 URL:', item.thumbnail);
+      return (
+        <View style={styles.card}>
+          <View style={styles.row}>
+            <Image 
+              source={{ 
+                uri: item.thumbnail 
+                  ? (item.thumbnail.startsWith('http') 
+                      ? item.thumbnail 
+                      : `http://172.30.176.1:8080/images/${item.thumbnail}`)
+                  : 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=64&h=64&fit=crop&crop=center'
+              }} 
+              style={styles.thumb}
+              onError={(error) => {
+                console.log('이미지 로드 실패:', error.nativeEvent.error);
+                console.log('이미지 URL:', item.thumbnail);
+                console.log('변환된 URL:', item.thumbnail 
+                  ? (item.thumbnail.startsWith('http') 
+                      ? item.thumbnail 
+                      : `http://172.30.176.1:8080/images/${item.thumbnail}`)
+                  : 'fallback');
+              }}
+              onLoad={() => console.log('이미지 로드 성공:', item.thumbnail)}
+            />
+            <View style={styles.infoCol}>
             <Text style={[styles.status, item.status === 'IN_PROGRESS' ? styles.badgePink : styles.badgeGray]}>
               {item.title}
             </Text>
@@ -112,7 +130,7 @@ export default function MyReservationsScreen({ navigation, route }: Props) {
             <>
               <GhostButton
                 label="주문상세"
-                onPress={() => navigation.navigate('OrderDetail', { orderId: item.id })}
+                onPress={() => navigation.navigate('OrderDetail', { orderId: item.id, userId })}
               />
               <GhostButton
                 label="문의하기"
@@ -127,13 +145,14 @@ export default function MyReservationsScreen({ navigation, route }: Props) {
               />
               <GhostButton
                 label="후기 작성"
-                onPress={() => navigation.navigate('WriteReview', { orderId: item.id })}
+                onPress={() => navigation.navigate('WriteReview', { orderId: item.id, userId })}
               />
             </>
           )}
         </View>
       </View>
-    ),
+      );
+    },
     [navigation]
   );
 
@@ -168,7 +187,15 @@ export default function MyReservationsScreen({ navigation, route }: Props) {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        // TODO: onEndReached로 무한 스크롤 연결
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              {tab === 'IN_PROGRESS' ? '진행 중인 주문이 없습니다.' : '지난 주문이 없습니다.'}
+            </Text>
+          </View>
+        }
       />
 
       {/* 하단 네비게이션 바 */}
@@ -297,4 +324,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   ghostBtnText: { fontSize: 13, color: '#333', fontWeight: '600' },
+
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#999',
+    textAlign: 'center',
+  },
 });

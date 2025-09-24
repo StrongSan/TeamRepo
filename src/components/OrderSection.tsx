@@ -25,6 +25,10 @@ const OrderSection: React.FC<OrderSectionProps> = ({ userType, userId }) => {
     navigation.navigate('MyReservations', { userId, userType });
   };
 
+  const handleMyReviewsPress = () => {
+    navigation.navigate('MyReviews', { userId });
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>주문</Text>
@@ -34,6 +38,7 @@ const OrderSection: React.FC<OrderSectionProps> = ({ userType, userId }) => {
         icon={MyReview}
         title={userType === 'seller' ? '내 가게 리뷰' : '내 리뷰'}
         rightIcon={ArrowRightIcon}
+        onPress={handleMyReviewsPress}
         iconProps={{ width: 20, height: 20 }}
       />
 

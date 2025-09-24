@@ -33,7 +33,7 @@ const cakeTypes = [
 ];
 
 const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { orderId } = route.params;
+  const { orderId, userId } = route.params;
   const [rating, setRating] = useState<number>(0);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -55,6 +55,7 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
       // 임시: API 호출을 시뮬레이션하여 화면이 정상 작동하도록 함
       try {
         const orderData = await getOrderDetail(orderId);
+        console.log('리뷰 화면 주문 상세 데이터:', JSON.stringify(orderData, null, 2));
         setOrderInfo(orderData);
       } catch (apiError) {
         // API 호출 실패 시 mock 데이터 사용
@@ -157,14 +158,20 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
     setIsSubmitting(true);
     try {
       const reviewData: ReviewCreateRequest = {
-        userId: parseInt(orderInfo.customerInfo.name), // TODO: 실제 userId 사용
+        userId: parseInt(userId),
         cakeId: orderInfo.cakeInfo.postId,
         rating: rating,
         comment: `${title}\n\n${content}\n\n케이크 종류: ${selectedTypes.join(', ')}`,
       };
 
+      console.log('리뷰 작성 데이터:', JSON.stringify(reviewData, null, 2));
+      console.log('userId:', userId, 'parsed:', parseInt(userId));
+      console.log('cakeId:', orderInfo.cakeInfo.postId);
+      console.log('API 호출 시작: POST /api/reviews');
+
       try {
-        await createReview(reviewData);
+        const result = await createReview(reviewData);
+        console.log('리뷰 작성 성공:', result);
         
         Alert.alert(
           '성공',
@@ -177,19 +184,11 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
           ]
         );
       } catch (apiError) {
-        // API 호출 실패 시에도 성공으로 처리 (임시)
-        console.log('리뷰 작성 API 호출 실패, 임시 성공 처리:', apiError);
+        console.error('리뷰 작성 API 호출 실패:', apiError);
         
-        Alert.alert(
-          '성공',
-          '리뷰가 성공적으로 등록되었습니다.',
-          [
-            {
-              text: '확인',
-              onPress: () => navigation.goBack(),
-            },
-          ]
-        );
+        // 실제 오류 메시지 표시
+        const errorMessage = apiError.response?.data?.message || apiError.message || '리뷰 작성 중 오류가 발생했습니다.';
+        Alert.alert('오류', errorMessage);
       }
     } catch (error) {
       console.error('리뷰 작성 오류:', error);
@@ -323,7 +322,32 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* 주문 정보 미리보기 */}
         <View style={styles.orderPreview}>
-          <Image source={{ uri: orderInfo.cakeInfo.imageUrl }} style={styles.cakePreviewImage} />
+          <Image 
+            source={{ 
+              uri: (() => {
+                const imageUrl = orderInfo.cakeInfo.imageUrl || orderInfo.thumbnail;
+                if (imageUrl) {
+                  return imageUrl.startsWith('http') 
+                    ? imageUrl 
+                    : `http://172.30.176.1:8080/images/${imageUrl}`;
+                }
+                return 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=80&h=80&fit=crop&crop=center';
+              })()
+            }} 
+            style={styles.cakePreviewImage}
+            onError={(error) => {
+              console.log('리뷰 화면 이미지 로드 실패:', error.nativeEvent.error);
+              console.log('cakeInfo.imageUrl:', orderInfo.cakeInfo.imageUrl);
+              console.log('thumbnail:', orderInfo.thumbnail);
+              const imageUrl = orderInfo.cakeInfo.imageUrl || orderInfo.thumbnail;
+              console.log('변환된 URL:', imageUrl 
+                ? (imageUrl.startsWith('http') 
+                    ? imageUrl 
+                    : `http://172.30.176.1:8080/images/${imageUrl}`)
+                : 'fallback');
+            }}
+            onLoad={() => console.log('리뷰 화면 이미지 로드 성공:', orderInfo.cakeInfo.imageUrl)}
+          />
           <View style={styles.orderInfo}>
             <Text style={styles.cakeTitle}>{orderInfo.cakeInfo.title}</Text>
             <Text style={styles.orderIdText}>주문번호: {orderId}</Text>

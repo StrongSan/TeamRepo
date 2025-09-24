@@ -5,6 +5,9 @@ import { refreshToken } from './authAPI';
 
 const apiClient = axios.create({
   baseURL: 'http://172.30.176.1:8080', // Android 에뮬레이터에서 로컬 서버 접근용
+  // 실제 컴퓨터 IP 주소: 'http://172.30.176.1:8080'
+  // 실제 디바이스 사용 시: 'http://[컴퓨터IP]:8080'
+  timeout: 10000, // 10초 타임아웃
   headers: {
     'Content-Type': 'application/json',
   },

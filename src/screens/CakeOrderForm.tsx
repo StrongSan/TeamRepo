@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  ScrollView, View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity,
+  ScrollView, View, StyleSheet, Text, SafeAreaView, Image, TouchableOpacity, Alert,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import TopBar from "../components/TopBar";
@@ -18,6 +18,7 @@ import OrderFlowModal from "../components/OrderFlowModal"; //  주문 모달
 import { launchImageLibrary } from "react-native-image-picker";
 import UploadIcon from "../../assets/icons/upload-icon.svg";
 import PlusIcon from "../../assets/icons/bottom-plus.svg";
+import { createOrder, OrderRequestDto } from "../api/orderAPI";
 
 /* 사용 안하는 임포트 
 import UploadButton from "../components/UploadButton";
@@ -30,7 +31,7 @@ type CakeOrderFormRouteProp = RouteProp<RootStackParamList, "CakeOrderForm">;
 const CakeOrderForm = () => {
   const route = useRoute<CakeOrderFormRouteProp>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { postId, userId, userType } = route.params;
+  const { postId, userId, userType, price } = route.params;
 
   const [images, setImages] = useState<string[]>([]);
   
@@ -69,7 +70,7 @@ const CakeOrderForm = () => {
     type: "",
     sheet: "",
     filling: "",
-    price: "",
+    price: price || "", // 전달받은 가격 정보 사용
   });
 
   const [selectedCakeTypes, setSelectedCakeTypes] = useState<string[]>([]);
@@ -93,6 +94,7 @@ const CakeOrderForm = () => {
 
   const [modalVisible, setModalVisible] = useState(false); // 모달 표시 여부
   const [modalType, setModalType] = useState<'requested' | 'approved' | 'success'>('requested'); // 모달 종류
+  const [isSubmitting, setIsSubmitting] = useState(false); // 주문 제출 중 상태
 
   const toggleDropdown = (field: keyof typeof dropdownVisible) => {
     setDropdownVisible((prev) => ({
@@ -120,6 +122,121 @@ const CakeOrderForm = () => {
       const minutes = selectedTime.getMinutes().toString().padStart(2, "0");
       setFormData({ ...formData, pickupTime: `${hours}:${minutes}` });
     }
+  };
+
+  // 주문 생성 함수
+  const handleCreateOrder = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      // 폼 데이터를 OrderRequestDto 형식으로 변환
+      const orderData: OrderRequestDto = {
+        userId: parseInt(userId || '0'),
+        postId: postId,
+        name: formData.name,
+        qty: 1, // 기본 수량
+        pickupDate: formData.pickupDate,
+        pickupTime: formData.pickupTime,
+        letteringText: formData.letteringText,
+        memo: formData.notes,
+        pickupName: formData.name,
+        imageUrl: selectedImage?.uri || '',
+        price: parseFloat(formData.price) || parseFloat(price || '0'),
+        unitPrice: parseInt(formData.price) || parseInt(price || '0'),
+        variantId: 1, // 기본값 (실제로는 옵션에 따라 결정)
+        sheetId: formData.sheet === '초코' ? 1 : 2, // 시트 옵션 매핑
+        fillingId: getFillingId(formData.filling), // 필링 옵션 매핑
+        sizeId: getSizeId(formData.size), // 사이즈 옵션 매핑
+        typeId: getTypeId(formData.type), // 타입 옵션 매핑
+      };
+
+      // 디버깅을 위한 데이터 로그
+      console.log('전달받은 가격:', price);
+      console.log('폼 데이터 가격:', formData.price);
+      console.log('주문 데이터:', JSON.stringify(orderData, null, 2));
+      
+      // 필수 필드 검증
+      if (!orderData.userId || orderData.userId === 0) {
+        Alert.alert('오류', '사용자 ID가 올바르지 않습니다.');
+        return;
+      }
+      
+      if (!orderData.postId) {
+        Alert.alert('오류', '상품 ID가 올바르지 않습니다.');
+        return;
+      }
+      
+      if (!orderData.name || !orderData.pickupDate || !orderData.pickupTime) {
+        Alert.alert('오류', '필수 정보를 모두 입력해주세요.');
+        return;
+      }
+
+      const response = await createOrder(orderData);
+      console.log('주문 생성 성공:', response);
+      
+      // 성공 시 모달 표시
+      setModalType('success');
+      setModalVisible(true);
+      
+    } catch (error) {
+      console.error('주문 생성 실패:', error);
+      
+      // 더 자세한 에러 정보 표시
+      let errorMessage = '주문 생성에 실패했습니다.';
+      if (error.response) {
+        // 서버에서 응답을 받았지만 오류 상태
+        console.error('서버 응답:', error.response.data);
+        console.error('상태 코드:', error.response.status);
+        errorMessage = `서버 오류 (${error.response.status}): ${error.response.data?.message || '알 수 없는 오류'}`;
+      } else if (error.request) {
+        // 요청은 보냈지만 응답을 받지 못함
+        console.error('네트워크 오류:', error.request);
+        errorMessage = '네트워크 연결을 확인해주세요.';
+      } else {
+        // 요청 설정 중 오류
+        console.error('요청 설정 오류:', error.message);
+        errorMessage = `요청 오류: ${error.message}`;
+      }
+      
+      Alert.alert('오류', errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 옵션 ID 매핑 함수들
+  const getFillingId = (filling: string): number => {
+    const fillingMap: { [key: string]: number } = {
+      '초코': 1,
+      '오레오': 2,
+      '생크림': 3,
+      '딸기생크림': 4,
+      '크림치즈': 5,
+    };
+    return fillingMap[filling] || 1;
+  };
+
+  const getSizeId = (size: string): number => {
+    const sizeMap: { [key: string]: number } = {
+      '도시락': 1,
+      '미니': 2,
+      '1호': 3,
+      '2호': 4,
+      '3호': 5,
+    };
+    return sizeMap[size] || 1;
+  };
+
+  const getTypeId = (type: string): number => {
+    const typeMap: { [key: string]: number } = {
+      '레터링': 1,
+      '과일': 2,
+      '유아용': 3,
+      '떡': 4,
+      '포토': 5,
+      '이벤트': 6,
+    };
+    return typeMap[type] || 1;
   };
 
 
@@ -252,13 +369,11 @@ const CakeOrderForm = () => {
           </View>
 
 
-        {/* ✅ 주문 버튼 누르면 모달 표시 */}
+        {/* ✅ 주문 버튼 누르면 실제 주문 생성 */}
         <OrderButton
           onCancel={() => {}}
-          onOrder={() => {
-            setModalType('requested');
-            setModalVisible(true);
-          }}
+          onOrder={handleCreateOrder}
+          disabled={isSubmitting}
         />
         </View>
       </ScrollView>
@@ -274,8 +389,9 @@ const CakeOrderForm = () => {
         orderDate={new Date().toISOString().split("T")[0]}
         onNext={() => {
           setModalVisible(false);
-          navigation.navigate("Payment", { postId, userId, userType });
-  }}
+          // 주문 완료 후 내 주문내역으로 이동
+          navigation.navigate("MyReservations", { userId: userId || '', userType: userType || 'customer' });
+        }}
 />
     </SafeAreaView>
   );

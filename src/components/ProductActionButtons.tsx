@@ -8,9 +8,10 @@ type Props = {
   userType: "seller" | "customer";
   postId: number;
   userId: string;
+  price?: string; // 가격 정보 추가
 };
 
-const ProductActionButtons: React.FC<Props> = ({ userType, postId, userId }) => {
+const ProductActionButtons: React.FC<Props> = ({ userType, postId, userId, price }) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   return (
@@ -31,7 +32,7 @@ const ProductActionButtons: React.FC<Props> = ({ userType, postId, userId }) => 
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.filledButton}
-            onPress={() => navigation.navigate("CakeOrderForm", { postId, userId, userType })}
+            onPress={() => navigation.navigate("CakeOrderForm", { postId, userId, userType, price })}
           >
             <Text style={styles.filledButtonText}>주문하기</Text>
           </TouchableOpacity>

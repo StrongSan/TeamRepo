@@ -4,16 +4,23 @@ import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 interface OrderButtonProps {
     onCancel: () => void;
     onOrder: () => void;
+    disabled?: boolean;
   }  
 
-  const OrderButton: React.FC<OrderButtonProps> = ({ onCancel, onOrder }) => {
+  const OrderButton: React.FC<OrderButtonProps> = ({ onCancel, onOrder, disabled = false }) => {
     return (
       <View style={styles.container}>
         <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
           <Text style={styles.cancelText}>취소</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.orderButton} onPress={onOrder}>
-          <Text style={styles.orderText}>주문</Text>
+        <TouchableOpacity 
+          style={[styles.orderButton, disabled && styles.disabledButton]} 
+          onPress={onOrder}
+          disabled={disabled}
+        >
+          <Text style={[styles.orderText, disabled && styles.disabledText]}>
+            {disabled ? '주문 중...' : '주문'}
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -51,6 +58,13 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#FFF",
     fontFamily: "Roboto",
+  },
+  disabledButton: {
+    backgroundColor: "#ccc",
+    opacity: 0.6,
+  },
+  disabledText: {
+    color: "#999",
   },
 });
 
