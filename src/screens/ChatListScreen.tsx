@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,26 +6,52 @@ import {
   FlatList,
   TextInput,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/AppNavigator';
+import { createOrGetChatRoom, getChatRooms } from '../api/chatAPI';
 
-// 👉 실제 데이터로 교체하세요.
-type ChatPreview = {
+// 실제 채팅방 데이터 타입
+type RealChatPreview = {
+  roomId: number;
+  otherUserId: number;
+  otherUserNickname: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unreadCount: number;
+  lastMessageType: string;
+};
+
+// 더미 데이터 타입
+type DummyChatPreview = {
   id: string;
+  roomId: string;
   name: string;
   lastMessage: string;
   unread?: number;
+  sellerId?: number;
 };
 
-const DUMMY: ChatPreview[] = [
-  { id: '1', name: '이민영', lastMessage: '이 시간으로 변경하고 싶어요 ㅠㅠ', unread: 3 },
-  { id: '2', name: '김강산', lastMessage: '주문서 작성해주시면 됩니다~' },
-  { id: '3', name: '박민지', lastMessage: '네 감사합니다', unread: 1 },
-  { id: '4', name: '김진서', lastMessage: '네 가능합니다~' },
-  { id: '5', name: '어건우', lastMessage: '감사합니다^^' },
+// 통합된 채팅방 타입
+type ChatPreview = {
+  id: string;
+  roomId: string;
+  name: string;
+  lastMessage: string;
+  unread?: number;
+  sellerId?: number;
+  isReal?: boolean; // 실제 데이터인지 구분
+};
+
+const DUMMY: DummyChatPreview[] = [
+  { id: '1', roomId: '1', name: '이민영', lastMessage: '이 시간으로 변경하고 싶어요 ㅠㅠ', unread: 3 },
+  { id: '2', roomId: '2', name: '김강산', lastMessage: '주문서 작성해주시면 됩니다~' },
+  { id: '3', roomId: '3', name: '박민지', lastMessage: '네 감사합니다', unread: 1 },
+  { id: '4', roomId: '4', name: '김진서', lastMessage: '네 가능합니다~' },
+  { id: '5', roomId: '5', name: '어건우', lastMessage: '감사합니다^^' },
 ];
 
 type ChatListScreenRouteProp = RouteProp<RootStackParamList, 'ChatList'>;
@@ -35,20 +61,65 @@ const ChatListScreen: React.FC = () => {
   const route = useRoute<ChatListScreenRouteProp>();
   const { userId, userType } = route.params;
   const [query, setQuery] = useState('');
+  const [realChatRooms, setRealChatRooms] = useState<RealChatPreview[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // 실제 채팅방 데이터 로드
+  useEffect(() => {
+    const loadRealChatRooms = async () => {
+      try {
+        setLoading(true);
+        const rooms = await getChatRooms(parseInt(userId));
+        setRealChatRooms(rooms);
+        console.log('✅ 실제 채팅방 데이터 로드 완료:', rooms);
+      } catch (error) {
+        console.error('❌ 실제 채팅방 데이터 로드 실패:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRealChatRooms();
+  }, [userId]);
+
+  // 실제 데이터를 통합된 형태로 변환
+  const convertRealToChatPreview = (real: RealChatPreview): ChatPreview => ({
+    id: `real-${real.roomId}`,
+    roomId: real.roomId.toString(),
+    name: real.otherUserNickname,
+    lastMessage: real.lastMessage,
+    unread: real.unreadCount > 0 ? real.unreadCount : undefined,
+    isReal: true,
+  });
+
+  // 더미 데이터를 통합된 형태로 변환
+  const convertDummyToChatPreview = (dummy: DummyChatPreview): ChatPreview => ({
+    id: dummy.id,
+    roomId: dummy.roomId,
+    name: dummy.name,
+    lastMessage: dummy.lastMessage,
+    unread: dummy.unread,
+    isReal: false,
+  });
 
   const list = useMemo(() => {
+    // 실제 데이터 + 더미 데이터 통합
+    const realChatPreviews = realChatRooms.map(convertRealToChatPreview);
+    const dummyChatPreviews = DUMMY.map(convertDummyToChatPreview);
+    const allChats = [...realChatPreviews, ...dummyChatPreviews];
+
     const q = query.trim();
-    if (!q) return DUMMY;
-    return DUMMY.filter(
+    if (!q) return allChats;
+    return allChats.filter(
       (r) => r.name.includes(q) || r.lastMessage.includes(q)
     );
-  }, [query]);
+  }, [query, realChatRooms]);
 
   const renderItem = ({ item }: { item: ChatPreview }) => (
     <Pressable
       onPress={() => {
         navigation.navigate('ChatRoom', { 
-          roomId: item.id, 
+          roomId: item.roomId, 
           userId, 
           userType 
         });
@@ -60,9 +131,14 @@ const ChatListScreen: React.FC = () => {
 
       {/* 텍스트 영역 */}
       <View style={styles.textWrap}>
-        <Text style={styles.name} numberOfLines={1}>
-          {item.name}
-        </Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.name} numberOfLines={1}>
+            {item.name}
+          </Text>
+          {item.isReal && (
+            <Text style={styles.realBadge}>실제</Text>
+          )}
+        </View>
         <Text style={styles.last} numberOfLines={1}>
           {item.lastMessage}
         </Text>
@@ -97,13 +173,20 @@ const ChatListScreen: React.FC = () => {
       </View>
 
       {/* 리스트 */}
-      <FlatList
-        data={list}
-        keyExtractor={(it) => it.id}
-        renderItem={renderItem}
-        ItemSeparatorComponent={() => <View style={styles.sep} />}
-        contentContainerStyle={{ paddingBottom: 16 }}
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={PINK} />
+          <Text style={styles.loadingText}>채팅방을 불러오는 중...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={list}
+          keyExtractor={(it) => it.id}
+          renderItem={renderItem}
+          ItemSeparatorComponent={() => <View style={styles.sep} />}
+          contentContainerStyle={{ paddingBottom: 16 }}
+        />
+      )}
     </View>
   );
 };
@@ -151,7 +234,21 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   textWrap: { flex: 1 },
-  name: { fontSize: 14, fontWeight: '700', color: '#222' },
+  nameRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between' 
+  },
+  name: { fontSize: 14, fontWeight: '700', color: '#222', flex: 1 },
+  realBadge: {
+    fontSize: 10,
+    color: PINK,
+    backgroundColor: LIGHT_PINK,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
   last: { fontSize: 13, color: '#7a7a7a', marginTop: 4 },
 
   badge: {
@@ -165,6 +262,18 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   badgeText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#7a7a7a',
+  },
 
   sep: { height: 1, backgroundColor: '#f1f1f1', marginLeft: 70 },
 });

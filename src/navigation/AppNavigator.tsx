@@ -81,7 +81,16 @@ export type RootStackParamList = {
    WriteReview: { orderId: string; userId: string };
    MyReviews: { userId: string };
    ChatList: { userId: string; userType: 'seller' | 'customer' };
-   ChatRoom: { roomId: string; userId: string; userType: 'seller' | 'customer' };
+   ChatRoom: { 
+     roomId: string; 
+     userId: string; 
+     userType: 'seller' | 'customer';
+     sellerId?: number;
+     customerId?: number;
+     productId?: number;
+     isNewRoom?: boolean;
+     messageCount?: number;
+   };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
