@@ -25,17 +25,7 @@ type RealChatPreview = {
   lastMessageType: string;
 };
 
-// 더미 데이터 타입
-type DummyChatPreview = {
-  id: string;
-  roomId: string;
-  name: string;
-  lastMessage: string;
-  unread?: number;
-  sellerId?: number;
-};
-
-// 통합된 채팅방 타입
+// ✅ 통합된 채팅방 타입 (더미 데이터 제거)
 type ChatPreview = {
   id: string;
   roomId: string;
@@ -45,14 +35,6 @@ type ChatPreview = {
   sellerId?: number;
   isReal?: boolean; // 실제 데이터인지 구분
 };
-
-const DUMMY: DummyChatPreview[] = [
-  { id: '1', roomId: '1', name: '이민영', lastMessage: '이 시간으로 변경하고 싶어요 ㅠㅠ', unread: 3 },
-  { id: '2', roomId: '2', name: '김강산', lastMessage: '주문서 작성해주시면 됩니다~' },
-  { id: '3', roomId: '3', name: '박민지', lastMessage: '네 감사합니다', unread: 1 },
-  { id: '4', roomId: '4', name: '김진서', lastMessage: '네 가능합니다~' },
-  { id: '5', roomId: '5', name: '어건우', lastMessage: '감사합니다^^' },
-];
 
 type ChatListScreenRouteProp = RouteProp<RootStackParamList, 'ChatList'>;
 
@@ -70,8 +52,19 @@ const ChatListScreen: React.FC = () => {
       try {
         setLoading(true);
         const rooms = await getChatRooms(parseInt(userId));
+        
+        // ✅ 사용자별 채팅방 필터링 확인
+        console.log('✅ 실제 채팅방 데이터 로드 완료:', {
+          userId: userId,
+          roomCount: rooms.length,
+          rooms: rooms.map(room => ({
+            roomId: room.roomId,
+            otherUserId: room.otherUserId,
+            otherUserNickname: room.otherUserNickname
+          }))
+        });
+        
         setRealChatRooms(rooms);
-        console.log('✅ 실제 채팅방 데이터 로드 완료:', rooms);
       } catch (error) {
         console.error('❌ 실제 채팅방 데이터 로드 실패:', error);
       } finally {
@@ -92,25 +85,15 @@ const ChatListScreen: React.FC = () => {
     isReal: true,
   });
 
-  // 더미 데이터를 통합된 형태로 변환
-  const convertDummyToChatPreview = (dummy: DummyChatPreview): ChatPreview => ({
-    id: dummy.id,
-    roomId: dummy.roomId,
-    name: dummy.name,
-    lastMessage: dummy.lastMessage,
-    unread: dummy.unread,
-    isReal: false,
-  });
+  // ✅ 더미 데이터 변환 함수 제거 (실제 데이터만 사용)
 
   const list = useMemo(() => {
-    // 실제 데이터 + 더미 데이터 통합
+    // ✅ 실제 데이터만 사용 (더미 데이터 제거)
     const realChatPreviews = realChatRooms.map(convertRealToChatPreview);
-    const dummyChatPreviews = DUMMY.map(convertDummyToChatPreview);
-    const allChats = [...realChatPreviews, ...dummyChatPreviews];
 
     const q = query.trim();
-    if (!q) return allChats;
-    return allChats.filter(
+    if (!q) return realChatPreviews;
+    return realChatPreviews.filter(
       (r) => r.name.includes(q) || r.lastMessage.includes(q)
     );
   }, [query, realChatRooms]);
@@ -135,9 +118,7 @@ const ChatListScreen: React.FC = () => {
           <Text style={styles.name} numberOfLines={1}>
             {item.name}
           </Text>
-          {item.isReal && (
-            <Text style={styles.realBadge}>실제</Text>
-          )}
+          {/* ✅ 실제 데이터 배지 제거 (이제 모든 데이터가 실제 데이터) */}
         </View>
         <Text style={styles.last} numberOfLines={1}>
           {item.lastMessage}

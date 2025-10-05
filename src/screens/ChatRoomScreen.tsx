@@ -100,6 +100,11 @@ const ChatRoomScreen: React.FC = () => {
   // 연결 상태 로그
   useEffect(() => {
     console.log('WebSocket 연결 상태:', { isConnected, isConnecting });
+    
+    // ✅ 이미지 전송 시 WebSocket 연결 상태 확인
+    if (!isConnected && !isConnecting) {
+      console.warn('⚠️ WebSocket 연결되지 않음 - 이미지 전송 후 수신 불가능');
+    }
   }, [isConnected, isConnecting]);
 
   // 초기 메시지 로드
@@ -266,6 +271,28 @@ const ChatRoomScreen: React.FC = () => {
       if (response.ok) {
         console.log('✅ 이미지 메시지 전송 완료 (HTTP API)');
         
+        // ✅ 전송된 메시지를 로컬 상태에 즉시 추가
+        const responseData = await response.json();
+        console.log('📨 서버 응답:', responseData);
+        
+        if (responseData.msgId && responseData.content && responseData.contentType && responseData.createdAt && responseData.senderId) {
+          const chatMessage: ChatMessageType = {
+            msgId: responseData.msgId,
+            roomId: parseInt(roomId),
+            senderId: responseData.senderId,
+            content: responseData.content,
+            contentType: responseData.contentType,
+            createdAt: responseData.createdAt,
+          };
+          
+          const chatMsg = convertMessage(chatMessage);
+          setMessages(prev => [...prev, chatMsg]);
+          console.log('✅ 이미지 메시지 로컬 상태에 추가됨');
+          
+          // 맨 아래로 스크롤
+          setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
+        }
+        
         // 입력창 초기화
         setInput('');
       } else {
@@ -315,14 +342,44 @@ const ChatRoomScreen: React.FC = () => {
         >
           {isImage ? (
             <Image
-              source={{ uri: item.content }}
+              source={{ 
+                uri: item.content,
+                cache: 'force-cache' // 캐시 강제 사용
+              }}
               style={styles.imageBubble}
               resizeMode="cover"
-              onLoad={() => console.log('✅ 이미지 로드 성공:', item.content?.substring(0, 50) + '...')}
+              onLoad={() => {
+                console.log('✅ 이미지 로드 성공:', item.content);
+                console.log('✅ 이미지 URL 형식 확인:', {
+                  url: item.content,
+                  isFilesPath: item.content.includes('/files/'),
+                  isApiPath: item.content.includes('/api/chat/images/')
+                });
+              }}
               onError={(error) => {
-                console.error('❌ 이미지 로드 실패:', item.content?.substring(0, 50) + '...');
+                console.error('❌ 이미지 로드 실패:', item.content);
                 console.error('❌ 오류 상세:', error.nativeEvent.error);
                 console.error('❌ 오류 타입:', typeof error.nativeEvent.error);
+                
+                // ✅ 이미지 URL 경로 확인 및 수정 제안
+                console.log('🔍 이미지 URL 분석:', {
+                  originalUrl: item.content,
+                  isFilesPath: item.content.includes('/files/'),
+                  isApiPath: item.content.includes('/api/chat/images/'),
+                  expectedFormat: 'http://10.0.2.2:8080/files/{filename}',
+                  urlParts: item.content.split('/'),
+                  filename: item.content.split('/').pop()
+                });
+                
+                // ✅ 네트워크 상태 확인
+                console.log('🌐 네트워크 상태 확인:', {
+                  isLocalhost: item.content.includes('10.0.2.2'),
+                  isHttp: item.content.startsWith('http://'),
+                  isHttps: item.content.startsWith('https://')
+                });
+                
+                // ✅ 백엔드에서 올바른 URL 생성하므로 추가 수정 불필요
+                console.log('🔧 이미지 로드 실패 - 백엔드 직접 파일 서빙 엔드포인트 확인 필요');
               }}
             />
           ) : (
