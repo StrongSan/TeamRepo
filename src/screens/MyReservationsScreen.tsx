@@ -8,12 +8,13 @@ import {
   Image,
   RefreshControl,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import CustomerBottomBar from '../components/CustomerBottomBar';
 import SellerBottomBar from '../components/SellerBottomBar';
-import { getOrderListV2, OrderItem, OrderListResponse } from '../api/orderAPI';
+import { getOrderListV2, OrderItem, OrderListResponse, cancelOrder, getOrderDetail } from '../api/orderAPI';
 
 /** ───────────────────────── Types ───────────────────────── **/
 type OrderStatus = 'IN_PROGRESS' | 'COMPLETED';
@@ -26,8 +27,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'MyReservations'>;
 const formatKRW = (n: number) => n.toLocaleString('ko-KR');
 
 export default function MyReservationsScreen({ navigation, route }: Props) {
-  const { userId, userType } = route.params;
-  const [tab, setTab] = useState<OrderStatus>('IN_PROGRESS');
+  const { userId, userType, initialTab } = route.params;
+  const [tab, setTab] = useState<OrderStatus>(initialTab || 'IN_PROGRESS');
   const [refreshing, setRefreshing] = useState(false);
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -82,6 +83,31 @@ export default function MyReservationsScreen({ navigation, route }: Props) {
       console.log('주문 아이템 이미지 URL:', item.thumbnail);
       return (
         <View style={styles.card}>
+          {/* 카드 우측 상단 X 아이콘 (주문취소) */}
+          {tab === 'IN_PROGRESS' && (
+            <TouchableOpacity 
+              style={styles.cancelIcon}
+              onPress={() => {
+                Alert.alert('주문취소', '해당 주문을 취소하시겠습니까?', [
+                  { text: '아니오', style: 'cancel' },
+                  { text: '예', style: 'destructive', onPress: async () => {
+                      try {
+                        await cancelOrder(item.id);
+                        Alert.alert('안내', '주문이 취소되었습니다.');
+                        // 진행중 주문 목록 새로고침
+                        await fetchOrders('IN_PROGRESS', 0, true);
+                      } catch (e) {
+                        console.error('주문 취소 실패', e);
+                        Alert.alert('오류', '주문 취소에 실패했습니다.');
+                      }
+                    } }
+                ]);
+              }}
+            >
+              <Text style={styles.cancelIconText}>✕</Text>
+            </TouchableOpacity>
+          )}
+          
           <View style={styles.row}>
             <Image 
               source={{ 
@@ -126,7 +152,7 @@ export default function MyReservationsScreen({ navigation, route }: Props) {
         </View>
 
         <View style={styles.btnRow}>
-          {item.status === 'IN_PROGRESS' ? (
+          {tab === 'IN_PROGRESS' ? (
             <>
               <GhostButton
                 label="주문상세"
@@ -134,7 +160,35 @@ export default function MyReservationsScreen({ navigation, route }: Props) {
               />
               <GhostButton
                 label="문의하기"
-                onPress={() => navigation.navigate('InquiryChat', { orderId: item.id })}
+                onPress={async () => {
+                  try {
+                    // 주문 상세 정보를 가져와서 채팅방 생성/이동
+                    const orderDetail = await getOrderDetail(item.id);
+                    const { postId } = orderDetail.cakeInfo;
+                    
+                    // 채팅방 생성 또는 기존 채팅방 찾기
+                    const { createOrGetChatRoom } = await import('../api/chatAPI');
+                    const chatRoom = await createOrGetChatRoom(postId, parseInt(userId));
+                    
+                    // ChatRoom으로 이동
+                    navigation.navigate('ChatRoom', {
+                      roomId: chatRoom.roomId.toString(),
+                      userId,
+                      userType: 'customer',
+                      productId: postId,
+                      isNewRoom: true
+                    });
+                  } catch (error) {
+                    console.error('문의하기 실패:', error);
+                    Alert.alert('오류', '문의하기 기능을 사용할 수 없습니다.');
+                  }
+                }}
+              />
+              <GhostButton
+                label="리뷰 작성"
+                onPress={() => {
+                  navigation.navigate('WriteReview', { orderId: item.id, userId });
+                }}
               />
             </>
           ) : (
@@ -144,8 +198,30 @@ export default function MyReservationsScreen({ navigation, route }: Props) {
                 onPress={() => navigation.navigate('ReorderFlow', { orderId: item.id })}
               />
               <GhostButton
-                label="후기 작성"
-                onPress={() => navigation.navigate('WriteReview', { orderId: item.id, userId })}
+                label="문의하기"
+                onPress={async () => {
+                  try {
+                    // 주문 상세 정보를 가져와서 채팅방 생성/이동
+                    const orderDetail = await getOrderDetail(item.id);
+                    const { postId } = orderDetail.cakeInfo;
+                    
+                    // 채팅방 생성 또는 기존 채팅방 찾기
+                    const { createOrGetChatRoom } = await import('../api/chatAPI');
+                    const chatRoom = await createOrGetChatRoom(postId, parseInt(userId));
+                    
+                    // ChatRoom으로 이동
+                    navigation.navigate('ChatRoom', {
+                      roomId: chatRoom.roomId.toString(),
+                      userId,
+                      userType: 'customer',
+                      productId: postId,
+                      isNewRoom: true
+                    });
+                  } catch (error) {
+                    console.error('문의하기 실패:', error);
+                    Alert.alert('오류', '문의하기 기능을 사용할 수 없습니다.');
+                  }
+                }}
               />
             </>
           )}
@@ -153,7 +229,7 @@ export default function MyReservationsScreen({ navigation, route }: Props) {
       </View>
       );
     },
-    [navigation]
+    [navigation, tab, fetchOrders]
   );
 
   return (
@@ -296,6 +372,24 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
     padding: 12,
     backgroundColor: '#fff',
+    position: 'relative',
+  },
+  cancelIcon: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#f6d8dc', // 진행 중인 주문 탭의 배경색과 동일
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  cancelIconText: {
+    color: '#d9556a', // 진한 분홍색으로 변경하여 연핑크 배경에서 잘 보이도록
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   row: { flexDirection: 'row', gap: 12 },
   thumb: { width: 64, height: 64, borderRadius: 8, backgroundColor: '#f2f2f2' },

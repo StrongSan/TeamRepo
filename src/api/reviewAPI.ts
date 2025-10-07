@@ -192,8 +192,7 @@ export const getReviewsByUser = async (
   page: number = 0,
   size: number = 10
 ): Promise<PaginatedResponse<ReviewResponse>> => {
-  // 임시로 상점별 조회를 사용 (실제로는 사용자별 조회 API가 필요)
-  const response = await apiClient.get(`/api/reviews/shops/${userId}`, {
+  const response = await apiClient.get(`/api/reviews/users/${userId}`, {
     params: { page, size },
   });
   return response.data;

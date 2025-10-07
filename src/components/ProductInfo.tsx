@@ -10,6 +10,7 @@ interface ProductInfoProps {
   description: string;
   userId: string;
   postId: number;
+  cakeId?: number; // cakeId 추가
 }
 
 const ProductInfo: React.FC<ProductInfoProps> = ({ 
@@ -17,7 +18,8 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
   price, 
   description, 
   userId, 
-  postId 
+  postId,
+  cakeId 
 }) => {
   const [liked, setLiked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,11 +27,13 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
   // 컴포넌트 마운트 시 찜 상태 확인
   useEffect(() => {
     checkFavoriteStatus();
-  }, [userId, postId]);
+  }, [userId, cakeId]);
 
   const checkFavoriteStatus = async () => {
     try {
-      const response = await checkFavorite(userId, postId);
+      // cakeId가 있으면 사용, 없으면 postId 사용
+      const idToUse = cakeId || postId;
+      const response = await checkFavorite(userId, idToUse);
       setLiked(response.favorited || false);
     } catch (error) {
       console.error("찜 상태 확인 실패:", error);
@@ -41,7 +45,9 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
     
     setIsLoading(true);
     try {
-      const response = await toggleFavorite(userId, postId);
+      // cakeId가 있으면 사용, 없으면 postId 사용
+      const idToUse = cakeId || postId;
+      const response = await toggleFavorite(userId, idToUse);
       setLiked(response.favorited || false);
     } catch (error) {
       console.error("찜 토글 실패:", error);

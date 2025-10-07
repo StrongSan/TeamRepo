@@ -68,7 +68,57 @@ export default function MyReviewsScreen({ navigation, route }: Props) {
 
   // 리뷰 아이템 렌더링
   const renderReviewItem = useCallback(({ item }: { item: ReviewResponse }) => (
-    <TouchableOpacity style={styles.reviewItem}>
+    <TouchableOpacity 
+      style={styles.reviewItem}
+      onPress={async () => {
+        try {
+          console.log('리뷰 아이템 데이터:', item);
+          console.log('cakeId:', item.cakeId, '타입:', typeof item.cakeId);
+          
+          if (!item.cakeId || item.cakeId === 'undefined') {
+            Alert.alert('오류', '케이크 정보를 찾을 수 없습니다.');
+            return;
+          }
+          
+          // 케이크 ID로 게시글 정보 가져오기
+          const { fetchPostById } = await import('../api/postAPI');
+          const post = await fetchPostById(item.cakeId);
+          
+          // 디버깅: 게시글 정보 확인
+          console.log('🔍 게시글 정보:', {
+            cakeId: item.cakeId,
+            postId: post.postId,
+            title: post.title,
+            imageUrl: post.imageUrl,
+            variantId: post.variantId,
+            imageUrlType: typeof post.imageUrl,
+            imageUrlLength: post.imageUrl?.length
+          });
+          
+          // ProductDetail 화면으로 이동
+          navigation.navigate('ProductDetail', {
+            userType: 'customer', // 리뷰 작성자는 customer
+            post: {
+              postId: post.postId,
+              title: post.title,
+              imageUrl: post.imageUrl,
+              price: post.price,
+              description: post.description,
+              variantId: post.variantId,
+              cakeId: item.cakeId, // 리뷰의 cakeId 사용 (1)
+              sheetId: post.sheetId,
+              fillingId: post.fillingId,
+              sizeId: post.sizeId,
+              typeId: post.typeId,
+            },
+            userId: userId,
+          });
+        } catch (error) {
+          console.error('게시글 정보 가져오기 실패:', error);
+          Alert.alert('오류', '게시글 정보를 불러올 수 없습니다.');
+        }
+      }}
+    >
       <View style={styles.reviewHeader}>
         <Text style={styles.reviewRating}>
           {'★'.repeat(Math.floor(item.rating))}{'☆'.repeat(5 - Math.floor(item.rating))}
@@ -82,7 +132,7 @@ export default function MyReviewsScreen({ navigation, route }: Props) {
         <Text style={styles.reviewCakeId}>케이크 ID: {item.cakeId}</Text>
       </View>
     </TouchableOpacity>
-  ), []);
+  ), [navigation, userId]);
 
   return (
     <View style={styles.container}>

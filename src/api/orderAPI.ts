@@ -140,10 +140,8 @@ export const getOrderDetail = async (orderId: string): Promise<OrderDetailRespon
  * @param orderId 주문 ID
  * @param userId 사용자 ID
  */
-export const cancelOrder = async (orderId: string, userId: string): Promise<void> => {
-  await apiClient.patch(`/orders/${orderId}/cancel`, null, {
-    params: { userId }
-  });
+export const cancelOrder = async (orderId: string): Promise<void> => {
+  await apiClient.delete(`/orders/${orderId}`);
 };
 
 /**

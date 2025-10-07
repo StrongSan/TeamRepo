@@ -22,6 +22,7 @@ export type Post = {
   price: string;
   description: string;
   variantId: number;
+  cakeId?: number; // cakeId 추가 (variantId와 동일한 값)
   sheetId: number;
   fillingId: number;
   sizeId: number;
@@ -106,14 +107,22 @@ export const resolveVariantId = async (
 };
 
 export const fetchPostById = async (postId: number): Promise<Post> => {
+  console.log('🔍 fetchPostById 호출:', { postId });
   const response = await apiClient.get(`/api/cake-posts/${postId}`);
+  console.log('🔍 fetchPostById 응답:', {
+    postId: response.data.postId,
+    title: response.data.title,
+    imageUrl: response.data.imageUrl,
+    imageUrlType: typeof response.data.imageUrl,
+    fullResponse: response.data
+  });
   return response.data;
 };
 
 export const saveViewedCake = async (userId: string, cakeId: number) => {
   try {
     await apiClient.post("/api/viewed-cake", {
-      userId,
+      userId: parseInt(userId), // string을 number로 변환
       cakeId,
     });
   } catch (error) {

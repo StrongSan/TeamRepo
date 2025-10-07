@@ -74,9 +74,8 @@ export type RootStackParamList = {
     userType?: 'seller' | 'customer';
    };
    WishList: { userId: string; userType: 'seller' | 'customer' };
-   MyReservations: { userId: string; userType: 'seller' | 'customer' };
+   MyReservations: { userId: string; userType: 'seller' | 'customer'; initialTab?: 'IN_PROGRESS' | 'COMPLETED' };
    OrderDetail: { orderId: string; userId: string };
-   InquiryChat: { orderId: string };
    ReorderFlow: { orderId: string };
    WriteReview: { orderId: string; userId: string };
    MyReviews: { userId: string };

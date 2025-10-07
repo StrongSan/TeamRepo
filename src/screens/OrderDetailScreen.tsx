@@ -50,7 +50,7 @@ export default function OrderDetailScreen({ navigation, route }: Props) {
           style: 'destructive',
           onPress: async () => {
             try {
-              await cancelOrder(orderId, userId);
+              await cancelOrder(orderId);
               Alert.alert('성공', '주문이 취소되었습니다.');
               navigation.goBack();
             } catch (error) {
@@ -63,9 +63,29 @@ export default function OrderDetailScreen({ navigation, route }: Props) {
     );
   };
 
-  const handleInquiry = () => {
-    // TODO: 문의하기 기능 구현
-    Alert.alert('알림', '문의하기 기능은 준비 중입니다.');
+  const handleInquiry = async () => {
+    if (!orderDetail) return;
+    
+    try {
+      // 주문의 케이크 정보에서 postId를 가져와서 채팅방 생성/이동
+      const { postId } = orderDetail.cakeInfo;
+      
+      // 채팅방 생성 또는 기존 채팅방 찾기
+      const { createOrGetChatRoom } = await import('../api/chatAPI');
+      const chatRoom = await createOrGetChatRoom(postId, parseInt(userId));
+      
+      // ChatRoom으로 이동
+      navigation.navigate('ChatRoom', {
+        roomId: chatRoom.roomId.toString(),
+        userId,
+        userType: 'customer', // 주문자는 customer
+        productId: postId,
+        isNewRoom: true
+      });
+    } catch (error) {
+      console.error('문의하기 실패:', error);
+      Alert.alert('오류', '문의하기 기능을 사용할 수 없습니다.');
+    }
   };
 
   const handleReorder = () => {

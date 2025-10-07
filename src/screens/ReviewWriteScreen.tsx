@@ -179,7 +179,14 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
           [
             {
               text: '확인',
-              onPress: () => navigation.goBack(),
+              onPress: () => {
+                // MyReservations 화면으로 돌아가서 지난 주문 탭으로 이동
+                navigation.navigate('MyReservations', { 
+                  userId, 
+                  userType: 'customer',
+                  initialTab: 'COMPLETED' // 지난 주문 탭으로 이동
+                });
+              },
             },
           ]
         );

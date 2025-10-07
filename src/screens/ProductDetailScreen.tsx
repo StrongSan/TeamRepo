@@ -33,20 +33,37 @@ const ProductDetailScreen: React.FC = () => {
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(false);
 
-  // 진입 시 조회 기록 저장
+  // 진입 시 조회 기록 저장 (실패해도 다른 기능에 영향 없도록 처리)
   useEffect(() => {
-    saveViewedCake(userId, post.postId);
-  }, [post.postId]);
+    const saveViewHistory = async () => {
+      try {
+        // cakeId 우선 사용, 없으면 postId 사용
+        await saveViewedCake(userId, post.cakeId || post.postId);
+      } catch (error) {
+        console.warn('조회 기록 저장 실패 (무시됨):', error);
+        // 조회 기록 저장 실패는 사용자 경험에 영향을 주지 않으므로 무시
+      }
+    };
+    
+    saveViewHistory();
+  }, [post.postId, userId]);
 
   // 리뷰 데이터 로드
   const loadReviews = useCallback(async (pageNum: number = 0, isRefresh: boolean = false) => {
     try {
       setLoading(true);
       
+      // 디버깅: cakeId와 postId 값 확인
+      console.log('🔍 리뷰 로드 디버깅:', {
+        cakeId: post.cakeId,
+        postId: post.postId,
+        finalCakeId: post.cakeId || post.postId
+      });
+      
       // 리뷰 요약 정보 로드 (첫 페이지일 때만)
       if (pageNum === 0) {
         try {
-          const summary = await getReviewSummaryByCake(post.postId);
+          const summary = await getReviewSummaryByCake(post.cakeId || post.postId); // cakeId 우선, 없으면 postId 사용
           setReviewSummary(summary);
         } catch (error) {
           console.log('리뷰 요약 정보 로드 실패:', error);
@@ -54,7 +71,7 @@ const ProductDetailScreen: React.FC = () => {
       }
 
       // 리뷰 목록 로드
-      const response = await getReviewsByCake(post.postId, pageNum, 10);
+      const response = await getReviewsByCake(post.cakeId || post.postId, pageNum, 10); // cakeId 우선, 없으면 postId 사용
       
       if (isRefresh) {
         setReviews(response.content || []);
@@ -112,6 +129,7 @@ const ProductDetailScreen: React.FC = () => {
           description={post.description}
           userId={userId}
           postId={post.postId}
+          cakeId={post.cakeId}
         />
         <ProductActionButtons userType={userType} postId={post.postId} userId={userId} price={post.price} />
         
