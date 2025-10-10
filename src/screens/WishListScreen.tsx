@@ -50,6 +50,13 @@ const WishListScreen: React.FC = () => {
     try {
       setLoading(true);
       const response = await getFavoriteList(userId);
+      console.log('🔍 찜 목록 API 응답:', {
+        responseType: typeof response,
+        hasContent: !!response.content,
+        contentLength: response.content?.length || 0,
+        firstItem: response.content?.[0] || response[0]
+      });
+      
       if (response.content) {
         setFavorites(response.content);
       } else {
@@ -112,6 +119,21 @@ const WishListScreen: React.FC = () => {
           style={styles.cakeImage}
           resizeMode="cover"
           defaultSource={require('../../assets/images/pre_cho1.jpg')} // 기본 이미지
+          onError={(error) => {
+            console.log('❌ 찜 목록 이미지 로드 실패:', {
+              cakeId: item.cakeId,
+              title: item.title,
+              imageUrl: item.imageUrl,
+              error: error.nativeEvent
+            });
+          }}
+          onLoad={() => {
+            console.log('✅ 찜 목록 이미지 로드 성공:', {
+              cakeId: item.cakeId,
+              title: item.title,
+              imageUrl: item.imageUrl
+            });
+          }}
         />
         
         <View style={styles.textContainer}>

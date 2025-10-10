@@ -14,7 +14,7 @@ import {
 // import Icon from 'react-native-vector-icons/Icon';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import { createReview, ReviewCreateRequest } from '../api/reviewAPI';
+import { createReview, updateReview, ReviewCreateRequest, ReviewUpdateRequest, ReviewResponse } from '../api/reviewAPI';
 import { getOrderDetail, OrderDetailResponse } from '../api/orderAPI';
 import { launchImageLibrary, ImagePickerResponse, Asset } from 'react-native-image-picker';
 
@@ -33,7 +33,7 @@ const cakeTypes = [
 ];
 
 const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { orderId, userId } = route.params;
+  const { orderId, userId, isEdit, existingReview } = route.params;
   const [rating, setRating] = useState<number>(0);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -45,14 +45,67 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // 수정 모드인 경우 기존 리뷰 데이터 로드
+    if (isEdit && existingReview) {
+      setRating(existingReview.rating);
+      // 기존 리뷰 내용을 제목과 내용으로 분리
+      const commentParts = existingReview.comment.split('\n\n');
+      if (commentParts.length >= 2) {
+        setTitle(commentParts[0]);
+        setContent(commentParts[1]);
+        // 케이크 종류 추출
+        const cakeTypePart = commentParts[2];
+        if (cakeTypePart && cakeTypePart.includes('케이크 종류:')) {
+          const types = cakeTypePart.replace('케이크 종류: ', '').split(', ');
+          setSelectedTypes(types.filter((type: string) => type.trim() !== ''));
+        }
+      } else {
+        setContent(existingReview.comment);
+      }
+    }
+    
     // 주문 정보 가져오기
     loadOrderInfo();
-  }, []);
+  }, [isEdit, existingReview]);
 
   const loadOrderInfo = async () => {
     try {
       setIsLoading(true);
-      // 임시: API 호출을 시뮬레이션하여 화면이 정상 작동하도록 함
+      
+      if (isEdit && existingReview) {
+        // 수정 모드: 기존 리뷰 정보로 mock 데이터 생성
+        const mockOrderData = {
+          id: 'edit-mode',
+          thumbnail: 'https://placehold.co/300x200',
+          title: '리뷰 수정',
+          pickupDate: new Date().toISOString().split('T')[0],
+          options: '1단 케이크 x1',
+          price: 50000,
+          status: 'COMPLETED' as const,
+          orderDate: new Date().toISOString().split('T')[0],
+          customerInfo: {
+            name: '구매자',
+            phone: '010-1234-5678'
+          },
+          cakeInfo: {
+            postId: existingReview.cakeId,
+            title: '리뷰 수정',
+            imageUrl: 'https://placehold.co/300x200',
+            description: '기존 리뷰를 수정합니다.'
+          },
+          orderOptions: {
+            variantId: 1,
+            sheetId: 1,
+            fillingId: 1,
+            sizeId: 1,
+            typeId: 1
+          }
+        };
+        setOrderInfo(mockOrderData);
+        return;
+      }
+      
+      // 새 리뷰 작성 모드
       try {
         const orderData = await getOrderDetail(orderId);
         console.log('리뷰 화면 주문 상세 데이터:', JSON.stringify(orderData, null, 2));
@@ -157,49 +210,85 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
 
     setIsSubmitting(true);
     try {
-      const reviewData: ReviewCreateRequest = {
-        userId: parseInt(userId),
-        cakeId: orderInfo.cakeInfo.postId,
-        rating: rating,
-        comment: `${title}\n\n${content}\n\n케이크 종류: ${selectedTypes.join(', ')}`,
-      };
+      if (isEdit && existingReview) {
+        // 리뷰 수정
+        const updateData: ReviewUpdateRequest = {
+          userId: parseInt(userId),
+          rating: rating,
+          comment: `${title}\n\n${content}\n\n케이크 종류: ${selectedTypes.join(', ')}`,
+        };
 
-      console.log('리뷰 작성 데이터:', JSON.stringify(reviewData, null, 2));
-      console.log('userId:', userId, 'parsed:', parseInt(userId));
-      console.log('cakeId:', orderInfo.cakeInfo.postId);
-      console.log('API 호출 시작: POST /api/reviews');
+        console.log('리뷰 수정 데이터:', JSON.stringify(updateData, null, 2));
+        console.log('API 호출 시작: PATCH /api/reviews/' + existingReview.reviewId);
 
-      try {
-        const result = await createReview(reviewData);
-        console.log('리뷰 작성 성공:', result);
-        
-        Alert.alert(
-          '성공',
-          '리뷰가 성공적으로 등록되었습니다.',
-          [
-            {
-              text: '확인',
-              onPress: () => {
-                // MyReservations 화면으로 돌아가서 지난 주문 탭으로 이동
-                navigation.navigate('MyReservations', { 
-                  userId, 
-                  userType: 'customer',
-                  initialTab: 'COMPLETED' // 지난 주문 탭으로 이동
-                });
+        try {
+          await updateReview(existingReview.reviewId, updateData);
+          console.log('리뷰 수정 성공');
+          
+          Alert.alert(
+            '성공',
+            '리뷰가 성공적으로 수정되었습니다.',
+            [
+              {
+                text: '확인',
+                onPress: () => {
+                  // MyReviews 화면으로 돌아가기
+                  navigation.navigate('MyReviews', { userId });
+                },
               },
-            },
-          ]
-        );
-      } catch (apiError) {
-        console.error('리뷰 작성 API 호출 실패:', apiError);
-        
-        // 실제 오류 메시지 표시
-        const errorMessage = apiError.response?.data?.message || apiError.message || '리뷰 작성 중 오류가 발생했습니다.';
-        Alert.alert('오류', errorMessage);
+            ]
+          );
+        } catch (apiError: any) {
+          console.error('리뷰 수정 API 호출 실패:', apiError);
+          const errorMessage = apiError.response?.data?.message || apiError.message || '리뷰 수정 중 오류가 발생했습니다.';
+          Alert.alert('오류', errorMessage);
+        }
+      } else {
+        // 리뷰 생성
+        const reviewData: ReviewCreateRequest = {
+          userId: parseInt(userId),
+          cakeId: orderInfo.cakeInfo.postId,
+          rating: rating,
+          comment: `${title}\n\n${content}\n\n케이크 종류: ${selectedTypes.join(', ')}`,
+        };
+
+        console.log('리뷰 작성 데이터:', JSON.stringify(reviewData, null, 2));
+        console.log('userId:', userId, 'parsed:', parseInt(userId));
+        console.log('cakeId:', orderInfo.cakeInfo.postId);
+        console.log('API 호출 시작: POST /api/reviews');
+
+        try {
+          const result = await createReview(reviewData);
+          console.log('리뷰 작성 성공:', result);
+          
+          Alert.alert(
+            '성공',
+            '리뷰가 성공적으로 등록되었습니다.',
+            [
+              {
+                text: '확인',
+                onPress: () => {
+                  // MyReservations 화면으로 돌아가서 지난 주문 탭으로 이동
+                  navigation.navigate('MyReservations', { 
+                    userId, 
+                    userType: 'customer',
+                    initialTab: 'COMPLETED' // 지난 주문 탭으로 이동
+                  });
+                },
+              },
+            ]
+          );
+        } catch (apiError: any) {
+          console.error('리뷰 작성 API 호출 실패:', apiError);
+          
+          // 실제 오류 메시지 표시
+          const errorMessage = apiError.response?.data?.message || apiError.message || '리뷰 작성 중 오류가 발생했습니다.';
+          Alert.alert('오류', errorMessage);
+        }
       }
     } catch (error) {
-      console.error('리뷰 작성 오류:', error);
-      Alert.alert('오류', '리뷰 작성 중 오류가 발생했습니다. 다시 시도해주세요.');
+      console.error('리뷰 처리 오류:', error);
+      Alert.alert('오류', '리뷰 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmitting(false);
     }
@@ -287,7 +376,7 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Text style={styles.backIcon}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>리뷰 작성</Text>
+          <Text style={styles.headerTitle}>{isEdit ? '리뷰 수정' : '리뷰 작성'}</Text>
           <View style={styles.headerRight} />
         </View>
         <View style={styles.loadingContainer}>
@@ -305,7 +394,7 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Text style={styles.backIcon}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>리뷰 작성</Text>
+          <Text style={styles.headerTitle}>{isEdit ? '리뷰 수정' : '리뷰 작성'}</Text>
           <View style={styles.headerRight} />
         </View>
         <View style={styles.errorContainer}>
@@ -409,7 +498,7 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
           {isSubmitting ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.submitText}>리뷰 등록</Text>
+            <Text style={styles.submitText}>{isEdit ? '리뷰 수정' : '리뷰 등록'}</Text>
           )}
         </TouchableOpacity>
 

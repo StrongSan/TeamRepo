@@ -61,7 +61,13 @@ export const fetchAllPosts = async (): Promise<Post[]> => {
 export const fetchRecommendedPostsByUserId = async (
   userId: string
 ): Promise<Post[]> => {
+  console.log('🔍 API 호출 시작 - userId:', userId);
   const response = await apiClient.get(`/api/recommendation/${userId}`);
+  console.log('🔍 API 응답 받음:', {
+    status: response.status,
+    dataLength: response.data?.length,
+    firstItem: response.data?.[0]
+  });
   return response.data.map((item: any) => ({
     postId: item.postId ?? item.id,
     title: item.title,
@@ -69,10 +75,11 @@ export const fetchRecommendedPostsByUserId = async (
     price: item.price,
     description: item.description,
     variantId: item.variantId,
-    sheetId: item.sheetId,
-    fillingId: item.fillingId,
-    sizeId: item.sizeId,
-    typeId: item.typeId,
+    // 백엔드에서 제공하지 않는 필드들은 기본값으로 설정
+    sheetId: item.sheetId || 1,
+    fillingId: item.fillingId || 1,
+    sizeId: item.sizeId || 1,
+    typeId: item.typeId || 1,
   }));
 };
 

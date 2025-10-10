@@ -409,15 +409,17 @@ const styles = StyleSheet.create({
   },
   ghostBtn: {
     flex: 1,
-    height: 36,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e5ea',
+    backgroundColor: '#f6d8dc',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
   },
-  ghostBtnText: { fontSize: 13, color: '#333', fontWeight: '600' },
+  ghostBtnText: { 
+    color: '#d9556a', 
+    fontSize: 14, 
+    fontWeight: '500' 
+  },
 
   emptyContainer: {
     flex: 1,

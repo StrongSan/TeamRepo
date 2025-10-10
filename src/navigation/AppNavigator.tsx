@@ -77,7 +77,12 @@ export type RootStackParamList = {
    MyReservations: { userId: string; userType: 'seller' | 'customer'; initialTab?: 'IN_PROGRESS' | 'COMPLETED' };
    OrderDetail: { orderId: string; userId: string };
    ReorderFlow: { orderId: string };
-   WriteReview: { orderId: string; userId: string };
+   WriteReview: { 
+     orderId: string; 
+     userId: string; 
+     isEdit?: boolean;
+     existingReview?: any;
+   };
    MyReviews: { userId: string };
    ChatList: { userId: string; userType: 'seller' | 'customer' };
    ChatRoom: { 

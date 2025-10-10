@@ -22,7 +22,7 @@ DB_CONFIG = {
     'host': 'localhost',
     'database': 'cakeday_db',
     'user': 'root',
-    'password': 'root1234'
+    'password': 'rlarkdtks94302.'
 }
 
 
@@ -231,6 +231,9 @@ async def recommend_cakes(request: RecommendRequest):
 
     content_recs = get_content_based_recommendations(request.variant_ids, 50)
     collaborative_recs = get_collaborative_recommendations(request.user_id, 50) if request.user_id else []
+    
+    print(f"[FastAPI] 콘텐츠 기반 추천 결과: {content_recs[:10]}")
+    print(f"[FastAPI] 협업 필터링 추천 결과: {collaborative_recs[:10]}")
 
     # 가중치 적용한 하이브리드 스코어링
     final_scores = {}
@@ -248,6 +251,9 @@ async def recommend_cakes(request: RecommendRequest):
     # 최종 추천 리스트 생성
     sorted_recs = sorted(final_scores.items(), key=lambda x: x[1], reverse=True)
     recommended_variant_ids = [int(vid) for vid, score in sorted_recs[:25]]  # numpy.int64 -> int 변환
+    
+    print(f"[FastAPI] 최종 추천 결과 (상위 10개): {recommended_variant_ids[:10]}")
+    print(f"[FastAPI] 최종 스코어 (상위 5개): {sorted_recs[:5]}")
 
     # 최소 15개 보장
     if len(recommended_variant_ids) < 15:
@@ -314,13 +320,18 @@ async def get_posts_by_variants(request: VariantIdRequest):
         connection.close()
 
         result = []
+        base_url = "http://192.168.32.1:8080/images/"  # 백엔드 서버 URL
+        
         for _, row in cake_df.iterrows():
+            image_filename = str(row["cake_img"]) if pd.notnull(row["cake_img"]) else ""
+            full_image_url = f"{base_url}{image_filename}" if image_filename else ""
+            
             result.append({
                 "postId": int(row["cake_id"]) if pd.notnull(row["cake_id"]) else 0,
                 "sellerId": int(row["seller_id"]) if pd.notnull(row["seller_id"]) else 0,
                 "title": str(row["cake_name"]) if pd.notnull(row["cake_name"]) else "",
                 "description": str(row["description"]) if pd.notnull(row["description"]) else "",
-                "imageUrl": str(row["cake_img"]) if pd.notnull(row["cake_img"]) else "",
+                "imageUrl": full_image_url,
                 "price": str(row["price"]) if pd.notnull(row["price"]) else "0",
                 "variantId": int(row["variant_id"]) if pd.notnull(row["variant_id"]) else 0
             })
@@ -329,6 +340,70 @@ async def get_posts_by_variants(request: VariantIdRequest):
 
     except Exception as e:
         print(f"게시글 조회 오류: {e}")
+        return []
+
+
+# 사용자의 최근 조회 기록에서 variant_ids 가져오기
+@app.get("/user/{user_id}/recent-variants")
+async def get_user_recent_variants(user_id: int):
+    try:
+        print(f"🔍 사용자 {user_id}의 조회 기록 조회 시작")
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        # 사용자의 최근 조회 기록에서 variant_id 가져오기 (최근 10개)
+        # 먼저 viewed_cake_log에서 cake_id들을 가져온 후, 각 cake_id에 해당하는 variant_id를 찾기
+        query = """
+        SELECT c.variant_id 
+        FROM viewed_cake_log vcl
+        JOIN cake c ON vcl.cake_id = c.cake_id
+        WHERE vcl.user_id = %s
+        ORDER BY vcl.id DESC
+        LIMIT 10
+        """
+        
+        cursor.execute(query, (user_id,))
+        results = cursor.fetchall()
+        
+        print(f"🔍 쿼리 결과 개수: {len(results)}")
+        print(f"🔍 쿼리 결과: {results}")
+        
+        variant_ids = [row[0] for row in results]
+        print(f"🔍 사용자 {user_id}의 조회 기록 variant_ids: {variant_ids}")
+        
+        # 조회 기록이 없으면 최근 조회한 케이크 정보도 확인
+        if not variant_ids:
+            debug_query = """
+            SELECT vcl.cake_id, vcl.id, c.cake_name
+            FROM viewed_cake_log vcl
+            JOIN cake c ON vcl.cake_id = c.cake_id
+            WHERE vcl.user_id = %s
+            ORDER BY vcl.id DESC
+            LIMIT 5
+            """
+            cursor.execute(debug_query, (user_id,))
+            debug_results = cursor.fetchall()
+            print(f"🔍 디버그 - 조회 기록: {debug_results}")
+            
+            # cake 테이블에서 variant_id 확인
+            if debug_results:
+                cake_ids = [row[0] for row in debug_results]
+                cake_ids_str = ','.join(map(str, cake_ids))
+                variant_query = f"""
+                SELECT cake_id, variant_id FROM cake 
+                WHERE cake_id IN ({cake_ids_str})
+                """
+                cursor.execute(variant_query)
+                variant_results = cursor.fetchall()
+                print(f"🔍 디버그 - 케이크 variant_id: {variant_results}")
+        
+        cursor.close()
+        connection.close()
+        
+        return variant_ids
+        
+    except Exception as e:
+        print(f"사용자 조회 기록 가져오기 오류: {e}")
         return []
 
 

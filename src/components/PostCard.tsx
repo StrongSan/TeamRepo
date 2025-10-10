@@ -15,6 +15,15 @@ type Props = {
 const PostCard: React.FC<Props> = ({ post, userType, userId }) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
+  // 디버깅: 이미지 URL 확인
+  console.log('🖼️ PostCard 이미지 URL:', {
+    postId: post.postId,
+    title: post.title,
+    imageUrl: post.imageUrl,
+    imageUrlType: typeof post.imageUrl,
+    imageUrlLength: post.imageUrl?.length
+  });
+
   const handlePress = async () => {
     await saveViewedCake(userId, post.postId); // ✅ 조회 기록 저장
     navigation.navigate("ProductDetail", {
@@ -26,7 +35,25 @@ const PostCard: React.FC<Props> = ({ post, userType, userId }) => {
 
   return (
     <TouchableOpacity style={styles.card} onPress={handlePress}>
-      <Image source={{ uri: post.imageUrl }} style={styles.image} />
+      <Image 
+        source={{ uri: post.imageUrl }} 
+        style={styles.image}
+        onError={(error) => {
+          console.log('❌ PostCard 이미지 로드 실패:', {
+            postId: post.postId,
+            title: post.title,
+            imageUrl: post.imageUrl,
+            error: error.nativeEvent
+          });
+        }}
+        onLoad={() => {
+          console.log('✅ PostCard 이미지 로드 성공:', {
+            postId: post.postId,
+            title: post.title,
+            imageUrl: post.imageUrl
+          });
+        }}
+      />
       <View style={styles.textContainer}>
         <Text numberOfLines={1} style={styles.title}>
           {post.title}
