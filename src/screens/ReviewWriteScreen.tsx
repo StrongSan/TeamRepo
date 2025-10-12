@@ -17,6 +17,7 @@ import { RootStackParamList } from '../navigation/AppNavigator';
 import { createReview, updateReview, ReviewCreateRequest, ReviewUpdateRequest, ReviewResponse } from '../api/reviewAPI';
 import { getOrderDetail, OrderDetailResponse } from '../api/orderAPI';
 import { launchImageLibrary, ImagePickerResponse, Asset } from 'react-native-image-picker';
+import { BASE_URL } from '../api/config';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WriteReview'>;
 
@@ -425,7 +426,7 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
                 if (imageUrl) {
                   return imageUrl.startsWith('http') 
                     ? imageUrl 
-                    : `http://172.30.176.1:8080/images/${imageUrl}`;
+                    : `${BASE_URL}/images/${imageUrl}`;
                 }
                 return 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=80&h=80&fit=crop&crop=center';
               })()
@@ -439,7 +440,7 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
               console.log('변환된 URL:', imageUrl 
                 ? (imageUrl.startsWith('http') 
                     ? imageUrl 
-                    : `http://172.30.176.1:8080/images/${imageUrl}`)
+                    : `${BASE_URL}/images/${imageUrl}`)
                 : 'fallback');
             }}
             onLoad={() => console.log('리뷰 화면 이미지 로드 성공:', orderInfo.cakeInfo.imageUrl)}

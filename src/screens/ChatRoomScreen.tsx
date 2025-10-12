@@ -26,6 +26,7 @@ import {
   uploadChatImage
 } from '../api/chatAPI';
 import { TokenManager } from '../utils/tokenManager';
+import apiClient from '../api/apiClient';
 
 // ====== 타입 정의 ======
 type MsgType = 'TEXT' | 'IMAGE';
@@ -259,20 +260,13 @@ const ChatRoomScreen: React.FC = () => {
         contentType: 'IMAGE',
       };
 
-      const response = await fetch(`http://10.0.2.2:8080/api/chat/rooms/${roomId}/send`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await TokenManager.getAccessToken()}`,
-        },
-        body: JSON.stringify(messageData),
-      });
+      const response = await apiClient.post(`/api/chat/rooms/${roomId}/send`, messageData);
 
-      if (response.ok) {
+      if (response.status === 200) {
         console.log('✅ 이미지 메시지 전송 완료 (HTTP API)');
         
         // ✅ 전송된 메시지를 로컬 상태에 즉시 추가
-        const responseData = await response.json();
+        const responseData = response.data;
         console.log('📨 서버 응답:', responseData);
         
         if (responseData.msgId && responseData.content && responseData.contentType && responseData.createdAt && responseData.senderId) {
@@ -366,7 +360,7 @@ const ChatRoomScreen: React.FC = () => {
                   originalUrl: item.content,
                   isFilesPath: item.content.includes('/files/'),
                   isApiPath: item.content.includes('/api/chat/images/'),
-                  expectedFormat: 'http://10.0.2.2:8080/files/{filename}',
+                  expectedFormat: `${apiClient.defaults.baseURL}/files/{filename}`,
                   urlParts: item.content.split('/'),
                   filename: item.content.split('/').pop()
                 });

@@ -7,6 +7,7 @@ import CustomerBottomBar from '../components/CustomerBottomBar';
 import SellerBottomBar from '../components/SellerBottomBar';
 import { getFavoriteList, removeFavorite } from '../api/favoriteAPI';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { BASE_URL } from '../api/config';
 
 // ⚠️ 프로젝트의 실제 아이콘 경로에 맞게 수정하세요.
 import AllowLeft from '../../assets/icons/allowLeft.svg';
@@ -105,7 +106,7 @@ const WishListScreen: React.FC = () => {
           post: {
             postId: item.cakeId,
             title: item.title,
-            imageUrl: item.cakeImg,
+            imageUrl: item.imageUrl,
             price: item.price,
             description: ""
           }
@@ -115,7 +116,13 @@ const WishListScreen: React.FC = () => {
       <View style={styles.cardContent}>
         {/* 케이크 이미지 추가 */}
         <Image
-          source={{ uri: item.imageUrl }}
+          source={{ 
+            uri: item.imageUrl 
+              ? (item.imageUrl.startsWith('http') 
+                  ? item.imageUrl 
+                  : `${BASE_URL}/images/${item.imageUrl}`)
+              : 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=200&h=200&fit=crop&crop=center'
+          }}
           style={styles.cakeImage}
           resizeMode="cover"
           defaultSource={require('../../assets/images/pre_cho1.jpg')} // 기본 이미지
@@ -123,7 +130,12 @@ const WishListScreen: React.FC = () => {
             console.log('❌ 찜 목록 이미지 로드 실패:', {
               cakeId: item.cakeId,
               title: item.title,
-              imageUrl: item.imageUrl,
+              originalImageUrl: item.imageUrl,
+              transformedImageUrl: item.imageUrl 
+                ? (item.imageUrl.startsWith('http') 
+                    ? item.imageUrl 
+                    : `${BASE_URL}/images/${item.imageUrl}`)
+                : 'fallback',
               error: error.nativeEvent
             });
           }}
@@ -131,7 +143,11 @@ const WishListScreen: React.FC = () => {
             console.log('✅ 찜 목록 이미지 로드 성공:', {
               cakeId: item.cakeId,
               title: item.title,
-              imageUrl: item.imageUrl
+              imageUrl: item.imageUrl 
+                ? (item.imageUrl.startsWith('http') 
+                    ? item.imageUrl 
+                    : `${BASE_URL}/images/${item.imageUrl}`)
+                : 'fallback'
             });
           }}
         />

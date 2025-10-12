@@ -14,6 +14,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import TopBar from '../components/TopBar';
 import { getOrderDetail, OrderDetailResponse, cancelOrder } from '../api/orderAPI';
+import { BASE_URL } from '../api/config';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'OrderDetail'>;
 
@@ -147,7 +148,7 @@ export default function OrderDetailScreen({ navigation, route }: Props) {
                 uri: orderDetail.thumbnail 
                   ? (orderDetail.thumbnail.startsWith('http') 
                       ? orderDetail.thumbnail 
-                      : `http://172.30.176.1:8080/images/${orderDetail.thumbnail}`)
+                      : `${BASE_URL}/images/${orderDetail.thumbnail}`)
                   : 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=80&h=80&fit=crop&crop=center'
               }} 
               style={styles.cakeImage}
@@ -156,7 +157,7 @@ export default function OrderDetailScreen({ navigation, route }: Props) {
                 console.log('변환된 URL:', orderDetail.thumbnail 
                   ? (orderDetail.thumbnail.startsWith('http') 
                       ? orderDetail.thumbnail 
-                      : `http://172.30.176.1:8080/images/${orderDetail.thumbnail}`)
+                      : `${BASE_URL}/images/${orderDetail.thumbnail}`)
                   : 'fallback');
               }}
               onLoad={() => console.log('주문 상세 이미지 로드 성공:', orderDetail.thumbnail)}

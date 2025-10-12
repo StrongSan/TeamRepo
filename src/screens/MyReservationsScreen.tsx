@@ -15,6 +15,7 @@ import { RootStackParamList } from '../navigation/AppNavigator';
 import CustomerBottomBar from '../components/CustomerBottomBar';
 import SellerBottomBar from '../components/SellerBottomBar';
 import { getOrderListV2, OrderItem, OrderListResponse, cancelOrder, getOrderDetail } from '../api/orderAPI';
+import { BASE_URL } from '../api/config';
 
 /** ───────────────────────── Types ───────────────────────── **/
 type OrderStatus = 'IN_PROGRESS' | 'COMPLETED';
@@ -114,7 +115,7 @@ export default function MyReservationsScreen({ navigation, route }: Props) {
                 uri: item.thumbnail 
                   ? (item.thumbnail.startsWith('http') 
                       ? item.thumbnail 
-                      : `http://172.30.176.1:8080/images/${item.thumbnail}`)
+                      : `${BASE_URL}/images/${item.thumbnail}`)
                   : 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=64&h=64&fit=crop&crop=center'
               }} 
               style={styles.thumb}
@@ -124,7 +125,7 @@ export default function MyReservationsScreen({ navigation, route }: Props) {
                 console.log('변환된 URL:', item.thumbnail 
                   ? (item.thumbnail.startsWith('http') 
                       ? item.thumbnail 
-                      : `http://172.30.176.1:8080/images/${item.thumbnail}`)
+                      : `${BASE_URL}/images/${item.thumbnail}`)
                   : 'fallback');
               }}
               onLoad={() => console.log('이미지 로드 성공:', item.thumbnail)}
