@@ -120,8 +120,22 @@ const ChatRoomScreen: React.FC = () => {
       console.log('채팅방 입장 처리 시작:', roomId);
       
       // 방 입장 처리
-      await enterChatRoom(parseInt(roomId));
-      console.log('채팅방 입장 완료');
+      try {
+        const latestMsgId = await enterChatRoom(parseInt(roomId));
+        console.log('✅ 채팅방 입장 완료, 최신 메시지 ID:', latestMsgId);
+      } catch (enterError: any) {
+        console.error('❌ 채팅방 입장 실패:', enterError);
+        console.error('❌ 입장 오류 상세:', {
+          status: enterError.response?.status,
+          data: enterError.response?.data,
+          message: enterError.message
+        });
+        
+        // 입장 실패 시 사용자에게 알림
+        Alert.alert('오류', '채팅방 입장에 실패했습니다. 다시 시도해주세요.');
+        navigation.goBack();
+        return;
+      }
       
       // 최근 30개 메시지 로드
       const recentMessages = await getRecentMessages(parseInt(roomId));
@@ -260,6 +274,18 @@ const ChatRoomScreen: React.FC = () => {
         contentType: 'IMAGE',
       };
 
+      // 토큰 정보 확인
+      const token = await TokenManager.getAccessToken();
+      console.log('🔑 현재 토큰:', token ? `${token.substring(0, 20)}...` : '없음');
+      console.log('👤 현재 사용자 ID:', userId);
+      
+      console.log('📨 메시지 전송 요청:', {
+        roomId,
+        messageData,
+        url: `/api/chat/rooms/${roomId}/send`,
+        token: token ? `${token.substring(0, 20)}...` : '없음'
+      });
+
       const response = await apiClient.post(`/api/chat/rooms/${roomId}/send`, messageData);
 
       if (response.status === 200) {
@@ -292,9 +318,38 @@ const ChatRoomScreen: React.FC = () => {
       } else {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ 이미지 전송 실패:', error);
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      
+      // 더 자세한 오류 정보 로깅
+      if (error.response) {
+        console.error('📋 서버 응답 오류:', {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+          headers: {
+            'content-type': error.response.headers['content-type'],
+            'www-authenticate': error.response.headers['www-authenticate'],
+            'authorization': error.response.headers['authorization']
+          }
+        });
+        
+        // 응답 데이터가 문자열인 경우 파싱 시도
+        if (typeof error.response.data === 'string' && error.response.data) {
+          try {
+            const parsedData = JSON.parse(error.response.data);
+            console.error('📋 파싱된 오류 데이터:', parsedData);
+          } catch (e) {
+            console.error('📋 원본 오류 데이터 (JSON 파싱 실패):', error.response.data);
+          }
+        }
+      } else if (error.request) {
+        console.error('📋 요청 오류 (서버 응답 없음):', error.request);
+      } else {
+        console.error('📋 기타 오류:', error.message);
+      }
+      
+      const errorMessage = error.response?.data?.message || error.message || '알 수 없는 오류';
       Alert.alert('오류', '이미지 전송에 실패했습니다: ' + errorMessage);
     }
   };
