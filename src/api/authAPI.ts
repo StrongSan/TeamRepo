@@ -121,25 +121,79 @@ export const refreshToken = async (): Promise<{ accessToken: string; refreshToke
   }
 };
 
+// ✅ 토큰 검증 (자동 로그인용)
+export const verifyToken = async (): Promise<{ 
+  valid: boolean; 
+  userId?: number; 
+  userType?: string; 
+  nickname?: string; 
+  favoriteArea?: string; 
+  profileImg?: string; 
+}> => {
+  try {
+    const accessToken = await TokenManager.getAccessToken();
+    
+    if (!accessToken) {
+      console.log('⚠️ 액세스 토큰 없음');
+      return { valid: false };
+    }
+
+    console.log('🔍 토큰 검증 중...');
+    console.log('🔍 사용할 토큰:', accessToken.substring(0, 20) + '...');
+    console.log('🔍 API 요청 URL:', apiClient.defaults.baseURL + '/auth/verify');
+    
+    const response = await apiClient.post("/auth/verify", {}, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+
+    console.log('✅ 토큰 검증 성공:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.warn('⚠️ 토큰 검증 실패:', error);
+    
+    // 더 자세한 에러 정보 출력
+    if (error.response) {
+      console.error('❌ 백엔드 응답 에러:', {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data
+      });
+    } else if (error.request) {
+      console.error('❌ 네트워크 요청 실패:', error.request);
+    } else {
+      console.error('❌ 기타 에러:', error.message);
+    }
+    
+    return { valid: false };
+  }
+};
+
 // ✅ 로그아웃
 export const logout = async (): Promise<void> => {
   try {
     const accessToken = await TokenManager.getAccessToken();
     
     if (accessToken) {
+      console.log('🚪 백엔드 로그아웃 API 호출 중...');
       // 백엔드에 로그아웃 요청
       await apiClient.post("/auth/logout", {}, {
         headers: {
           Authorization: `Bearer ${accessToken}`
         }
       });
+      console.log('✅ 백엔드 로그아웃 성공');
+    } else {
+      console.log('⚠️ 액세스 토큰 없음, 로컬 토큰만 삭제');
     }
   } catch (error) {
-    console.error('❌ 로그아웃 요청 실패:', error);
-    // 백엔드 요청이 실패해도 로컬 토큰은 삭제
+    // 백엔드 요청이 실패해도 로컬 토큰은 삭제 (최선을 다함)
+    console.warn('⚠️ 백엔드 로그아웃 실패 (로컬 토큰은 삭제됨):', error);
+    // 사용자 경험을 위해 에러를 throw하지 않음
   } finally {
-    // 로컬 토큰 삭제
+    // 로컬 토큰 삭제 (항상 실행)
     await TokenManager.clearTokens();
-    console.log('✅ 로그아웃 완료');
+    console.log('✅ 로컬 로그아웃 완료');
   }
 };

@@ -1,13 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { CommonActions } from '@react-navigation/native';
 import MenuOption from './MenuOption';
 import MyOrder from '../../assets/icons/myOrder.svg';
 import MyReview from '../../assets/icons/myReview.svg';
 import LogoutIcon from '../../assets/icons/logout-icon.svg';
 import ArrowRightIcon from '../../assets/icons/arrowRight.svg';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { logout } from '../api/authAPI';
 
 
 interface OrderSectionProps {
@@ -27,6 +29,41 @@ const OrderSection: React.FC<OrderSectionProps> = ({ userType, userId }) => {
 
   const handleMyReviewsPress = () => {
     navigation.navigate('MyReviews', { userId });
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      '로그아웃',
+      '정말 로그아웃 하시겠습니까?',
+      [
+        {
+          text: '취소',
+          style: 'cancel',
+        },
+        {
+          text: '확인',
+          style: 'destructive',
+          onPress: async () => {
+            console.log('로그아웃 프로세스 시작...');
+            
+            // 백엔드 로그아웃 API 호출 + 로컬 토큰 삭제
+            // logout()은 절대 에러를 throw하지 않음 (항상 로컬 토큰 삭제)
+            await logout();
+            
+            console.log('로그아웃 프로세스 완료');
+            
+            // 네비게이션 스택을 완전히 리셋하고 로그인 화면으로 이동
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              })
+            );
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   return (
@@ -55,6 +92,7 @@ const OrderSection: React.FC<OrderSectionProps> = ({ userType, userId }) => {
         customStyles={styles.logoutButton}
         textColor="#FFF"
         iconProps={{ width: 20, height: 20 }}
+        onPress={handleLogout}
       />
     </View>
   );

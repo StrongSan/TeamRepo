@@ -1,6 +1,7 @@
 // ✅ AppNavigator.tsx (수정 완료본)
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import LoadingScreen from '../screens/LoadingScreen';
 import LoginScreen from '../screens/LoginScreen';
 import ProfileSetupScreen from '../screens/ProfileSetupScreen';
 import RegionSelectionScreen from '../screens/RegionSelectionScreen';
@@ -21,6 +22,7 @@ import ChatListScreen from '../screens/ChatListScreen';
 import ChatRoomScreen from '../screens/ChatRoomScreen';
 
 export type RootStackParamList = {
+  Loading: undefined;
   Login: undefined;
   RegionSelection: {
     previousData?: {
@@ -101,7 +103,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => (
   
-  <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+  <Stack.Navigator initialRouteName="Loading" screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="Loading" component={LoadingScreen} />
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
     <Stack.Screen name="RegionSelection" component={RegionSelectionScreen} />
