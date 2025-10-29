@@ -20,6 +20,7 @@ import ReviewWriteScreen from '../screens/ReviewWriteScreen';
 import MyReviewsScreen from '../screens/MyReviewsScreen';
 import ChatListScreen from '../screens/ChatListScreen';
 import ChatRoomScreen from '../screens/ChatRoomScreen';
+import ProfileEditScreen from '../screens/ProfileEditScreen';
 
 export type RootStackParamList = {
   Loading: undefined;
@@ -39,6 +40,7 @@ export type RootStackParamList = {
     selectedCakes?: number[];
     kakaoId?: string;
     profileImg?: string;
+    editMode?: boolean; // 프로필 수정 모드 플래그
   };
   PhoneAuth: { 
     userId: string; 
@@ -53,6 +55,7 @@ export type RootStackParamList = {
   SellerWriting: undefined;
   ProfileScreen: { userType: 'seller' | 'customer'; userId: string };
   MypageScreen: { userType: 'seller' | 'customer'; userId: string };
+  ProfileEdit: { userId: string; userType: 'seller' | 'customer' };
   ProductDetail: {
     userType: 'seller' | 'customer';
     post: {
@@ -113,6 +116,7 @@ const AppNavigator = () => (
     <Stack.Screen name="SellerWriting" component={SellerWriting} />
     <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
     <Stack.Screen name="MypageScreen" component={MypageScreen} />
+    <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
     <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
     <Stack.Screen name="CakeOrderForm" component={CakeOrderForm} />
     <Stack.Screen name="Payment" component={PaymentScreen} />

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Platform } from 'react-native'; // ✅ 추가
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { TokenManager } from '../utils/tokenManager';
 import { StompMessage, ChatMessage } from '../api/chatAPI';
 
 interface UseChatWebSocketProps {
@@ -82,7 +83,7 @@ export const useChatWebSocket = ({
       setIsConnecting(true);
 
       // 토큰
-      const token = await AsyncStorage.getItem('accessToken');
+      const token = await TokenManager.getAccessToken();
       if (!token) {
         console.error('❌ Access token not found');
         setIsConnecting(false);

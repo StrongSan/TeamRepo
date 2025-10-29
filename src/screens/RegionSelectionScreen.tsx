@@ -25,13 +25,11 @@ const RegionSelectionScreen: React.FC = () => {
     }
   
     
-    navigation.navigate('ProfileSetup', {
-      location: selectedRegions[0],
-      nickname: previousData?.nickname,
-      userType: previousData?.userType,
-      selectedCakes: previousData?.selectedCakes,
-      kakaoId: previousData?.kakaoId, // ✅ kakaoId 전달
-    });
+    // ProfileSetup에서 전달한 콜백으로 값 전달 후 현재 화면 닫기
+    try {
+      (previousData as any)?.onConfirm?.(selectedRegions[0]);
+    } catch {}
+    navigation.goBack();
   };
     return (
       <View style={styles.container}>

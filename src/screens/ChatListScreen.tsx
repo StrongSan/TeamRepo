@@ -13,6 +13,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 import { createOrGetChatRoom, getChatRooms } from '../api/chatAPI';
+import CustomerBottomBar from '../components/CustomerBottomBar';
+import SellerBottomBar from '../components/SellerBottomBar';
 
 // 실제 채팅방 데이터 타입
 type RealChatPreview = {
@@ -165,8 +167,13 @@ const ChatListScreen: React.FC = () => {
           keyExtractor={(it) => it.id}
           renderItem={renderItem}
           ItemSeparatorComponent={() => <View style={styles.sep} />}
-          contentContainerStyle={{ paddingBottom: 16 }}
+          contentContainerStyle={{ paddingBottom: 100 }}
         />
+      )}
+      {userType === 'seller' ? (
+        <SellerBottomBar userId={userId} />
+      ) : (
+        <CustomerBottomBar userId={userId} />
       )}
     </View>
   );

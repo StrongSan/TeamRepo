@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { SvgXml } from "react-native-svg";
 import CameraIcon from "../../assets/icons/camera-icon.svg";
@@ -16,8 +16,17 @@ const profileIconSvg = `
   </svg>
 `;
 
-const ProfileAvatar = () => {
-  const [imageUri, setImageUri] = useState<string | null>(null);
+type Props = {
+  imageUri?: string | null;
+  onChangeImage?: (uri: string | null) => void;
+};
+
+const ProfileAvatar: React.FC<Props> = ({ imageUri: propUri = null, onChangeImage }) => {
+  const [imageUri, setImageUri] = useState<string | null>(propUri);
+
+  useEffect(() => {
+    setImageUri(propUri);
+  }, [propUri]);
 
   const handleSelectImage = () => {
     launchImageLibrary(
@@ -27,7 +36,9 @@ const ProfileAvatar = () => {
       },
       (response) => {
         if (response.assets && response.assets.length > 0) {
-          setImageUri(response.assets[0].uri || null);
+          const next = response.assets[0].uri || null;
+          setImageUri(next);
+          onChangeImage && onChangeImage(next);
         }
       }
     );

@@ -51,12 +51,22 @@ const LoadingScreen: React.FC = () => {
           userType: result.userType as 'seller' | 'customer'
         });
       } else {
-        console.log(' 토큰 검증 실패, 로그인 화면 표시');
+        console.log('❌ 토큰 검증 실패 (토큰 만료 또는 무효), 로그인 화면 표시');
+        
+        // 만료된 토큰들을 삭제
+        await TokenManager.clearTokens();
+        console.log('🗑️ 만료된 토큰 삭제 완료');
+        
         setShowLoginButtons(true);
         setIsLoading(false);
       }
     } catch (error) {
-      console.error(' 자동 로그인 확인 중 오류:', error);
+      console.error('❌ 자동 로그인 확인 중 오류:', error);
+      
+      // 에러 발생 시에도 토큰 삭제
+      await TokenManager.clearTokens();
+      console.log('🗑️ 에러 발생으로 인한 토큰 삭제 완료');
+      
       setShowLoginButtons(true);
       setIsLoading(false);
     }

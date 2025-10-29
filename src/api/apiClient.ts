@@ -2,9 +2,11 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { refreshToken } from './authAPI';
+import { TokenManager } from '../utils/tokenManager';
+import { normalizeError } from '../utils/normalizeError';
 
 const apiClient = axios.create({
-  baseURL: 'http://172.30.176.1:8080', 
+  baseURL: 'http://172.19.208.1:8080', 
   timeout: 10000, // 10초 타임아웃
   headers: {
     'Content-Type': 'application/json',
@@ -35,7 +37,7 @@ const processQueue = (error: any, token: string | null = null) => {
 apiClient.interceptors.request.use(
   async (config) => {
     try {
-      const token = await AsyncStorage.getItem('accessToken');
+      const token = await TokenManager.getAccessToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -45,7 +47,7 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
-    return Promise.reject(error);
+    return Promise.reject(normalizeError(error));
   }
 );
 
@@ -59,6 +61,17 @@ apiClient.interceptors.response.use(
 
     // 401 에러이고, 이미 재시도한 요청이 아닌 경우
     if (error.response?.status === 401 && !originalRequest._retry) {
+      const url: string = originalRequest?.url || '';
+      // 토큰/공개 엔드포인트에서는 갱신 루프 금지
+      if (
+        url.includes('/auth/refresh') ||
+        url.includes('/auth/verify') ||
+        url.includes('/auth/logout') ||
+        url.includes('/otp/') ||
+        url.includes('/api/users/kakao/')
+      ) {
+        return Promise.reject(error);
+      }
       
       // 이미 토큰 갱신 중인 경우, 대기열에 추가
       if (isRefreshing) {
@@ -68,7 +81,7 @@ apiClient.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${token}`;
           return apiClient(originalRequest);
         }).catch(err => {
-          return Promise.reject(err);
+          return Promise.reject(normalizeError(err));
         });
       }
 
@@ -86,6 +99,7 @@ apiClient.interceptors.response.use(
         
         // 원래 요청 재시도
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        apiClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
         
       } catch (refreshError) {
@@ -97,13 +111,13 @@ apiClient.interceptors.response.use(
         // 로그인 화면으로 리다이렉트 (필요시)
         // navigation.navigate('Login');
         
-        return Promise.reject(refreshError);
+        return Promise.reject(normalizeError(refreshError));
       } finally {
         isRefreshing = false;
       }
     }
 
-    return Promise.reject(error);
+    return Promise.reject(normalizeError(error));
   }
 );
 
