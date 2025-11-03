@@ -123,7 +123,7 @@ export default function MyReviewsScreen({ navigation, route }: Props) {
             const post = await fetchPostById(item.cakeId);
             
             // 디버깅: 게시글 정보 확인
-            console.log('🔍 게시글 정보:', {
+            console.log('게시글 정보:', {
               cakeId: item.cakeId,
               postId: post.postId,
               title: post.title,

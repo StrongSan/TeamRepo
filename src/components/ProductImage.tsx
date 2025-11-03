@@ -7,14 +7,6 @@ const imageSize = screenWidth * 0.8; // 80%로 계산
 const ProductImage: React.FC<{ uri: string }> = ({ uri }) => {
   const [imageError, setImageError] = useState(false);
   
-  // 디버깅: 이미지 URL 확인
-  console.log('🖼️ ProductImage 디버깅:', {
-    uri,
-    uriType: typeof uri,
-    uriLength: uri?.length,
-    isValid: uri && uri.length > 0
-  });
-  
   if (imageError || !uri) {
     return (
       <View style={[styles.wrapper, { width: imageSize, height: imageSize }]}>
@@ -30,12 +22,8 @@ const ProductImage: React.FC<{ uri: string }> = ({ uri }) => {
       <Image 
         source={{ uri }} 
         style={styles.image}
-        onError={(error) => {
-          console.log('❌ 이미지 로드 실패:', error.nativeEvent);
+        onError={() => {
           setImageError(true);
-        }}
-        onLoad={() => {
-          console.log('✅ 이미지 로드 성공:', uri);
         }}
       />
     </View>

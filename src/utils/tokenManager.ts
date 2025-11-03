@@ -18,9 +18,9 @@ export class TokenManager {
         AsyncStorage.setItem(ACCESS_TOKEN_KEY, accessToken),
         AsyncStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
       ]);
-      console.log('✅ 토큰 저장 완료');
+      console.log('토큰 저장 완료');
     } catch (error) {
-      console.error('❌ 토큰 저장 실패:', error);
+      console.error('토큰 저장 실패:', error);
       throw error;
     }
   }
@@ -31,9 +31,9 @@ export class TokenManager {
   static async saveAccessToken(accessToken: string): Promise<void> {
     try {
       await AsyncStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-      console.log('✅ 액세스 토큰 저장 완료');
+      console.log('액세스 토큰 저장 완료');
     } catch (error) {
-      console.error('❌ 액세스 토큰 저장 실패:', error);
+      console.error('액세스 토큰 저장 실패:', error);
       throw error;
     }
   }
@@ -45,7 +45,7 @@ export class TokenManager {
     try {
       return await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
     } catch (error) {
-      console.error('❌ 액세스 토큰 조회 실패:', error);
+      console.error('액세스 토큰 조회 실패:', error);
       return null;
     }
   }
@@ -57,7 +57,7 @@ export class TokenManager {
     try {
       return await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
     } catch (error) {
-      console.error('❌ 리프레시 토큰 조회 실패:', error);
+      console.error('리프레시 토큰 조회 실패:', error);
       return null;
     }
   }
@@ -77,7 +77,7 @@ export class TokenManager {
       }
       return null;
     } catch (error) {
-      console.error('❌ 토큰 조회 실패:', error);
+      console.error('토큰 조회 실패:', error);
       return null;
     }
   }
@@ -91,9 +91,9 @@ export class TokenManager {
         AsyncStorage.removeItem(ACCESS_TOKEN_KEY),
         AsyncStorage.removeItem(REFRESH_TOKEN_KEY)
       ]);
-      console.log('✅ 토큰 삭제 완료');
+      console.log('토큰 삭제 완료');
     } catch (error) {
-      console.error('❌ 토큰 삭제 실패:', error);
+      console.error('토큰 삭제 실패:', error);
       throw error;
     }
   }
@@ -106,7 +106,7 @@ export class TokenManager {
       const tokens = await this.getTokens();
       return tokens !== null;
     } catch (error) {
-      console.error('❌ 토큰 존재 확인 실패:', error);
+      console.error('토큰 존재 확인 실패:', error);
       return false;
     }
   }

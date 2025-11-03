@@ -35,12 +35,12 @@ class KakaoNativeLogin {
    */
   async login(): Promise<KakaoToken> {
     try {
-      console.log('🟡 [네이티브 카카오 로그인] 시작');
+      console.log('[네이티브 카카오 로그인] 시작');
       const result = await KakaoLoginModule.login();
-      console.log('✅ [네이티브 카카오 로그인] 성공');
+      console.log('[네이티브 카카오 로그인] 성공');
       return result;
     } catch (error) {
-      console.error('❌ [네이티브 카카오 로그인] 실패:', error);
+      console.error('[네이티브 카카오 로그인] 실패:', error);
       throw error;
     }
   }
@@ -51,10 +51,10 @@ class KakaoNativeLogin {
   async logout(): Promise<string> {
     try {
       const result = await KakaoLoginModule.logout();
-      console.log('✅ [네이티브 카카오 로그아웃] 성공');
+      console.log('[네이티브 카카오 로그아웃] 성공');
       return result;
     } catch (error) {
-      console.error('❌ [네이티브 카카오 로그아웃] 실패:', error);
+      console.error('[네이티브 카카오 로그아웃] 실패:', error);
       throw error;
     }
   }
@@ -65,10 +65,10 @@ class KakaoNativeLogin {
   async getAccessToken(): Promise<KakaoAccessTokenInfo> {
     try {
       const result = await KakaoLoginModule.getAccessToken();
-      console.log('✅ [네이티브 액세스 토큰] 조회 성공');
+      console.log('[네이티브 액세스 토큰] 조회 성공');
       return result;
     } catch (error) {
-      console.error('❌ [네이티브 액세스 토큰] 조회 실패:', error);
+      console.error('[네이티브 액세스 토큰] 조회 실패:', error);
       throw error;
     }
   }
@@ -79,10 +79,10 @@ class KakaoNativeLogin {
   async getProfile(): Promise<KakaoProfile> {
     try {
       const result = await KakaoLoginModule.getProfile();
-      console.log('✅ [네이티브 프로필] 조회 성공');
+      console.log('[네이티브 프로필] 조회 성공');
       return result;
     } catch (error) {
-      console.error('❌ [네이티브 프로필] 조회 실패:', error);
+      console.error('[네이티브 프로필] 조회 실패:', error);
       throw error;
     }
   }
@@ -93,10 +93,10 @@ class KakaoNativeLogin {
   async isLoggedIn(): Promise<boolean> {
     try {
       const result = await KakaoLoginModule.isLoggedIn();
-      console.log('✅ [네이티브 로그인 상태] 확인:', result);
+      console.log('[네이티브 로그인 상태] 확인:', result);
       return result;
     } catch (error) {
-      console.error('❌ [네이티브 로그인 상태] 확인 실패:', error);
+      console.error('[네이티브 로그인 상태] 확인 실패:', error);
       return false;
     }
   }

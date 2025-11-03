@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Platform } from 'react-native'; // ✅ 추가
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TokenManager } from '../utils/tokenManager';
 import { StompMessage, ChatMessage } from '../api/chatAPI';
@@ -30,14 +30,13 @@ export const buildStompFrame = (command: string, headers: Record<string, string>
   // NULL 문자로 프레임 종료
   frame += '\x00';
   
-  console.log('🔧 Built STOMP frame:', JSON.stringify(frame));
   return frame;
 };
 
 // STOMP Frame 파서
 const parseStompFrame = (data: string) => {
   try {
-    // ✅ CRLF → LF 통일 & 하트비트(단일 '\n') 무시
+    // CRLF → LF 통일 & 하트비트(단일 '\n') 무시
     if (data === '\n' || data === '\r\n') return null;
     const normalized = data.replace(/\r\n/g, '\n');
 
@@ -61,7 +60,7 @@ const parseStompFrame = (data: string) => {
     const body = lines.slice(bodyStartIndex).join('\n').replace(/\0/g, '').trim();
     return { command, headers, body };
   } catch (e) {
-    console.error('❌ STOMP Frame 파싱 실패:', e);
+    console.error('STOMP Frame 파싱 실패:', e);
     return null;
   }
 };
@@ -85,22 +84,19 @@ export const useChatWebSocket = ({
       // 토큰
       const token = await TokenManager.getAccessToken();
       if (!token) {
-        console.error('❌ Access token not found');
+        console.error('Access token not found');
         setIsConnecting(false);
         return;
       }
 
-      // ✅ Android 에뮬레이터에서는 10.0.2.2가 PC의 localhost
+      // Android 에뮬레이터에서는 10.0.2.2가 PC의 localhost
       const HOST = Platform.OS === 'android' ? '10.0.2.2' : '172.30.176.1';
       const wsUrl = `ws://${HOST}:8080/ws-direct`;
 
-      // ✅ React Native WebSocket은 서브프로토콜을 두 번째 인자로 전달
+      // React Native WebSocket은 서브프로토콜을 두 번째 인자로 전달
       const ws = new WebSocket(wsUrl, ['v12.stomp']);
 
       ws.onopen = () => {
-        console.log('🔌 WS OPEN', wsUrl);
-        console.log('🔑 Token:', token.substring(0, 20) + '...');
-        
         // STOMP CONNECT 프레임을 더 간단하게 구성
         const connectFrame = `CONNECT
 accept-version:1.2
@@ -110,40 +106,19 @@ Authorization:Bearer ${token}
 
 \x00`;
         
-        console.log('📤 Sending CONNECT frame:', connectFrame);
-        console.log('📤 Frame length:', connectFrame.length);
-        console.log('📤 Frame bytes:', Array.from(connectFrame).map(c => c.charCodeAt(0)));
-        
-        // 즉시 전송 (타이머 제거)
+        // 즉시 전송
         try {
           ws.send(connectFrame);
-          console.log('✅ CONNECT frame sent successfully');
-          
-          // 응답 대기 (5초 타임아웃)
-          setTimeout(() => {
-            if (!isConnected) {
-              console.warn('⚠️ No response from server after 5 seconds');
-            }
-          }, 5000);
         } catch (error) {
-          console.error('❌ Failed to send CONNECT frame:', error);
+          console.error('Failed to send CONNECT frame:', error);
         }
       };
 
       ws.onmessage = (event) => {
-        console.log('📨 Raw WebSocket message:', event.data);
-        console.log('📨 Message length:', event.data.length);
-        console.log('📨 Message bytes:', Array.from(event.data).map(c => c.charCodeAt(0)));
-        console.log('📨 Ends with null (0):', event.data.charCodeAt(event.data.length - 1) === 0);
-        
         const frame = parseStompFrame(event.data);
         if (!frame) {
-          console.log('⚠️ Failed to parse STOMP frame');
           return;
         }
-
-        console.log('⬇️ STOMP IN:', frame.command, frame.headers);
-        console.log('⬇️ STOMP BODY:', frame.body);
 
         if (frame.command === 'CONNECTED') {
           setIsConnected(true);
@@ -158,18 +133,12 @@ Authorization:Bearer ${token}
         }
 
         if (frame.command === 'MESSAGE') {
-          console.log('📨 MESSAGE frame received');
-          console.log('📨 Headers:', frame.headers);
-          console.log('📨 Body:', frame.body);
-          
           try {
             const data: StompMessage = JSON.parse(frame.body);
-            console.log('📨 Parsed data:', data);
             
             if (data.type === 'READ_RECEIPT') {
               onReadReceipt?.(data.readerId!, data.lastReadMsgId!);
             } else if (data.msgId && data.content && data.contentType && data.createdAt && data.senderId) {
-              console.log('📨 Creating ChatMessage:', data);
               const chatMessage: ChatMessage = {
                 msgId: data.msgId,
                 roomId: data.roomId || roomId,
@@ -178,44 +147,30 @@ Authorization:Bearer ${token}
                 contentType: data.contentType,
                 createdAt: data.createdAt,
               };
-              console.log('📨 Calling onMessageReceived with:', chatMessage);
               onMessageReceived(chatMessage);
-            } else {
-              console.log('📨 Message data missing required fields:', {
-                msgId: data.msgId,
-                content: data.content,
-                contentType: data.contentType,
-                createdAt: data.createdAt,
-                senderId: data.senderId
-              });
             }
           } catch (e) {
-            console.error('❌ 메시지 파싱 실패:', e);
-            console.error('❌ Raw body:', frame.body);
+            console.error('메시지 파싱 실패:', e);
+            console.error('Raw body:', frame.body);
           }
           return;
         }
 
         if (frame.command === 'ERROR') {
-          console.error('🛑 STOMP ERROR', frame.headers, frame.body);
-          console.error('❌ Error details:', {
-            headers: frame.headers,
-            body: frame.body,
-            command: frame.command
-          });
+          console.error('STOMP ERROR:', frame.headers, frame.body);
           setIsConnected(false);
           setIsConnecting(false);
         }
       };
 
       ws.onerror = (e: any) => {
-        console.error('❌ WS ERROR', e?.message ?? e);
+        console.error('WebSocket error:', e?.message ?? e);
         setIsConnected(false);
         setIsConnecting(false);
       };
 
       ws.onclose = (e) => {
-        console.warn('🔌 WS CLOSE', e.code, e.reason);
+        console.warn('WebSocket closed:', e.code, e.reason);
         setIsConnected(false);
         setIsConnecting(false);
       };

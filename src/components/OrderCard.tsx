@@ -56,8 +56,6 @@ const OrderCard: React.FC<OrderCardProps> = ({ orderDetails, onOrderDetails, onI
   );
 };
 
-console.log('OrderCard:', OrderCard);
-
 const styles = StyleSheet.create({
   container: {
     width: '100%',

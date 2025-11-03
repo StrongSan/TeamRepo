@@ -13,44 +13,16 @@ export const useKakaoLogin = () => {
   
   const handleKakaoLogin = useCallback(async () => {
     try {
-      console.log(' [카카오 로그인 시도] 시작');
-      console.log(' 현재 환경:', __DEV__ ? '개발' : '프로덕션');
-      console.log(' 카카오 로그인 시도...');
-
       const result = await KakaoNativeLogin.login();
       
-      console.log(' 카카오 로그인 성공');
-      console.log(' 액세스 토큰 (전체):', result.accessToken);
-      console.log(' 리프레시 토큰 (전체):', result.refreshToken);
-      console.log(' 만료 시간:', result.expiresAt);
-      console.log(' 스코프:', result.scopes);
-      
       // 사용자 프로필 정보 가져오기 (고유 ID 포함)
-      console.log(' 사용자 프로필 정보 조회 중...');
       const profile = await KakaoNativeLogin.getProfile();
       
-      console.log(' 사용자 프로필 조회 성공');
-      console.log(' 카카오 사용자 고유 ID:', profile.id);
-      console.log(' 닉네임:', profile.nickname);
-      console.log(' 이메일:', profile.email);
-      console.log(' 프로필 이미지:', profile.profileImage);
-      console.log(' 썸네일 이미지:', profile.thumbnailImage);
-      
       // 백엔드로 액세스 토큰 전달
-      console.log(' 백엔드로 액세스 토큰 전송 중...');
       const backendResponse = await loginWithKakao(result.accessToken);
-      
-      console.log(' 백엔드 응답 성공:', backendResponse);
-      console.log(' 백엔드 응답 전체 구조:', JSON.stringify(backendResponse, null, 2));
       
       // 백엔드 응답에 따른 분기 처리
       if (backendResponse.status === 'NEED_REGISTER') {
-        console.log('🆕 신규 사용자 - 전화번호 인증 필요');
-        console.log('🔍 PhoneAuth로 전달할 데이터:', {
-          kakaoId: profile.id,
-          nickname: profile.nickname || '',
-          profileImg: profile.profileImage || '',
-        });
         // PhoneAuth로 이동 (전화번호 인증)
         navigation.navigate('PhoneAuth', {
           userId: profile.id,
@@ -59,16 +31,12 @@ export const useKakaoLogin = () => {
           profileImg: profile.profileImage || '',
         });
       } else if (backendResponse.status === 'OK') {
-        console.log(' 기존 사용자 - 로그인 완료');
-        
         // JWT 토큰 저장 (액세스 토큰 + 리프레시 토큰)
         if (backendResponse.accessToken) {
           if (backendResponse.refreshToken) {
             await TokenManager.saveTokens(backendResponse.accessToken, backendResponse.refreshToken);
-            console.log(' JWT 토큰 쌍 저장 완료');
           } else {
             await TokenManager.saveAccessToken(backendResponse.accessToken);
-            console.log(' JWT 액세스 토큰 저장 완료');
           }
         }
         
@@ -79,11 +47,9 @@ export const useKakaoLogin = () => {
         });
       } else {
         // 예상치 못한 응답
-        console.warn(' 예상치 못한 백엔드 응답:', backendResponse);
+        console.warn('예상치 못한 백엔드 응답:', backendResponse);
         Alert.alert('오류', '로그인 처리 중 문제가 발생했습니다.');
       }
-      
-      console.log(' 카카오 로그인 프로세스 완료');
       
     } catch (error) {
       console.error(' 카카오 로그인 실패:', error);

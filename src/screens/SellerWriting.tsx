@@ -3,7 +3,6 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  Image,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -11,13 +10,11 @@ import {
   Text,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { launchImageLibrary } from "react-native-image-picker";
-import PlusIcon from "../../assets/icons/bottom-plus.svg";
-import UploadIcon from "../../assets/icons/upload-icon.svg";
 import TopBar from "../components/TopBar";
 import InputField from "../components/OrderFormInput";
 import SubmitButton from "../components/PrimaryButton";
 import FormFieldWithDropdown from "../components/FormFieldWithDropdown";
+import ImageThumbnailUpload from "../components/ImageThumbnailUpload";
 import { submitPostForm, resolveVariantId } from "../api/postAPI";
 
 const SellerWriting: React.FC = () => {
@@ -47,21 +44,6 @@ const SellerWriting: React.FC = () => {
   const [price, setPrice] = React.useState("");
   const [images, setImages] = React.useState<string[]>([]);
   const [selectedImage, setSelectedImage] = React.useState<any>(null);
-
-  const handlePickImage = async () => {
-    const result = await launchImageLibrary({ mediaType: "photo", quality: 1 });
-    if (!result.didCancel && result.assets && result.assets.length > 0) {
-      const uri = result.assets[0].uri;
-      if (uri) {
-        setImages((prev) => [...prev, uri]);
-        setSelectedImage({
-          uri,
-          type: result.assets[0].type || "image/jpeg",
-          fileName: result.assets[0].fileName || "image.jpg",
-        });
-      }
-    }
-  };
 
   const handleSubmit = async () => {
     const { type, size, sheet, filling } = formData;
@@ -172,37 +154,24 @@ const SellerWriting: React.FC = () => {
               </View>
             ))}
 
-            {images.length === 0 ? (
-              <TouchableOpacity style={styles.uploadButton} onPress={handlePickImage}>
-                <View style={styles.uploadContent}>
-                  <UploadIcon width={18} height={18} fill="#E78182" />
-                  <Text style={styles.uploadText}>사진 업로드</Text>
-                </View>
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.thumbnailContainer}>
-                {images.map((uri, index) => (
-                  <View key={index} style={styles.imageWrapper}>
-                    <Image source={{ uri }} style={styles.thumbnail} />
-                    <TouchableOpacity
-                      style={styles.deleteButton}
-                      onPress={() => {
-                        const newImages = [...images];
-                        newImages.splice(index, 1);
-                        setImages(newImages);
-                      }}
-                    >
-                      <Text style={styles.deleteText}>×</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-                <TouchableOpacity onPress={handlePickImage}>
-                  <View style={styles.addButton}>
-                    <PlusIcon width={24} height={24} />
-                  </View>
-                </TouchableOpacity>
-              </View>
-            )}
+            <ImageThumbnailUpload
+              images={images}
+              onImagesChange={(newImages) => {
+                setImages(newImages);
+                if (newImages.length > 0) {
+                  const lastImage = newImages[newImages.length - 1];
+                  setSelectedImage({
+                    uri: lastImage,
+                    type: "image/jpeg",
+                    fileName: "image.jpg",
+                  });
+                }
+              }}
+              onImageSelect={(image) => {
+                setSelectedImage(image);
+              }}
+              maxImages={5}
+            />
 
             <SubmitButton
               title="작성하기"
@@ -236,67 +205,6 @@ const styles = StyleSheet.create({
   },
   dropdownSpacing: {
     marginBottom: 25,
-  },
-  thumbnailContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 12,
-    marginBottom: 12,
-  },
-  thumbnail: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-  },
-  addButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    backgroundColor: "#d9d9d9",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  uploadButton: {
-    backgroundColor: "#ffffff",
-    borderColor: "#E78182",
-    borderWidth: 1,
-    height: 48,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10,
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  uploadText: {
-    color: "#E78182",
-    fontSize: 16,
-    fontWeight: "500",
-    marginLeft: 6,
-  },
-  uploadContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  imageWrapper: {
-    position: "relative",
-  },
-  deleteButton: {
-    position: "absolute",
-    top: -6,
-    right: -6,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "#000",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1,
-  },
-  deleteText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
   },
 });
 

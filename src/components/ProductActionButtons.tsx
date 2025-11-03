@@ -18,11 +18,11 @@ const ProductActionButtons: React.FC<Props> = ({ userType, postId, userId, price
   // 문의하기 버튼 클릭 핸들러
   const handleInquiry = async () => {
     try {
-      console.log("🔍 문의하기 요청:", { postId, userId });
+      console.log("문의하기 요청:", { postId, userId });
       
       const response = await createOrGetChatRoom(postId, parseInt(userId));
       
-      console.log("✅ 채팅방 응답:", response);
+      console.log("채팅방 응답:", response);
       
       // 채팅방으로 이동
       navigation.navigate("ChatRoom", {
@@ -37,7 +37,7 @@ const ProductActionButtons: React.FC<Props> = ({ userType, postId, userId, price
       });
       
     } catch (error) {
-      console.error("❌ 문의하기 실패:", error);
+      console.error("문의하기 실패:", error);
       Alert.alert("오류", "문의하기 요청에 실패했습니다. 다시 시도해주세요.");
     }
   };

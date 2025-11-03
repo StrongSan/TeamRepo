@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   StatusBar,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import TopBar from "../components/TopBar";
 import ProfileAvatarBlock from "../components/ProfileAvatarBlock";
@@ -16,12 +17,42 @@ import SellerBottomBar from "../components/SellerBottomBar";
 import { useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList } from "../navigation/AppNavigator";
+import { getMyProfile, ProfileResponse } from "../api/userAPI";
 
 type ProfileScreenRouteProp = RouteProp<RootStackParamList, "ProfileScreen">;
 
 const ProfileScreen = () => {
   const route = useRoute<ProfileScreenRouteProp>();
   const { userType, userId } = route.params;
+  const [profile, setProfile] = useState<ProfileResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const profileData = await getMyProfile();
+        setProfile(profileData);
+      } catch (error) {
+        console.error("프로필 정보 로드 실패:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <TopBar title=" " />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#E78182" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <>
       <StatusBar
@@ -36,13 +67,13 @@ const ProfileScreen = () => {
           <ProfileAvatarBlock />
             <View style={styles.profileContent}>
               <ProfileInfo
-                username="cakeee"
-                bio="청주 케이크 맛집입니다 ♥"
-                rating={3.0}
-                userType={userType}
+                username={profile?.nickname || profile?.userName || ""}
+                bio={profile?.favoriteArea || ""}
+                rating={0}
+                userType={profile?.userType || userType}
                 isFollowing={false}
               />
-              <PhotoGrid />
+              <PhotoGrid userId={userId} userType={userType} />
             </View>
           </ScrollView>
           {userType === "seller" ? <SellerBottomBar /> : <CustomerBottomBar userId={userId} />}
@@ -70,6 +101,11 @@ const styles = StyleSheet.create({
     position: "relative",
     backgroundColor: "#FFFFFF",
     paddingBottom: 80,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

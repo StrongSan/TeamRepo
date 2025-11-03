@@ -7,6 +7,7 @@ import ProductImage from "../components/ProductImage";
 import ProductInfo from "../components/ProductInfo";
 import ProductActionButtons from "../components/ProductActionButtons";
 import Header from "../components/Header";
+import ReviewItem from "../components/ReviewItem";
 import { saveViewedCake } from "../api/postAPI";
 import type { Post } from "../api/postAPI"; //  Post 타입 import
 import { getReviewsByCake, getReviewSummaryByCake, ReviewResponse, ReviewSummary } from "../api/reviewAPI";
@@ -54,7 +55,7 @@ const ProductDetailScreen: React.FC = () => {
       setLoading(true);
       
       // 디버깅: cakeId와 postId 값 확인
-      console.log('🔍 리뷰 로드 디버깅:', {
+      console.log('리뷰 로드 디버깅:', {
         cakeId: post.cakeId,
         postId: post.postId,
         finalCakeId: post.cakeId || post.postId
@@ -103,17 +104,7 @@ const ProductDetailScreen: React.FC = () => {
 
   // 리뷰 아이템 렌더링
   const renderReviewItem = useCallback(({ item }: { item: ReviewResponse }) => (
-    <View style={styles.reviewItem}>
-      <View style={styles.reviewHeader}>
-        <Text style={styles.reviewRating}>
-          {'★'.repeat(Math.floor(item.rating))}{'☆'.repeat(5 - Math.floor(item.rating))}
-        </Text>
-        <Text style={styles.reviewDate}>
-          {new Date(item.createdAt).toLocaleDateString('ko-KR')}
-        </Text>
-      </View>
-      <Text style={styles.reviewComment}>{item.comment}</Text>
-    </View>
+    <ReviewItem review={item} />
   ), []);
 
   console.log(" 조회 기록 저장 variantId:", post.variantId);
@@ -210,33 +201,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     textAlign: "center",
-  },
-  reviewItem: {
-    padding: 16,
-    marginBottom: 12,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#f0f0f0",
-  },
-  reviewHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  reviewRating: {
-    fontSize: 16,
-    color: "#f5a623",
-  },
-  reviewDate: {
-    fontSize: 12,
-    color: "#999",
-  },
-  reviewComment: {
-    fontSize: 14,
-    color: "#333",
-    lineHeight: 20,
   },
   emptyReviews: {
     padding: 40,

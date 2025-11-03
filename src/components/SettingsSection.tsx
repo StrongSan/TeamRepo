@@ -6,12 +6,7 @@ import type { RootStackParamList } from '../navigation/AppNavigator';
 import MenuOption from './MenuOption';
 import SettingsIcon from '../../assets/icons/settings.svg';
 import ArrowRightIcon from '../../assets/icons/arrowRight.svg';
-import ProfileIcon from '../../assets/icons/profile-icon.svg'
-
-console.log('MenuOption is a', typeof MenuOption);
-console.log('SettingsIcon:', SettingsIcon);
-console.log('ProfileIcon:', ProfileIcon);
-console.log('ArrowRightIcon:', ArrowRightIcon);
+import ProfileIcon from '../../assets/icons/profile-icon.svg';
 
 const SettingsSection: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();

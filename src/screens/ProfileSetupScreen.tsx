@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { View, StyleSheet, ScrollView, Alert } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -15,6 +16,7 @@ import PrimaryButton from "../components/PrimaryButton";
 import { registerKakaoUser } from "../api/authAPI"; // ✅ 카카오 회원가입 API
 import { getMyProfile, updateMyProfile, updateMyAvatar } from "../api/userAPI";
 import apiClient from "../api/apiClient"; // ✅ axios 인스턴스
+import { BASE_URL } from "../api/config";
 
 type ProfileSetupRouteProp = RouteProp<RootStackParamList, "ProfileSetup">;
 
@@ -27,6 +29,7 @@ const ProfileSetupScreen: React.FC = () => {
   const [userType, setUserType] = useState<"seller" | "customer" | null>(null);
   const [selectedCakes, setSelectedCakes] = useState<number[]>([]);
   const [randomCakes, setRandomCakes] = useState<{ variantId: number; imageUrl: string }[]>([]);
+  const [seenVariantIds, setSeenVariantIds] = useState<number[]>([]);
   const [kakaoId, setKakaoId] = useState<string>(""); // ✅ kakaoId 상태 추가
   const [editMode, setEditMode] = useState<boolean>(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
@@ -37,8 +40,11 @@ const ProfileSetupScreen: React.FC = () => {
     if (editMode) return; // 편집 모드에서는 불필요
     const fetchRandomCakes = async () => {
       try {
-        const response = await apiClient.get("/api/cake-posts/random");
+        const response = await axios.get(`${BASE_URL}/api/cake-posts/random`, {
+          params: { limit: 8 },
+        });
         setRandomCakes(response.data);
+        setSeenVariantIds(response.data.map((c: { variantId: number }) => c.variantId));
       } catch (error) {
         console.error("랜덤 케이크 불러오기 실패", error);
       }
@@ -46,6 +52,31 @@ const ProfileSetupScreen: React.FC = () => {
 
     fetchRandomCakes();
   }, [editMode]);
+
+  const refreshRandomCakes = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/api/cake-posts/random`, {
+        params: { exclude: seenVariantIds, limit: 8 },
+        paramsSerializer: {
+          // axios v1: 배열 파라미터를 exclude=1&exclude=2 형태로 직렬화
+          serialize: (params) => {
+            const p = params as any;
+            const parts: string[] = [];
+            if (Array.isArray(p.exclude)) {
+              p.exclude.forEach((v: number) => parts.push(`exclude=${encodeURIComponent(v)}`));
+            }
+            if (p.limit !== undefined) parts.push(`limit=${encodeURIComponent(p.limit)}`);
+            return parts.join("&");
+          },
+        },
+      });
+      const next = response.data as { variantId: number; imageUrl: string }[];
+      setRandomCakes(next);
+      setSeenVariantIds((prev) => Array.from(new Set([...prev, ...next.map((c) => c.variantId)])));
+    } catch (error) {
+      console.error("랜덤 케이크 새로고침 실패", error);
+    }
+  };
 
   useEffect(() => {
     const { location, nickname, userType, selectedCakes, kakaoId: routeKakaoId, profileImg, editMode } = route.params || {};
@@ -61,7 +92,7 @@ const ProfileSetupScreen: React.FC = () => {
       setOriginalAvatarUri(profileImg);
     }
     if (routeKakaoId && !kakaoId) { // ✅ kakaoId가 없을 때만 설정
-      console.log('🔍 ProfileSetup - kakaoId 상태 설정:', routeKakaoId);
+      console.log('ProfileSetup - kakaoId 상태 설정:', routeKakaoId);
       setKakaoId(routeKakaoId);
     }
   }, [route.params, kakaoId]); // ✅ kakaoId 의존성 추가
@@ -207,10 +238,13 @@ const ProfileSetupScreen: React.FC = () => {
               selectedCakes={selectedCakes}
               onSelectCake={handleCakeSelection}
             />
+            <View style={{ marginTop: 12 }}>
+              <PrimaryButton title="다른 케이크 보기" onPress={refreshRandomCakes} />
+            </View>
           </>
         )}
 
-        <PrimaryButton title={editMode ? "저장" : "로그인"} onPress={handleLogin} />
+        <PrimaryButton title={editMode ? "저장" : "확인"} onPress={handleLogin} />
       </View>
     </ScrollView>
   );

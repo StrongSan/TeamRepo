@@ -27,6 +27,8 @@ import {
 } from '../api/chatAPI';
 import { TokenManager } from '../utils/tokenManager';
 import apiClient from '../api/apiClient';
+import ChatMessageBubble from '../components/ChatMessageBubble';
+import ChatDateLabel from '../components/ChatDateLabel';
 
 // ====== 타입 정의 ======
 type MsgType = 'TEXT' | 'IMAGE';
@@ -76,12 +78,7 @@ const ChatRoomScreen: React.FC = () => {
 
   // 새 메시지 수신 핸들러
   const handleMessageReceived = useCallback((newMsg: ChatMessageType) => {
-    console.log('🔍 Current user ID:', userId);
-    console.log('🔍 Message sender ID:', newMsg.senderId);
-    console.log('🔍 Message will be mine:', newMsg.senderId === parseInt(userId));
-    
     const chatMsg = convertMessage(newMsg);
-    console.log('🔍 Converted message mine:', chatMsg.mine);
     setMessages(prev => [...prev, chatMsg]);
 
     // 스크롤이 맨 밑이면 자동 스크롤, 아니면 배지 표시
@@ -104,7 +101,7 @@ const ChatRoomScreen: React.FC = () => {
     
     // ✅ 이미지 전송 시 WebSocket 연결 상태 확인
     if (!isConnected && !isConnecting) {
-      console.warn('⚠️ WebSocket 연결되지 않음 - 이미지 전송 후 수신 불가능');
+      console.warn('WebSocket 연결되지 않음 - 이미지 전송 후 수신 불가능');
     }
   }, [isConnected, isConnecting]);
 
@@ -122,10 +119,10 @@ const ChatRoomScreen: React.FC = () => {
       // 방 입장 처리
       try {
         const latestMsgId = await enterChatRoom(parseInt(roomId));
-        console.log('✅ 채팅방 입장 완료, 최신 메시지 ID:', latestMsgId);
+        console.log('채팅방 입장 완료, 최신 메시지 ID:', latestMsgId);
       } catch (enterError: any) {
-        console.error('❌ 채팅방 입장 실패:', enterError);
-        console.error('❌ 입장 오류 상세:', {
+        console.error('채팅방 입장 실패:', enterError);
+        console.error('입장 오류 상세:', {
           status: enterError.response?.status,
           data: enterError.response?.data,
           message: enterError.message
@@ -229,7 +226,7 @@ const ChatRoomScreen: React.FC = () => {
   };
 
   const onPressPlus = () => {
-    console.log('📷 이미지 선택 시작');
+    console.log('이미지 선택 시작');
     
     const options = {
       mediaType: 'photo' as MediaType,
@@ -240,12 +237,12 @@ const ChatRoomScreen: React.FC = () => {
 
     launchImageLibrary(options, (response: ImagePickerResponse) => {
       if (response.didCancel) {
-        console.log('📷 이미지 선택 취소');
+        console.log('이미지 선택 취소');
         return;
       }
 
       if (response.errorMessage) {
-        console.error('📷 이미지 선택 오류:', response.errorMessage);
+        console.error('이미지 선택 오류:', response.errorMessage);
         Alert.alert('오류', '이미지 선택 중 오류가 발생했습니다.');
         return;
       }
@@ -253,7 +250,7 @@ const ChatRoomScreen: React.FC = () => {
       if (response.assets && response.assets.length > 0) {
         const asset = response.assets[0];
         if (asset.uri) {
-          console.log('📷 선택된 이미지:', asset.uri);
+          console.log('선택된 이미지:', asset.uri);
           sendImageMessage(asset.uri);
         }
       }
@@ -262,11 +259,11 @@ const ChatRoomScreen: React.FC = () => {
 
   const sendImageMessage = async (imageUri: string) => {
     try {
-      console.log('📤 이미지 업로드 시작:', imageUri);
+      console.log('이미지 업로드 시작:', imageUri);
       
       // 1. 이미지를 서버에 업로드
       const uploadedImageUrl = await uploadChatImage(imageUri);
-      console.log('✅ 이미지 업로드 완료:', uploadedImageUrl);
+      console.log('이미지 업로드 완료:', uploadedImageUrl);
       
       // 2. HTTP API를 사용하여 메시지 전송 (WebSocket 대신)
       const messageData = {
@@ -276,10 +273,10 @@ const ChatRoomScreen: React.FC = () => {
 
       // 토큰 정보 확인
       const token = await TokenManager.getAccessToken();
-      console.log('🔑 현재 토큰:', token ? `${token.substring(0, 20)}...` : '없음');
-      console.log('👤 현재 사용자 ID:', userId);
+      console.log('현재 토큰:', token ? `${token.substring(0, 20)}...` : '없음');
+      console.log('현재 사용자 ID:', userId);
       
-      console.log('📨 메시지 전송 요청:', {
+      console.log('메시지 전송 요청:', {
         roomId,
         messageData,
         url: `/api/chat/rooms/${roomId}/send`,
@@ -289,11 +286,11 @@ const ChatRoomScreen: React.FC = () => {
       const response = await apiClient.post(`/api/chat/rooms/${roomId}/send`, messageData);
 
       if (response.status === 200) {
-        console.log('✅ 이미지 메시지 전송 완료 (HTTP API)');
+        console.log('이미지 메시지 전송 완료 (HTTP API)');
         
-        // ✅ 전송된 메시지를 로컬 상태에 즉시 추가
+        // 전송된 메시지를 로컬 상태에 즉시 추가
         const responseData = response.data;
-        console.log('📨 서버 응답:', responseData);
+        console.log('서버 응답:', responseData);
         
         if (responseData.msgId && responseData.content && responseData.contentType && responseData.createdAt && responseData.senderId) {
           const chatMessage: ChatMessageType = {
@@ -307,7 +304,7 @@ const ChatRoomScreen: React.FC = () => {
           
           const chatMsg = convertMessage(chatMessage);
           setMessages(prev => [...prev, chatMsg]);
-          console.log('✅ 이미지 메시지 로컬 상태에 추가됨');
+          console.log('이미지 메시지 로컬 상태에 추가됨');
           
           // 맨 아래로 스크롤
           setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
@@ -319,11 +316,11 @@ const ChatRoomScreen: React.FC = () => {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error: any) {
-      console.error('❌ 이미지 전송 실패:', error);
+      console.error('이미지 전송 실패:', error);
       
       // 더 자세한 오류 정보 로깅
       if (error.response) {
-        console.error('📋 서버 응답 오류:', {
+        console.error('서버 응답 오류:', {
           status: error.response.status,
           statusText: error.response.statusText,
           data: error.response.data,
@@ -338,15 +335,15 @@ const ChatRoomScreen: React.FC = () => {
         if (typeof error.response.data === 'string' && error.response.data) {
           try {
             const parsedData = JSON.parse(error.response.data);
-            console.error('📋 파싱된 오류 데이터:', parsedData);
+            console.error('파싱된 오류 데이터:', parsedData);
           } catch (e) {
-            console.error('📋 원본 오류 데이터 (JSON 파싱 실패):', error.response.data);
+            console.error('원본 오류 데이터 (JSON 파싱 실패):', error.response.data);
           }
         }
       } else if (error.request) {
-        console.error('📋 요청 오류 (서버 응답 없음):', error.request);
+        console.error('요청 오류 (서버 응답 없음):', error.request);
       } else {
-        console.error('📋 기타 오류:', error.message);
+        console.error('기타 오류:', error.message);
       }
       
       const errorMessage = error.response?.data?.message || error.message || '알 수 없는 오류';
@@ -357,85 +354,24 @@ const ChatRoomScreen: React.FC = () => {
   const renderRow = ({ item }: { item: any }) => {
     // 날짜 라벨
     if (item.__date) {
-      const d = new Date(item.__date);
-      const label = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
-        d.getDate()
-      ).padStart(2, '0')}`;
-      return (
-        <View style={styles.dateWrap}>
-          <Text style={styles.dateText}>{label}</Text>
-        </View>
-      );
+      return <ChatDateLabel date={item.__date} />;
     }
 
     // 메시지 버블
-    const mine = !!item.mine;
-    const isImage = item.type === 'IMAGE';
-    
-    console.log('🔍 메시지 렌더링:', {
+    console.log('메시지 렌더링:', {
       id: item.id,
       type: item.type,
-      isImage: isImage,
+      isImage: item.type === 'IMAGE',
       content: item.content?.substring(0, 50) + '...',
-      mine: mine
+      mine: item.mine,
     });
 
     return (
-      <View style={[styles.row, mine ? styles.right : styles.left]}>
-        <View
-          style={[
-            styles.bubble,
-            mine ? styles.myBubble : styles.otherBubble,
-            isImage && styles.noPadding,
-          ]}
-        >
-          {isImage ? (
-            <Image
-              source={{ 
-                uri: item.content,
-                cache: 'force-cache' // 캐시 강제 사용
-              }}
-              style={styles.imageBubble}
-              resizeMode="cover"
-              onLoad={() => {
-                console.log('✅ 이미지 로드 성공:', item.content);
-                console.log('✅ 이미지 URL 형식 확인:', {
-                  url: item.content,
-                  isFilesPath: item.content.includes('/files/'),
-                  isApiPath: item.content.includes('/api/chat/images/')
-                });
-              }}
-              onError={(error) => {
-                console.error('❌ 이미지 로드 실패:', item.content);
-                console.error('❌ 오류 상세:', error.nativeEvent.error);
-                console.error('❌ 오류 타입:', typeof error.nativeEvent.error);
-                
-                // ✅ 이미지 URL 경로 확인 및 수정 제안
-                console.log('🔍 이미지 URL 분석:', {
-                  originalUrl: item.content,
-                  isFilesPath: item.content.includes('/files/'),
-                  isApiPath: item.content.includes('/api/chat/images/'),
-                  expectedFormat: `${apiClient.defaults.baseURL}/files/{filename}`,
-                  urlParts: item.content.split('/'),
-                  filename: item.content.split('/').pop()
-                });
-                
-                // ✅ 네트워크 상태 확인
-                console.log('🌐 네트워크 상태 확인:', {
-                  isLocalhost: item.content.includes('10.0.2.2'),
-                  isHttp: item.content.startsWith('http://'),
-                  isHttps: item.content.startsWith('https://')
-                });
-                
-                // ✅ 백엔드에서 올바른 URL 생성하므로 추가 수정 불필요
-                console.log('🔧 이미지 로드 실패 - 백엔드 직접 파일 서빙 엔드포인트 확인 필요');
-              }}
-            />
-          ) : (
-            <Text style={styles.msgText}>{item.content}</Text>
-          )}
-        </View>
-      </View>
+      <ChatMessageBubble
+        content={item.content || ''}
+        type={item.type}
+        mine={!!item.mine}
+      />
     );
   };
 

@@ -61,9 +61,9 @@ export const fetchAllPosts = async (): Promise<Post[]> => {
 export const fetchRecommendedPostsByUserId = async (
   userId: string
 ): Promise<Post[]> => {
-  console.log('🔍 API 호출 시작 - userId:', userId);
+  console.log('API 호출 시작 - userId:', userId);
   const response = await apiClient.get(`/api/recommendation/${userId}`);
-  console.log('🔍 API 응답 받음:', {
+  console.log('API 응답 받음:', {
     status: response.status,
     dataLength: response.data?.length,
     firstItem: response.data?.[0]
@@ -114,9 +114,9 @@ export const resolveVariantId = async (
 };
 
 export const fetchPostById = async (postId: number): Promise<Post> => {
-  console.log('🔍 fetchPostById 호출:', { postId });
+  console.log('fetchPostById 호출:', { postId });
   const response = await apiClient.get(`/api/cake-posts/${postId}`);
-  console.log('🔍 fetchPostById 응답:', {
+  console.log('fetchPostById 응답:', {
     postId: response.data.postId,
     title: response.data.title,
     imageUrl: response.data.imageUrl,

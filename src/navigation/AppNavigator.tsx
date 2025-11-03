@@ -1,4 +1,3 @@
-// ✅ AppNavigator.tsx (수정 완료본)
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoadingScreen from '../screens/LoadingScreen';
@@ -30,7 +29,7 @@ export type RootStackParamList = {
       nickname: string;
       userType: 'seller' | 'customer' | null;
       selectedCakes: number[];
-      kakaoId?: string; // ✅ kakaoId 추가
+      kakaoId?: string;
     };
   };
   ProfileSetup: {
@@ -40,7 +39,7 @@ export type RootStackParamList = {
     selectedCakes?: number[];
     kakaoId?: string;
     profileImg?: string;
-    editMode?: boolean; // 프로필 수정 모드 플래그
+      editMode?: boolean;
   };
   PhoneAuth: { 
     userId: string; 
@@ -71,7 +70,7 @@ export type RootStackParamList = {
     postId: number; 
     userId?: string; 
     userType?: 'seller' | 'customer';
-    price?: string; // 게시글 가격 정보 추가
+    price?: string;
   };
   Payment: { 
     postId: number;
@@ -105,7 +104,6 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => (
-  
   <Stack.Navigator initialRouteName="Loading" screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Loading" component={LoadingScreen} />
     <Stack.Screen name="Login" component={LoginScreen} />

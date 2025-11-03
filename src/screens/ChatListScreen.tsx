@@ -56,7 +56,7 @@ const ChatListScreen: React.FC = () => {
         const rooms = await getChatRooms(parseInt(userId));
         
         // ✅ 사용자별 채팅방 필터링 확인
-        console.log('✅ 실제 채팅방 데이터 로드 완료:', {
+        console.log('실제 채팅방 데이터 로드 완료:', {
           userId: userId,
           roomCount: rooms.length,
           rooms: rooms.map(room => ({
@@ -68,7 +68,7 @@ const ChatListScreen: React.FC = () => {
         
         setRealChatRooms(rooms);
       } catch (error) {
-        console.error('❌ 실제 채팅방 데이터 로드 실패:', error);
+        console.error('실제 채팅방 데이터 로드 실패:', error);
       } finally {
         setLoading(false);
       }

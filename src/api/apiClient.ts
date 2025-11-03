@@ -1,12 +1,10 @@
-// src/api/apiClient.ts
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios, { AxiosResponse } from 'axios';
 import { refreshToken } from './authAPI';
 import { TokenManager } from '../utils/tokenManager';
 import { normalizeError } from '../utils/normalizeError';
 
 const apiClient = axios.create({
-  baseURL: 'http://172.19.208.1:8080', 
+  baseURL: 'http://192.168.219.101:8080', 
   timeout: 10000, // 10초 타임아웃
   headers: {
     'Content-Type': 'application/json',
@@ -42,7 +40,7 @@ apiClient.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error('❌ 토큰 조회 실패:', error);
+      console.error('토큰 조회 실패:', error);
     }
     return config;
   },
@@ -89,8 +87,6 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        console.log('🔄 401 에러 감지, 토큰 갱신 시도...');
-        
         // 토큰 갱신
         const { accessToken } = await refreshToken();
         
@@ -103,7 +99,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
         
       } catch (refreshError) {
-        console.error('❌ 토큰 갱신 실패:', refreshError);
+        console.error('토큰 갱신 실패:', refreshError);
         
         // 대기 중인 요청들 모두 실패 처리
         processQueue(refreshError, null);

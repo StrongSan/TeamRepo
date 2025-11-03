@@ -16,7 +16,7 @@ const PostCard: React.FC<Props> = ({ post, userType, userId }) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   // 디버깅: 이미지 URL 확인
-  console.log('🖼️ PostCard 이미지 URL:', {
+  console.log('PostCard 이미지 URL:', {
     postId: post.postId,
     title: post.title,
     imageUrl: post.imageUrl,
@@ -39,7 +39,7 @@ const PostCard: React.FC<Props> = ({ post, userType, userId }) => {
         source={{ uri: post.imageUrl }} 
         style={styles.image}
         onError={(error) => {
-          console.log('❌ PostCard 이미지 로드 실패:', {
+          console.log('PostCard 이미지 로드 실패:', {
             postId: post.postId,
             title: post.title,
             imageUrl: post.imageUrl,
@@ -47,7 +47,7 @@ const PostCard: React.FC<Props> = ({ post, userType, userId }) => {
           });
         }}
         onLoad={() => {
-          console.log('✅ PostCard 이미지 로드 성공:', {
+          console.log('PostCard 이미지 로드 성공:', {
             postId: post.postId,
             title: post.title,
             imageUrl: post.imageUrl

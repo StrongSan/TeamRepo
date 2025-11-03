@@ -39,23 +39,10 @@ const MainScreen: React.FC = () => {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      console.log('🔍 추천 게시글 로드 시작 - userId:', userId);
       const recommendedPosts = await fetchRecommendedPostsByUserId(userId);
-      console.log('🔍 추천 게시글 결과:', {
-        count: recommendedPosts.length,
-        posts: recommendedPosts.map(p => ({ 
-          id: p.postId, 
-          title: p.title, 
-          imageUrl: p.imageUrl,
-          price: p.price,
-          variantId: p.variantId
-        }))
-      });
       setPosts(recommendedPosts);
-      console.log('🔍 posts 상태 업데이트 완료:', recommendedPosts.length);
     } catch (error) {
       console.error("추천 게시글 불러오기 실패", error);
-      console.error("에러 상세:", error.message);
     } finally {
       setRefreshing(false);
     }
@@ -104,7 +91,7 @@ const MainScreen: React.FC = () => {
           </View>
         }
         renderItem={({ item }) => {
-          console.log('🔍 GridItem 렌더링:', {
+          console.log('GridItem 렌더링:', {
             postId: item?.postId,
             title: item?.title,
             hasItem: !!item

@@ -5,8 +5,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  FlatList,
-  Image,
   ScrollView,
   Alert,
   ActivityIndicator,
@@ -16,8 +14,12 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { createReview, updateReview, ReviewCreateRequest, ReviewUpdateRequest, ReviewResponse } from '../api/reviewAPI';
 import { getOrderDetail, OrderDetailResponse } from '../api/orderAPI';
-import { launchImageLibrary, ImagePickerResponse, Asset } from 'react-native-image-picker';
+import { fetchPostById } from '../api/postAPI';
 import { BASE_URL } from '../api/config';
+import StarRatingInput from '../components/StarRatingInput';
+import ImageThumbnailUpload from '../components/ImageThumbnailUpload';
+import CakeTypeSelector from '../components/CakeTypeSelector';
+import OrderPreviewCard from '../components/OrderPreviewCard';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WriteReview'>;
 
@@ -74,35 +76,69 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
       setIsLoading(true);
       
       if (isEdit && existingReview) {
-        // 수정 모드: 기존 리뷰 정보로 mock 데이터 생성
-        const mockOrderData = {
-          id: 'edit-mode',
-          thumbnail: 'https://placehold.co/300x200',
-          title: '리뷰 수정',
-          pickupDate: new Date().toISOString().split('T')[0],
-          options: '1단 케이크 x1',
-          price: 50000,
-          status: 'COMPLETED' as const,
-          orderDate: new Date().toISOString().split('T')[0],
-          customerInfo: {
-            name: '구매자',
-            phone: '010-1234-5678'
-          },
-          cakeInfo: {
-            postId: existingReview.cakeId,
-            title: '리뷰 수정',
-            imageUrl: 'https://placehold.co/300x200',
-            description: '기존 리뷰를 수정합니다.'
-          },
-          orderOptions: {
-            variantId: 1,
-            sheetId: 1,
-            fillingId: 1,
-            sizeId: 1,
-            typeId: 1
-          }
-        };
-        setOrderInfo(mockOrderData);
+        // 수정 모드: 기존 리뷰의 케이크 정보 가져오기
+        try {
+          const cakePost = await fetchPostById(existingReview.cakeId);
+          const orderData: OrderDetailResponse = {
+            id: 'edit-mode',
+            thumbnail: cakePost.imageUrl || '',
+            title: cakePost.title || '',
+            pickupDate: new Date().toISOString().split('T')[0],
+            options: '1단 케이크 x1',
+            price: parseInt(cakePost.price) || 0,
+            status: 'COMPLETED' as const,
+            orderDate: new Date(existingReview.createdAt).toISOString().split('T')[0],
+            customerInfo: {
+              name: '',
+              phone: ''
+            },
+            cakeInfo: {
+              postId: cakePost.postId,
+              title: cakePost.title,
+              imageUrl: cakePost.imageUrl,
+              description: cakePost.description
+            },
+            orderOptions: {
+              variantId: cakePost.variantId,
+              sheetId: cakePost.sheetId || 1,
+              fillingId: cakePost.fillingId || 1,
+              sizeId: cakePost.sizeId || 1,
+              typeId: cakePost.typeId || 1
+            }
+          };
+          setOrderInfo(orderData);
+        } catch (error) {
+          console.error('케이크 정보 로드 실패:', error);
+          // API 실패 시 최소한의 정보만 표시
+          const fallbackData: OrderDetailResponse = {
+            id: 'edit-mode',
+            thumbnail: '',
+            title: '',
+            pickupDate: new Date().toISOString().split('T')[0],
+            options: '',
+            price: 0,
+            status: 'COMPLETED' as const,
+            orderDate: new Date(existingReview.createdAt).toISOString().split('T')[0],
+            customerInfo: {
+              name: '',
+              phone: ''
+            },
+            cakeInfo: {
+              postId: existingReview.cakeId,
+              title: '',
+              imageUrl: '',
+              description: ''
+            },
+            orderOptions: {
+              variantId: existingReview.cakeId,
+              sheetId: 1,
+              fillingId: 1,
+              sizeId: 1,
+              typeId: 1
+            }
+          };
+          setOrderInfo(fallbackData);
+        }
         return;
       }
       
@@ -112,36 +148,18 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
         console.log('리뷰 화면 주문 상세 데이터:', JSON.stringify(orderData, null, 2));
         setOrderInfo(orderData);
       } catch (apiError) {
-        // API 호출 실패 시 mock 데이터 사용
-        console.log('API 호출 실패, mock 데이터 사용:', apiError);
-        const mockOrderData = {
-          id: orderId,
-          thumbnail: 'https://placehold.co/300x200',
-          title: '생일 케이크',
-          pickupDate: new Date().toISOString().split('T')[0],
-          options: '1단 케이크 x1',
-          price: 50000,
-          status: 'COMPLETED' as const,
-          orderDate: new Date().toISOString().split('T')[0],
-          customerInfo: {
-            name: '구매자',
-            phone: '010-1234-5678'
-          },
-          cakeInfo: {
-            postId: 1,
-            title: '생일 케이크',
-            imageUrl: 'https://placehold.co/300x200',
-            description: '맛있는 생일 케이크입니다.'
-          },
-          orderOptions: {
-            variantId: 1,
-            sheetId: 1,
-            fillingId: 1,
-            sizeId: 1,
-            typeId: 1
-          }
-        };
-        setOrderInfo(mockOrderData);
+        // API 호출 실패 시 오류 메시지 표시 (fallback 제거)
+        console.error('주문 상세 정보 API 호출 실패:', apiError);
+        Alert.alert(
+          '오류',
+          '주문 정보를 불러올 수 없습니다. 다시 시도해주세요.',
+          [
+            {
+              text: '확인',
+              onPress: () => navigation.goBack(),
+            },
+          ]
+        );
       }
     } catch (error) {
       console.error('주문 정보 로드 오류:', error);
@@ -160,27 +178,6 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  const handleImageAdd = () => {
-    const remainingSlots = 5 - images.length;
-    
-    launchImageLibrary(
-      {
-        mediaType: 'photo',
-        selectionLimit: remainingSlots,
-        quality: 0.8,
-      },
-      (response: ImagePickerResponse) => {
-        if (response.assets && response.assets.length > 0) {
-          const newImages = response.assets.map((asset: Asset) => asset.uri).filter(Boolean) as string[];
-          setImages(prev => [...prev, ...newImages]);
-        }
-      }
-    );
-  };
-
-  const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
-  };
 
   const validateForm = (): boolean => {
     if (rating === 0) {
@@ -295,80 +292,8 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  const renderStarRating = () => (
-    <View style={styles.starRow}>
-      <Text style={styles.sectionTitle}>별점 평가</Text>
-      <View style={styles.starsContainer}>
-        {[1, 2, 3, 4, 5].map((i) => (
-          <TouchableOpacity key={i} onPress={() => setRating(i)}>
-            <Text style={[styles.starIcon, i <= rating && styles.starIconFilled]}>
-              {i <= rating ? '★' : '☆'}
-            </Text>
-          </TouchableOpacity>
-        ))}
-        {rating > 0 && (
-          <Text style={styles.ratingText}>
-            {rating === 1 ? '별로예요' : 
-             rating === 2 ? '보통이에요' : 
-             rating === 3 ? '괜찮아요' : 
-             rating === 4 ? '좋아요' : '최고예요'}
-          </Text>
-        )}
-      </View>
-    </View>
-  );
 
-  const renderImages = () => (
-    <View style={styles.imageSection}>
-      <Text style={styles.sectionTitle}>사진 첨부 (선택)</Text>
-      <Text style={styles.imageSubtitle}>최대 5장까지 업로드 가능</Text>
-      <View style={styles.imageRow}>
-        {images.map((uri, idx) => (
-          <View key={idx} style={styles.imageContainer}>
-            <Image source={{ uri }} style={styles.uploadedImage} resizeMode="cover" />
-            <TouchableOpacity
-              style={styles.removeImageBtn}
-              onPress={() => removeImage(idx)}
-            >
-              <Text style={styles.removeIcon}>×</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-        {images.length < 5 && (
-          <TouchableOpacity
-            style={styles.addImageBox}
-            onPress={handleImageAdd}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.cameraIcon}>📷</Text>
-            <Text style={styles.addImageText}>사진 추가</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
 
-  const renderCakeTypes = () => (
-    <View style={styles.typeSection}>
-      <Text style={styles.sectionTitle}>케이크 종류 (선택)</Text>
-      <View style={styles.typeWrap}>
-        {cakeTypes.map((type) => {
-          const active = selectedTypes.includes(type);
-          return (
-            <TouchableOpacity
-              key={type}
-              style={[styles.typeTag, active && styles.typeTagActive]}
-              onPress={() => toggleType(type)}
-            >
-              <Text style={[styles.typeText, active && styles.typeTextActive]}>
-                {type}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
-  );
 
   if (isLoading) {
     return (
@@ -418,42 +343,10 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* 주문 정보 미리보기 */}
-        <View style={styles.orderPreview}>
-          <Image 
-            source={{ 
-              uri: (() => {
-                const imageUrl = orderInfo.cakeInfo.imageUrl || orderInfo.thumbnail;
-                if (imageUrl) {
-                  return imageUrl.startsWith('http') 
-                    ? imageUrl 
-                    : `${BASE_URL}/images/${imageUrl}`;
-                }
-                return 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=80&h=80&fit=crop&crop=center';
-              })()
-            }} 
-            style={styles.cakePreviewImage}
-            onError={(error) => {
-              console.log('리뷰 화면 이미지 로드 실패:', error.nativeEvent.error);
-              console.log('cakeInfo.imageUrl:', orderInfo.cakeInfo.imageUrl);
-              console.log('thumbnail:', orderInfo.thumbnail);
-              const imageUrl = orderInfo.cakeInfo.imageUrl || orderInfo.thumbnail;
-              console.log('변환된 URL:', imageUrl 
-                ? (imageUrl.startsWith('http') 
-                    ? imageUrl 
-                    : `${BASE_URL}/images/${imageUrl}`)
-                : 'fallback');
-            }}
-            onLoad={() => console.log('리뷰 화면 이미지 로드 성공:', orderInfo.cakeInfo.imageUrl)}
-          />
-          <View style={styles.orderInfo}>
-            <Text style={styles.cakeTitle}>{orderInfo.cakeInfo.title}</Text>
-            <Text style={styles.orderIdText}>주문번호: {orderId}</Text>
-            <Text style={styles.orderDateText}>픽업일: {orderInfo.pickupDate}</Text>
-          </View>
-        </View>
+        <OrderPreviewCard orderInfo={orderInfo} orderId={orderId} />
 
         {/* 별점 */}
-        {renderStarRating()}
+        <StarRatingInput rating={rating} onRatingChange={setRating} />
 
         {/* 제목 */}
         <View style={styles.inputSection}>
@@ -484,10 +377,24 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
 
         {/* 이미지 업로드 */}
-        {renderImages()}
+        <View style={styles.imageSection}>
+          <Text style={styles.sectionTitle}>사진 첨부 (선택)</Text>
+          <Text style={styles.imageSubtitle}>최대 5장까지 업로드 가능</Text>
+          <ImageThumbnailUpload
+            images={images}
+            onImagesChange={setImages}
+            maxImages={5}
+            uploadButtonText="사진 추가"
+            showAddButton={true}
+          />
+        </View>
 
         {/* 케이크 종류 */}
-        {renderCakeTypes()}
+        <CakeTypeSelector
+          types={cakeTypes}
+          selectedTypes={selectedTypes}
+          onToggleType={toggleType}
+        />
 
         {/* 등록 버튼 */}
         <TouchableOpacity
@@ -535,28 +442,6 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: 'bold',
   },
-  starIcon: {
-    fontSize: 32,
-    color: '#ddd',
-  },
-  starIconFilled: {
-    color: '#f5a623',
-  },
-  removeIcon: {
-    fontSize: 20,
-    color: '#ff4444',
-    fontWeight: 'bold',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  cameraIcon: {
-    fontSize: 20,
-    marginBottom: 4,
-  },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
@@ -568,39 +453,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 16,
-  },
-  orderPreview: {
-    flexDirection: 'row',
-    padding: 16,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    marginVertical: 16,
-    gap: 12,
-  },
-  cakePreviewImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    backgroundColor: '#eee',
-  },
-  orderInfo: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  cakeTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  orderIdText: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 2,
-  },
-  orderDateText: {
-    fontSize: 12,
-    color: '#666',
   },
   loadingContainer: {
     flex: 1,
@@ -620,21 +472,6 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     color: '#666',
-  },
-  starRow: {
-    marginBottom: 24,
-  },
-  starsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 8,
-  },
-  ratingText: {
-    marginLeft: 12,
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
   },
   sectionTitle: {
     fontSize: 16,
@@ -671,71 +508,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginBottom: 12,
-  },
-  imageRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  imageContainer: {
-    position: 'relative',
-  },
-  uploadedImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    backgroundColor: '#eee',
-  },
-  removeImageBtn: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-  },
-  addImageBox: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fafafa',
-  },
-  addImageText: {
-    fontSize: 10,
-    color: '#999',
-    marginTop: 4,
-  },
-  typeSection: {
-    marginBottom: 32,
-  },
-  typeWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  typeTag: {
-    borderWidth: 1,
-    borderColor: '#f3a3a3',
-    borderRadius: 16,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#fff',
-  },
-  typeTagActive: {
-    backgroundColor: '#fcdada',
-    borderColor: '#f28c8c',
-  },
-  typeText: {
-    fontSize: 13,
-    color: '#d66a6a',
-  },
-  typeTextActive: {
-    fontWeight: '700',
-    color: '#d66a6a',
   },
   submitBtn: {
     backgroundColor: '#e78282',

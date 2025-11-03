@@ -11,12 +11,12 @@ const ProfileCard: React.FC = () => {
   // 최초 마운트 + 화면 재포커스 시 재조회
   const fetchProfile = useCallback(async () => {
     try {
-      console.log('🔍 ProfileCard: 프로필 조회 시작...');
+      console.log('ProfileCard: 프로필 조회 시작...');
       const me = await getMyProfile();
-      console.log('🔍 ProfileCard: API 응답 데이터:', JSON.stringify(me, null, 2));
+      console.log('ProfileCard: API 응답 데이터:', JSON.stringify(me, null, 2));
       setProfile(me);
     } catch (e) {
-      console.error('❌ ProfileCard: 프로필 조회 실패:', e);
+      console.error('ProfileCard: 프로필 조회 실패:', e);
       // 실패 시에도 기본값으로 설정하지 않고 null 유지
     }
   }, []);
@@ -36,7 +36,7 @@ const ProfileCard: React.FC = () => {
   const displayArea = profile?.favoriteArea || '';
   const avatarUri = profile?.profileImg;
   
-  console.log('🔍 ProfileCard: 표시할 데이터:', {
+  console.log('ProfileCard: 표시할 데이터:', {
     displayName,
     displayArea, 
     avatarUri,
