@@ -283,7 +283,7 @@ async def recommend_cakes(request: RecommendRequest):
     return {"recommended_cakes": recommended_variant_ids}
 
 
-# 데이터 새로고침 API (기존 테이블에서 실시간 로딩)
+# 데이터 새로고침 API (기존 테이블에서 실시간 로딩)2
 @app.post("/refresh-data")
 async def refresh_recommendation_data():
     try:
