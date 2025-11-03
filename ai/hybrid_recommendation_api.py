@@ -157,13 +157,13 @@ class VariantIdRequest(BaseModel):
 
 
 class CakePost(BaseModel):
-    postId: int
-    sellerId: int
+    post_id: int
+    seller_id: int
     title: str
     description: str
-    imageUrl: str
+    image_url: str
     price: str
-    variantId: int
+    variant_id: int
 
 
 # 콘텐츠 기반 추천
@@ -335,18 +335,18 @@ async def get_posts_by_variants(request: VariantIdRequest):
         connection.close()
 
         result = []
-        base_url = "http://192.168.219.101:8080/images/"  # 백엔드 서버 URL
+        base_url = "http://172.19.208.1:8080/images/"  # 백엔드 서버 URL
         for _, row in cake_df.iterrows():
             image_filename = str(row["cake_img"]) if pd.notnull(row["cake_img"]) else ""
             full_image_url = f"{base_url}{image_filename}" if image_filename else ""
             result.append({
-                "postId": int(row["cake_id"]) if pd.notnull(row["cake_id"]) else 0,
-                "sellerId": int(row["seller_id"]) if pd.notnull(row["seller_id"]) else 0,
+                "post_id": int(row["cake_id"]) if pd.notnull(row["cake_id"]) else 0,
+                "seller_id": int(row["seller_id"]) if pd.notnull(row["seller_id"]) else 0,
                 "title": str(row["cake_name"]) if pd.notnull(row["cake_name"]) else "",
                 "description": str(row["description"]) if pd.notnull(row["description"]) else "",
-                "imageUrl": full_image_url,
+                "image_url": full_image_url,
                 "price": str(row["price"]) if pd.notnull(row["price"]) else "0",
-                "variantId": int(row["variant_id"]) if pd.notnull(row["variant_id"]) else 0
+                "variant_id": int(row["variant_id"]) if pd.notnull(row["variant_id"]) else 0
             })
 
         return result
