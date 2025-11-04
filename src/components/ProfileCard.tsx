@@ -4,9 +4,11 @@ import ArrowIcon from '../../assets/icons/allowLeft.svg';
 import { getMyProfile, type ProfileResponse } from '../api/userAPI';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
+import { BASE_URL } from '../api/config';
 
 const ProfileCard: React.FC = () => {
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
+  const [imageError, setImageError] = useState(false);
 
   // 최초 마운트 + 화면 재포커스 시 재조회
   const fetchProfile = useCallback(async () => {
@@ -28,6 +30,7 @@ const ProfileCard: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       fetchProfile();
+      setImageError(false); // 화면 포커스 시 이미지 에러 상태 초기화
     }, [fetchProfile])
   );
 
@@ -47,15 +50,37 @@ const ProfileCard: React.FC = () => {
   const getImageUrl = (uri: string | undefined) => {
     if (!uri) return null;
     if (uri.startsWith('http')) return uri; // 이미 완전한 URL인 경우
-    return `http://172.19.208.1:8080${uri}`; // 백엔드 서버 URL 추가
+    // 경로가 /로 시작하지 않으면 추가
+    const path = uri.startsWith('/') ? uri : `/${uri}`;
+    return `${BASE_URL}${path}`;
   };
 
   const fullImageUrl = getImageUrl(avatarUri);
+  
+  console.log('ProfileCard: 이미지 URL 변환:', {
+    original: avatarUri,
+    fullUrl: fullImageUrl,
+    baseUrl: BASE_URL
+  });
 
   return (
     <View style={styles.container}>
-      {fullImageUrl ? (
-        <Image source={{ uri: fullImageUrl }} style={styles.avatarImage} />
+      {fullImageUrl && !imageError ? (
+        <Image 
+          source={{ uri: fullImageUrl }} 
+          style={styles.avatarImage}
+          onError={(error) => {
+            console.error('ProfileCard: 이미지 로드 실패:', {
+              url: fullImageUrl,
+              error: error.nativeEvent
+            });
+            setImageError(true);
+          }}
+          onLoad={() => {
+            console.log('ProfileCard: 이미지 로드 성공:', fullImageUrl);
+            setImageError(false);
+          }}
+        />
       ) : (
         <View style={styles.avatar} />
       )}

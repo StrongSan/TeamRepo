@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { SvgXml } from "react-native-svg";
 import CameraIcon from "../../assets/icons/camera-icon.svg";
 import { launchImageLibrary } from "react-native-image-picker";
+import { BASE_URL } from "../api/config";
 
 const avatarCircleSvg = `
   <svg width="121" height="120" viewBox="0 0 121 120" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -24,8 +25,62 @@ type Props = {
 const ProfileAvatar: React.FC<Props> = ({ imageUri: propUri = null, onChangeImage }) => {
   const [imageUri, setImageUri] = useState<string | null>(propUri);
 
+  // URL을 올바른 BASE_URL로 교체하는 함수
+  const normalizeImageUrl = (uri: string | null): string | null => {
+    if (!uri) return null;
+    
+    // 로컬 파일 URI인 경우 (file://, content:// 등)
+    if (!uri.startsWith('http')) {
+      return uri;
+    }
+    
+    // 서버 URL인 경우, 잘못된 IP 주소를 BASE_URL로 교체
+    if (BASE_URL && uri.includes('://')) {
+      try {
+        // React Native에서는 URL.origin이 구현되지 않으므로 수동으로 origin 추출
+        const urlMatch = uri.match(/^(https?:\/\/[^/]+)(.*)$/);
+        const baseUrlMatch = BASE_URL.match(/^(https?:\/\/[^/]+)(.*)$/);
+        
+        if (urlMatch && baseUrlMatch) {
+          const [, urlOrigin, urlPath] = urlMatch;
+          const [, baseOrigin] = baseUrlMatch;
+          
+          // 같은 origin이면 그대로 사용
+          if (urlOrigin === baseOrigin) {
+            return uri;
+          }
+          
+          // 다른 origin이면 올바른 BASE_URL로 교체
+          const correctedUrl = `${baseOrigin}${urlPath}`;
+          console.log('ProfileAvatar: URL IP 주소 교체:', {
+            original: uri,
+            corrected: correctedUrl,
+            baseUrl: BASE_URL
+          });
+          return correctedUrl;
+        } else {
+          // 정규식 매칭 실패 시 경로만 추출
+          const path = uri.replace(/^https?:\/\/[^/]+/, '');
+          return `${BASE_URL}${path}`;
+        }
+      } catch (error) {
+        console.error('ProfileAvatar: URL 처리 실패:', error);
+        // 에러 발생 시 경로만 추출
+        const path = uri.replace(/^https?:\/\/[^/]+/, '');
+        return `${BASE_URL}${path}`;
+      }
+    }
+    
+    return uri;
+  };
+
   useEffect(() => {
-    setImageUri(propUri);
+    const normalizedUri = normalizeImageUrl(propUri);
+    console.log('ProfileAvatar: imageUri 변경:', {
+      original: propUri,
+      normalized: normalizedUri
+    });
+    setImageUri(normalizedUri);
   }, [propUri]);
 
   const handleSelectImage = () => {
@@ -44,12 +99,28 @@ const ProfileAvatar: React.FC<Props> = ({ imageUri: propUri = null, onChangeImag
     );
   };
 
+  useEffect(() => {
+    console.log('ProfileAvatar: imageUri 변경:', imageUri);
+  }, [imageUri]);
+
   return (
     <View style={styles.container}>
 <View style={styles.avatarContainer}>
   {imageUri ? (
     <View style={styles.profileIconContainer}>
-      <Image source={{ uri: imageUri }} style={styles.profileImage} />
+      <Image 
+        source={{ uri: imageUri }} 
+        style={styles.profileImage}
+        onLoad={() => {
+          console.log('ProfileAvatar: 이미지 로드 성공:', imageUri);
+        }}
+        onError={(error) => {
+          console.error('ProfileAvatar: 이미지 로드 실패:', {
+            uri: imageUri,
+            error: error.nativeEvent
+          });
+        }}
+      />
     </View>
   ) : (
     <View style={styles.profileIconContainer}>

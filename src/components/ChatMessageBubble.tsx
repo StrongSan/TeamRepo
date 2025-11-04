@@ -8,12 +8,14 @@ interface ChatMessageBubbleProps {
   content: string;
   type: 'TEXT' | 'IMAGE';
   mine: boolean;
+  onContentLayout?: (width: number) => void; // 실제 콘텐츠 너비 측정 콜백
 }
 
 const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
   content,
   type,
   mine,
+  onContentLayout,
 }) => {
   const isImage = type === 'IMAGE';
 
@@ -34,7 +36,11 @@ const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
             }}
             style={styles.imageBubble}
             resizeMode="cover"
-            onLoad={() => {
+            onLoad={(e) => {
+              if (onContentLayout && e.nativeEvent.source.width) {
+                // 이미지의 실제 렌더링 너비 측정
+                onContentLayout(e.nativeEvent.source.width);
+              }
               console.log('이미지 로드 성공:', content);
               console.log('이미지 URL 형식 확인:', {
                 url: content,
@@ -66,7 +72,21 @@ const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
             }}
           />
         ) : (
-          <Text style={styles.msgText}>{content}</Text>
+          <Text 
+            style={styles.msgText}
+            onLayout={(e) => {
+              // 텍스트의 실제 너비만 측정 (padding 제외)
+              if (onContentLayout && mine && !isImage) {
+                const { width } = e.nativeEvent.layout;
+                // paddingHorizontal: 12 (좌우 각 12px)를 더해서 말풍선의 실제 너비 계산
+                // 하지만 minWidth 때문에 실제로는 max(텍스트+padding, 180)가 됨
+                // 실제 텍스트 길이에 맞춰 "1"을 배치하려면 텍스트 너비 + padding만 사용
+                onContentLayout(width + 24); // paddingHorizontal 12 * 2 = 24
+              }
+            }}
+          >
+            {content}
+          </Text>
         )}
       </View>
     </View>

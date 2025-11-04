@@ -49,33 +49,42 @@ const ChatListScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   // 실제 채팅방 데이터 로드
-  useEffect(() => {
-    const loadRealChatRooms = async () => {
-      try {
-        setLoading(true);
-        const rooms = await getChatRooms(parseInt(userId));
-        
-        // ✅ 사용자별 채팅방 필터링 확인
-        console.log('실제 채팅방 데이터 로드 완료:', {
-          userId: userId,
-          roomCount: rooms.length,
-          rooms: rooms.map(room => ({
-            roomId: room.roomId,
-            otherUserId: room.otherUserId,
-            otherUserNickname: room.otherUserNickname
-          }))
-        });
-        
-        setRealChatRooms(rooms);
-      } catch (error) {
-        console.error('실제 채팅방 데이터 로드 실패:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadRealChatRooms = async () => {
+    try {
+      setLoading(true);
+      const rooms = await getChatRooms(parseInt(userId));
+      
+      // ✅ 사용자별 채팅방 필터링 확인
+      console.log('실제 채팅방 데이터 로드 완료:', {
+        userId: userId,
+        roomCount: rooms.length,
+        rooms: rooms.map(room => ({
+          roomId: room.roomId,
+          otherUserId: room.otherUserId,
+          otherUserNickname: room.otherUserNickname
+        }))
+      });
+      
+      setRealChatRooms(rooms);
+    } catch (error) {
+      console.error('실제 채팅방 데이터 로드 실패:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadRealChatRooms();
   }, [userId]);
+
+  // 화면 포커스 시 목록 새로고침
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadRealChatRooms();
+    });
+
+    return unsubscribe;
+  }, [navigation, userId]);
 
   // 실제 데이터를 통합된 형태로 변환
   const convertRealToChatPreview = (real: RealChatPreview): ChatPreview => ({

@@ -36,6 +36,37 @@ def get_db_connection():
         return None
 
 
+# 사용자 선택 케이크 가져오기 (user_selected_cake 테이블)
+def get_user_selected_cakes(user_id):
+    try:
+        connection = get_db_connection()
+        if not connection:
+            return []
+        
+        cursor = connection.cursor()
+        query = """
+        SELECT variant_id 
+        FROM user_selected_cake 
+        WHERE user_id = %s
+        LIMIT 3
+        """
+        
+        cursor.execute(query, (user_id,))
+        results = cursor.fetchall()
+        
+        variant_ids = [row[0] for row in results if row[0] is not None]
+        # print(f"🎯 user_selected_cake에서 조회된 variant_ids: {variant_ids}")
+        
+        cursor.close()
+        connection.close()
+        
+        return variant_ids
+        
+    except Exception as e:
+        print(f"user_selected_cake 조회 오류: {e}")
+        return []
+
+
 # CSV에서 벡터 생성 및 피클 저장 (콘텐츠 필터링용)
 def load_content_data():
     if os.path.exists(pickle_path):
@@ -157,20 +188,23 @@ class VariantIdRequest(BaseModel):
 
 
 class CakePost(BaseModel):
-    post_id: int
-    seller_id: int
+    postId: int
+    sellerId: int
     title: str
     description: str
-    image_url: str
+    imageUrl: str
     price: str
-    variant_id: int
+    variantId: int
 
 
 # 콘텐츠 기반 추천
-def get_content_based_recommendations(variant_ids, top_k=25):
+def get_content_based_recommendations(variant_ids, top_k=25, exclude_input=False):
     if not variant_ids:
         return []
 
+    # print(f"[콘텐츠 필터링] 입력 variant_ids: {variant_ids}")
+    # print(f"[콘텐츠 필터링] exclude_input: {exclude_input}")
+    
     selected_indices = [
         df[df["variant_id"] == vid].index[0]
         for vid in variant_ids
@@ -180,12 +214,21 @@ def get_content_based_recommendations(variant_ids, top_k=25):
     if not selected_indices:
         return []
 
+    # 평균 벡터 유사도 계산
     avg_sim = cosine_sim_matrix[selected_indices].mean(axis=0)
     sim_scores = list(enumerate(avg_sim))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
+    # 추천 인덱스 추출
     recommended_indices = [i for i, score in sim_scores][:top_k]
-    return [int(x) for x in df.iloc[recommended_indices]["variant_id"].tolist()]  # numpy.int64 -> int 변환
+    recommended_variant_ids = [int(x) for x in df.iloc[recommended_indices]["variant_id"].tolist()]
+    
+    # 입력된 variant_ids 제외 (exclude_input=True인 경우)
+    if exclude_input:
+        input_variant_set = set(variant_ids)
+        recommended_variant_ids = [vid for vid in recommended_variant_ids if vid not in input_variant_set]
+    
+    return recommended_variant_ids
 
 
 # 협업 필터링 추천
@@ -219,19 +262,25 @@ def get_collaborative_recommendations(user_id, top_k=25):
 # 하이브리드 추천 API (기존 /hybrid-recommend 제거)
 
 # 하이브리드 추천 설정
-CONTENT_WEIGHT = 0.7  # 콘텐츠 필터링 가중치
-COLLABORATIVE_WEIGHT = 0.3  # 협업 필터링 가중치
+CONTENT_WEIGHT = 0.5  # 콘텐츠 필터링 가중치
+COLLABORATIVE_WEIGHT = 0.5  # 협업 필터링 가중치
 
 
 # 통합 추천 API (하이브리드)
 @app.post("/recommend")
 async def recommend_cakes(request: RecommendRequest):
-    print(f"[FastAPI] 추천 요청 수신 - variant_ids: {request.variant_ids}, user_id: {request.user_id}")
-    print(f"[FastAPI] 가중치 설정 - 콘텐츠: {CONTENT_WEIGHT}, 협업: {COLLABORATIVE_WEIGHT}")
+    # print(f"[FastAPI] 추천 요청 수신 - variant_ids: {request.variant_ids}, user_id: {request.user_id}")
+    # print(f"[FastAPI] 가중치 설정 - 콘텐츠: {CONTENT_WEIGHT}, 협업: {COLLABORATIVE_WEIGHT}")
+    
+    # 최신 협업 필터링 데이터 로딩
+    global collaborative_data
+    # print("[FastAPI] 최신 협업 필터링 데이터 로딩 중...")
+    latest_interactions = load_user_interactions()
+    collaborative_data = create_collaborative_matrix(latest_interactions)
+    # print(f"[FastAPI] 협업 필터링 데이터 로딩 완료 - 사용자: {len(latest_interactions['user_id'].unique()) if not latest_interactions.empty else 0}명")
 
     VARIANT_THRESHOLD = 10  # 데이터가 10개 이하일 때 하이브리드 X
     if len(df) <= VARIANT_THRESHOLD:
-        print("[FastAPI] 데이터가 10개 이하, 콘텐츠 기반 추천만 사용")
         if request.variant_ids:
             content_recs = get_content_based_recommendations(request.variant_ids, 25)
         else:
@@ -239,17 +288,33 @@ async def recommend_cakes(request: RecommendRequest):
             content_recs = get_content_based_recommendations([base_id], 25)
         return {"recommended_cakes": content_recs}
 
+    # variant_ids가 비어있으면 user_selected_cake에서 조회
     if not request.variant_ids:
-        print("[FastAPI] variant_ids 미입력(초기 추천), 콘텐츠 기반 or 랜덤 추천")
-        all_ids = df["variant_id"].tolist()
-        import random
-        content_recs = random.sample(all_ids, min(25, len(all_ids)))
-        return {"recommended_cakes": content_recs}
+        # print("[FastAPI] variant_ids 미입력, user_selected_cake에서 조회 시도")
+        if request.user_id:
+            selected_cakes = get_user_selected_cakes(request.user_id)
+            if selected_cakes:
+                # print(f"[FastAPI] user_selected_cake에서 {len(selected_cakes)}개 케이크 발견, 이를 기반으로 추천")
+                request.variant_ids = selected_cakes
+            else:
+                # print("[FastAPI] user_selected_cake에 데이터 없음, 랜덤 추천")
+                all_ids = df["variant_id"].tolist()
+                import random
+                content_recs = random.sample(all_ids, min(25, len(all_ids)))
+                return {"recommended_cakes": content_recs}
+        else:
+            all_ids = df["variant_id"].tolist()
+            import random
+            content_recs = random.sample(all_ids, min(25, len(all_ids)))
+            return {"recommended_cakes": content_recs}
 
+    # print(f"[FastAPI] 입력된 variant_ids: {request.variant_ids}")
     content_recs = get_content_based_recommendations(request.variant_ids, 50)
     collaborative_recs = get_collaborative_recommendations(request.user_id, 50) if request.user_id else []
-    print(f"[FastAPI] 콘텐츠 기반 추천 결과: {content_recs[:10]}")
-    print(f"[FastAPI] 협업 필터링 추천 결과: {collaborative_recs[:10]}")
+    # print(f"[FastAPI] 콘텐츠 기반 추천 결과 (상위 10개): {content_recs[:10]}")
+    # print(f"[FastAPI] 콘텐츠 기반 추천 결과 전체 개수: {len(content_recs)}")
+    # print(f"[FastAPI] 협업 필터링 추천 결과 (상위 10개): {collaborative_recs[:10]}")
+    # print(f"[FastAPI] 협업 필터링 추천 결과 전체 개수: {len(collaborative_recs)}")
 
     # 가중치 적용한 하이브리드 스코어링
     final_scores = {}
@@ -278,8 +343,8 @@ async def recommend_cakes(request: RecommendRequest):
             extra = remaining_df.sample(n=min(extra_needed, len(remaining_df)))
             recommended_variant_ids += [int(x) for x in extra["variant_id"].tolist()]  # numpy.int64 -> int 변환
 
-    print(f"[FastAPI] 최종 추천 결과 (상위 10개): {recommended_variant_ids[:10]}")
-    print(f"[FastAPI] 최종 스코어 (상위 5개): {sorted_recs[:5]}")
+    # print(f"[FastAPI] 최종 추천 결과 (상위 10개): {recommended_variant_ids[:10]}")
+    # print(f"[FastAPI] 최종 스코어 (상위 10개): {sorted_recs[:10]}")
     return {"recommended_cakes": recommended_variant_ids}
 
 
@@ -335,18 +400,20 @@ async def get_posts_by_variants(request: VariantIdRequest):
         connection.close()
 
         result = []
-        base_url = "http://172.19.208.1:8080/images/"  # 백엔드 서버 URL
+        base_url = "http://192.168.219.101:8080/images/"  # 백엔드 서버 URL
+        
         for _, row in cake_df.iterrows():
             image_filename = str(row["cake_img"]) if pd.notnull(row["cake_img"]) else ""
             full_image_url = f"{base_url}{image_filename}" if image_filename else ""
+            
             result.append({
-                "post_id": int(row["cake_id"]) if pd.notnull(row["cake_id"]) else 0,
-                "seller_id": int(row["seller_id"]) if pd.notnull(row["seller_id"]) else 0,
+                "postId": int(row["cake_id"]) if pd.notnull(row["cake_id"]) else 0,
+                "sellerId": int(row["seller_id"]) if pd.notnull(row["seller_id"]) else 0,
                 "title": str(row["cake_name"]) if pd.notnull(row["cake_name"]) else "",
                 "description": str(row["description"]) if pd.notnull(row["description"]) else "",
-                "image_url": full_image_url,
+                "imageUrl": full_image_url,
                 "price": str(row["price"]) if pd.notnull(row["price"]) else "0",
-                "variant_id": int(row["variant_id"]) if pd.notnull(row["variant_id"]) else 0
+                "variantId": int(row["variant_id"]) if pd.notnull(row["variant_id"]) else 0
             })
 
         return result
@@ -359,7 +426,6 @@ async def get_posts_by_variants(request: VariantIdRequest):
 @app.get("/user/{user_id}/recent-variants")
 async def get_user_recent_variants(user_id: int):
     try:
-        print(f"🔍 사용자 {user_id}의 조회 기록 조회 시작")
         connection = get_db_connection()
         cursor = connection.cursor()
 
@@ -375,35 +441,7 @@ async def get_user_recent_variants(user_id: int):
         cursor.execute(query, (user_id,))
         results = cursor.fetchall()
 
-        print(f"🔍 쿼리 결과 개수: {len(results)}")
-        print(f"🔍 쿼리 결과: {results}")
-
         variant_ids = [row[0] for row in results]
-        print(f"🔍 사용자 {user_id}의 조회 기록 variant_ids: {variant_ids}")
-
-        if not variant_ids:
-            debug_query = """
-            SELECT vcl.cake_id, vcl.id, c.cake_name
-            FROM viewed_cake_log vcl
-            JOIN cake c ON vcl.cake_id = c.cake_id
-            WHERE vcl.user_id = %s
-            ORDER BY vcl.id DESC
-            LIMIT 5
-            """
-            cursor.execute(debug_query, (user_id,))
-            debug_results = cursor.fetchall()
-            print(f"🔍 디버그 - 조회 기록: {debug_results}")
-
-            if debug_results:
-                cake_ids = [row[0] for row in debug_results]
-                cake_ids_str = ','.join(map(str, cake_ids))
-                variant_query = f"""
-                SELECT cake_id, variant_id FROM cake 
-                WHERE cake_id IN ({cake_ids_str})
-                """
-                cursor.execute(variant_query)
-                variant_results = cursor.fetchall()
-                print(f"🔍 디버그 - 케이크 variant_id: {variant_results}")
 
         cursor.close()
         connection.close()
