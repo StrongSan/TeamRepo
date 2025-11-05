@@ -13,9 +13,9 @@ import UserTypeSection from "../components/UserTypeSection";
 import CakePreferencesSection from "../components/CakePreferencesSection";
 import PrimaryButton from "../components/PrimaryButton";
 
-import { registerKakaoUser } from "../api/authAPI"; // ✅ 카카오 회원가입 API
+import { registerKakaoUser } from "../api/authAPI";
 import { getMyProfile, updateMyProfile, updateMyAvatar } from "../api/userAPI";
-import apiClient from "../api/apiClient"; // ✅ axios 인스턴스
+import apiClient from "../api/apiClient";
 import { BASE_URL } from "../api/config";
 
 type ProfileSetupRouteProp = RouteProp<RootStackParamList, "ProfileSetup">;
@@ -30,12 +30,12 @@ const ProfileSetupScreen: React.FC = () => {
   const [selectedCakes, setSelectedCakes] = useState<number[]>([]);
   const [randomCakes, setRandomCakes] = useState<{ variantId: number; imageUrl: string }[]>([]);
   const [seenVariantIds, setSeenVariantIds] = useState<number[]>([]);
-  const [kakaoId, setKakaoId] = useState<string>(""); // ✅ kakaoId 상태 추가
+  const [kakaoId, setKakaoId] = useState<string>("");
   const [editMode, setEditMode] = useState<boolean>(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [originalAvatarUri, setOriginalAvatarUri] = useState<string | null>(null);
 
-  // ✅ 케이크 랜덤 추천 API 호출 (회원가입 플로우에서만 필요)
+  // 케이크 랜덤 추천 API 호출 (회원가입 플로우에서만 필요)
   useEffect(() => {
     if (editMode) return; // 편집 모드에서는 불필요
     const fetchRandomCakes = async () => {
@@ -88,14 +88,73 @@ const ProfileSetupScreen: React.FC = () => {
     if (selectedCakes) setSelectedCakes(selectedCakes);
     if (typeof editMode === 'boolean') setEditMode(editMode);
     if (profileImg) {
-      setAvatarUri(profileImg);
-      setOriginalAvatarUri(profileImg);
+      // profileImg가 카카오 프로필 이미지 URL인 경우 그대로 사용
+      // 서버 이미지인 경우 BASE_URL로 정규화
+      let normalizedImg: string;
+      
+      // 카카오 CDN URL 처리 (서버 URL과 결합된 경우 복원)
+      if (profileImg.includes('/dn/')) {
+        if (BASE_URL && profileImg.includes(BASE_URL.replace(/^https?:\/\//, '').split(':')[0])) {
+          // 서버 URL과 결합된 카카오 경로를 감지
+          const kakaoPathMatch = profileImg.match(/\/dn\/.+$/);
+          if (kakaoPathMatch) {
+            // 카카오 CDN의 실제 도메인으로 변환
+            const kakaoPath = kakaoPathMatch[0];
+            normalizedImg = `https://dn.kakao.com${kakaoPath}`;
+          } else {
+            normalizedImg = profileImg;
+          }
+        } else if (profileImg.includes('k.kakaocdn.net') || profileImg.includes('dn.kakao.com')) {
+          // 이미 올바른 카카오 CDN URL인 경우
+          normalizedImg = profileImg;
+        } else {
+          normalizedImg = profileImg;
+        }
+      } else if (profileImg.startsWith('http')) {
+        // 일반 HTTP URL인 경우
+        if (BASE_URL) {
+          try {
+            const urlMatch = profileImg.match(/^(https?:\/\/[^/]+)(.*)$/);
+            const baseUrlMatch = BASE_URL.match(/^(https?:\/\/[^/]+)(.*)$/);
+            
+            if (urlMatch && baseUrlMatch) {
+              const [, urlOrigin, urlPath] = urlMatch;
+              const [, baseOrigin] = baseUrlMatch;
+              
+              // 같은 origin이거나 외부 URL이면 그대로 사용
+              const baseHost = BASE_URL.replace(/^https?:\/\//, '').split(':')[0];
+              if (urlOrigin === baseOrigin || !urlOrigin.includes(baseHost)) {
+                normalizedImg = profileImg;
+              } else {
+                // 서버 URL이지만 IP가 다른 경우 BASE_URL로 교체
+                normalizedImg = `${baseOrigin}${urlPath}`;
+              }
+            } else {
+              normalizedImg = profileImg;
+            }
+          } catch (error) {
+            normalizedImg = profileImg;
+          }
+        } else {
+          normalizedImg = profileImg;
+        }
+      } else {
+        // 상대 경로인 경우 BASE_URL과 결합
+        if (BASE_URL) {
+          const path = profileImg.startsWith('/') ? profileImg : `/${profileImg}`;
+          normalizedImg = `${BASE_URL}${path}`;
+        } else {
+          normalizedImg = profileImg;
+        }
+      }
+      
+      setAvatarUri(normalizedImg);
+      setOriginalAvatarUri(normalizedImg);
     }
-    if (routeKakaoId && !kakaoId) { // ✅ kakaoId가 없을 때만 설정
-      console.log('ProfileSetup - kakaoId 상태 설정:', routeKakaoId);
+    if (routeKakaoId && !kakaoId) {
       setKakaoId(routeKakaoId);
     }
-  }, [route.params, kakaoId]); // ✅ kakaoId 의존성 추가
+  }, [route.params, kakaoId]);
 
   // 편집 모드일 때 현재 프로필 불러오기
   useEffect(() => {
@@ -108,9 +167,45 @@ const ProfileSetupScreen: React.FC = () => {
         if (me.userType) setUserType(me.userType);
         if (me.profileImg) {
           // 백엔드에서 반환하는 경로를 완전한 URL로 변환
-          const fullImageUrl = me.profileImg.startsWith('http') 
-            ? me.profileImg 
-            : `http://172.19.208.1:8080${me.profileImg}`;
+          let fullImageUrl: string;
+          
+          if (me.profileImg.startsWith('http')) {
+            // 이미 완전한 URL인 경우, IP 주소가 잘못되었을 수 있으므로 확인
+            if (BASE_URL) {
+              try {
+                const urlMatch = me.profileImg.match(/^(https?:\/\/[^/]+)(.*)$/);
+                const baseUrlMatch = BASE_URL.match(/^(https?:\/\/[^/]+)(.*)$/);
+                
+                if (urlMatch && baseUrlMatch) {
+                  const [, urlOrigin, urlPath] = urlMatch;
+                  const [, baseOrigin] = baseUrlMatch;
+                  
+                  // 같은 origin이면 그대로 사용, 다르면 BASE_URL로 교체
+                  if (urlOrigin === baseOrigin) {
+                    fullImageUrl = me.profileImg;
+                  } else {
+                    fullImageUrl = `${baseOrigin}${urlPath}`;
+                  }
+                } else {
+                  fullImageUrl = me.profileImg;
+                }
+              } catch (error) {
+                // URL 파싱 실패 시 원본 사용
+                fullImageUrl = me.profileImg;
+              }
+            } else {
+              fullImageUrl = me.profileImg;
+            }
+          } else {
+            // 상대 경로인 경우 BASE_URL과 결합
+            if (BASE_URL) {
+              const path = me.profileImg.startsWith('/') ? me.profileImg : `/${me.profileImg}`;
+              fullImageUrl = `${BASE_URL}${path}`;
+            } else {
+              fullImageUrl = me.profileImg;
+            }
+          }
+          
           setAvatarUri(fullImageUrl);
           setOriginalAvatarUri(fullImageUrl);
         }
@@ -129,7 +224,7 @@ const ProfileSetupScreen: React.FC = () => {
   };
 
   const handleLogin = async () => {
-    // ✅ 편집 모드: 닉네임/지역만 필수
+    // 편집 모드: 닉네임/지역만 필수
     if (editMode) {
       if (!nickname?.trim() || !location?.trim()) {
         Alert.alert("모든 항목을 입력해주세요.");
@@ -151,7 +246,7 @@ const ProfileSetupScreen: React.FC = () => {
       return;
     }
 
-    // ✅ 회원가입 플로우: 닉네임/지역/유형 필수
+    // 회원가입 플로우: 닉네임/지역/유형 필수
     if (!nickname?.trim() || !location?.trim() || !userType) {
       Alert.alert("모든 항목을 입력해주세요.");
       return;

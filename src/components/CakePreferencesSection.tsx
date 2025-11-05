@@ -36,7 +36,7 @@ const CakePreferencesSection: React.FC<CakePreferencesSectionProps> = ({
           renderItem={({ item }) => (
             <CheckboxCard
               selected={selectedCakes.includes(item.variantId)}
-              image={{ uri: item.imageUrl }} // ✅ URI 방식으로 이미지 처리
+              image={{ uri: item.imageUrl }}
               onSelect={() => onSelectCake(item.variantId)}
             />
           )}

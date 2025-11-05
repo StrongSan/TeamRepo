@@ -145,7 +145,6 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
       // 새 리뷰 작성 모드
       try {
         const orderData = await getOrderDetail(orderId);
-        console.log('리뷰 화면 주문 상세 데이터:', JSON.stringify(orderData, null, 2));
         setOrderInfo(orderData);
       } catch (apiError) {
         // API 호출 실패 시 오류 메시지 표시 (fallback 제거)
@@ -216,12 +215,9 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
           comment: `${title}\n\n${content}\n\n케이크 종류: ${selectedTypes.join(', ')}`,
         };
 
-        console.log('리뷰 수정 데이터:', JSON.stringify(updateData, null, 2));
-        console.log('API 호출 시작: PATCH /api/reviews/' + existingReview.reviewId);
 
         try {
           await updateReview(existingReview.reviewId, updateData);
-          console.log('리뷰 수정 성공');
           
           Alert.alert(
             '성공',
@@ -250,14 +246,9 @@ const ReviewWriteScreen: React.FC<Props> = ({ navigation, route }) => {
           comment: `${title}\n\n${content}\n\n케이크 종류: ${selectedTypes.join(', ')}`,
         };
 
-        console.log('리뷰 작성 데이터:', JSON.stringify(reviewData, null, 2));
-        console.log('userId:', userId, 'parsed:', parseInt(userId));
-        console.log('cakeId:', orderInfo.cakeInfo.postId);
-        console.log('API 호출 시작: POST /api/reviews');
 
         try {
           const result = await createReview(reviewData);
-          console.log('리뷰 작성 성공:', result);
           
           Alert.alert(
             '성공',

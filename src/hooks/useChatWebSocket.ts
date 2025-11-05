@@ -139,6 +139,14 @@ Authorization:Bearer ${token}
             if (data.type === 'READ_RECEIPT') {
               onReadReceipt?.(data.readerId!, data.lastReadMsgId!);
             } else if (data.msgId && data.content && data.contentType && data.createdAt && data.senderId) {
+              console.log('useChatWebSocket: 메시지 수신:', {
+                msgId: data.msgId,
+                senderId: data.senderId,
+                content: data.content?.substring(0, 20),
+                contentType: data.contentType,
+                roomId: data.roomId || roomId
+              });
+              
               const chatMessage: ChatMessage = {
                 msgId: data.msgId,
                 roomId: data.roomId || roomId,
@@ -202,17 +210,25 @@ Authorization:Bearer ${token}
 
   // --- SEND 바이트 길이 계산 (기존 sendMessage 교체) ---
   const sendMessage = useCallback(
-    (content: string, contentType: 'TEXT' | 'IMAGE' = 'TEXT') => {
+    async (content: string, contentType: 'TEXT' | 'IMAGE' = 'TEXT') => {
       if (!wsRef.current || !isConnected) {
         return;
       }
       try {
+        // 메시지 전송 시에도 토큰을 포함
+        const token = await TokenManager.getAccessToken();
+        if (!token) {
+          console.error('Access token not found for message send');
+          return;
+        }
+
         const body = JSON.stringify({ content, contentType });
-        const byteLen = body.length; // ✅ 문자열 길이 (UTF-8에서 영문은 1:1)
+        const byteLen = body.length;
         const sendFrame = buildStompFrame('SEND', {
           'destination': `/app/rooms/${roomId}/send`,
           'content-type': 'application/json;charset=utf-8',
           'content-length': String(byteLen),
+          'Authorization': `Bearer ${token}`,
         }, body);
         wsRef.current.send(sendFrame);
       } catch (error) {

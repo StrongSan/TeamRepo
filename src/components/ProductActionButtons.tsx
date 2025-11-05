@@ -18,9 +18,10 @@ const ProductActionButtons: React.FC<Props> = ({ userType, postId, userId, price
   // 문의하기 버튼 클릭 핸들러
   const handleInquiry = async () => {
     try {
-      console.log("문의하기 요청:", { postId, userId });
+      console.log("문의하기 요청:", { postId });
       
-      const response = await createOrGetChatRoom(postId, parseInt(userId));
+      // customerId는 백엔드에서 JWT 토큰에서 자동으로 추출합니다.
+      const response = await createOrGetChatRoom(postId);
       
       console.log("채팅방 응답:", response);
       

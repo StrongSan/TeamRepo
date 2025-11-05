@@ -14,10 +14,10 @@ import {
   Alert,
 } from 'react-native';
 import { launchImageLibrary, ImagePickerResponse, MediaType } from 'react-native-image-picker';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/AppNavigator';
-import { useChatWebSocket, buildStompFrame } from '../hooks/useChatWebSocket';
+import { useChatWebSocket } from '../hooks/useChatWebSocket';
 import { 
   getRecentMessages, 
   enterChatRoom, 
@@ -29,6 +29,7 @@ import { TokenManager } from '../utils/tokenManager';
 import apiClient from '../api/apiClient';
 import ChatMessageBubble from '../components/ChatMessageBubble';
 import ChatDateLabel from '../components/ChatDateLabel';
+import { getMyProfile } from '../api/userAPI';
 
 // ====== 타입 정의 ======
 type MsgType = 'TEXT' | 'IMAGE';
@@ -43,6 +44,8 @@ type ChatMsg = {
   mine: boolean;
   senderId: number;
   isRead?: boolean; // 읽음 상태 (내 메시지일 때만)
+  isOptimistic?: boolean; // Optimistic update로 추가된 임시 메시지인지
+  optimisticContent?: string; // 임시 메시지의 원본 내용 (매칭용)
 };
 
 // 날짜(YYYY-MM-DD) 라벨 계산
@@ -65,6 +68,9 @@ const ChatRoomScreen: React.FC = () => {
   const [bubbleContentWidths, setBubbleContentWidths] = useState<Map<number, number>>(new Map());
   const lastSyncedMsgIdRef = useRef<number | null>(null); // 마지막으로 동기화한 메시지 ID
   const readSyncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // 디바운스를 위한 타이머
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null); // 현재 로그인한 사용자 ID
+  const initialLoadCompleteRef = useRef(false); // 초기 로드 완료 여부
+  const pendingMessagesRef = useRef<ChatMessageType[]>([]); // currentUserId가 설정되기 전에 받은 메시지들
 
   // 읽음 상태 동기화 함수 (디바운스 적용)
   const performReadSync = useCallback((lastReadMsgId: number) => {
@@ -81,18 +87,35 @@ const ChatRoomScreen: React.FC = () => {
     // 디바운스: 300ms 후 실행
     readSyncTimeoutRef.current = setTimeout(async () => {
       try {
-        console.log('📖 read-sync 호출:', { roomId, lastReadMsgId });
         await syncReadStatus(parseInt(roomId), lastReadMsgId);
         lastSyncedMsgIdRef.current = lastReadMsgId;
-        console.log('✅ read-sync 완료');
       } catch (error) {
-        console.error('❌ read-sync 실패:', error);
+        console.error('read-sync 실패:', error);
       }
     }, 300);
   }, [roomId]);
 
   // 메시지 변환 함수
   const convertMessage = useCallback((msg: ChatMessageType): ChatMsg => {
+    // 타입 변환: senderId와 currentUserId를 모두 number로 통일
+    const msgSenderId = typeof msg.senderId === 'string' ? parseInt(msg.senderId, 10) : Number(msg.senderId);
+    const myUserId = currentUserId !== null ? (typeof currentUserId === 'string' ? parseInt(currentUserId, 10) : Number(currentUserId)) : null;
+    
+    // 엄격한 비교: 타입과 값 모두 확인
+    const isMine = myUserId !== null && !isNaN(msgSenderId) && !isNaN(myUserId) && msgSenderId === myUserId;
+    
+    // 디버깅 로그 (항상 출력)
+    console.log('convertMessage:', {
+      msgId: msg.msgId,
+      senderId: msgSenderId,
+      senderIdType: typeof msgSenderId,
+      currentUserId: myUserId,
+      currentUserIdType: typeof myUserId,
+      isMine: isMine,
+      comparison: `${msgSenderId} === ${myUserId}`,
+      content: msg.content?.substring(0, 20)
+    });
+    
     return {
       id: msg.msgId.toString(),
       msgId: msg.msgId,
@@ -100,16 +123,107 @@ const ChatRoomScreen: React.FC = () => {
       content: msg.content, // 항상 content에 저장
       imageUrl: msg.contentType === 'IMAGE' ? msg.content : undefined,
       createdAt: msg.createdAt,
-      mine: msg.senderId === parseInt(userId),
-      senderId: msg.senderId,
+      // 현재 로그인한 사용자 ID와 메시지 발신자 ID를 비교
+      mine: isMine,
+      senderId: msgSenderId,
       isRead: false, // 기본값: 읽지 않음
     };
-  }, [userId]);
+  }, [currentUserId]);
 
   // 새 메시지 수신 핸들러
   const handleMessageReceived = useCallback((newMsg: ChatMessageType) => {
+    console.log('handleMessageReceived 호출:', {
+      msgId: newMsg.msgId,
+      senderId: newMsg.senderId,
+      content: newMsg.content?.substring(0, 20),
+      contentType: newMsg.contentType,
+      createdAt: newMsg.createdAt,
+      currentUserId: currentUserId
+    });
+    
+    // currentUserId가 설정되지 않았으면 메시지를 큐에 저장
+    if (currentUserId === null) {
+      console.log('currentUserId가 null, 메시지를 큐에 저장:', newMsg.msgId);
+      pendingMessagesRef.current.push(newMsg);
+      return;
+    }
+    
     const chatMsg = convertMessage(newMsg);
-    setMessages(prev => [...prev, chatMsg]);
+    
+    setMessages(prev => {
+      // 1. 같은 msgId의 메시지가 이미 있으면 무시 (최우선 체크)
+      const existingByMsgId = prev.findIndex(msg => msg.msgId === chatMsg.msgId && !msg.isOptimistic);
+      if (existingByMsgId !== -1) {
+        console.log('중복 메시지 무시 (같은 msgId):', {
+          msgId: chatMsg.msgId,
+          content: chatMsg.content?.substring(0, 20)
+        });
+        return prev;
+      }
+      
+      // 2. 내가 보낸 메시지이고, 같은 내용의 임시 메시지가 있으면 교체
+      if (chatMsg.mine && currentUserId !== null) {
+        // 최근 10초 이내에 보낸 임시 메시지 중 같은 내용 찾기
+        const now = Date.now();
+        const tempMsgIndex = prev.findIndex(msg => 
+          msg.isOptimistic && 
+          msg.optimisticContent === chatMsg.content &&
+          msg.type === chatMsg.type &&
+          Math.abs(now - msg.msgId) < 10000 // 10초 이내
+        );
+        
+        if (tempMsgIndex !== -1) {
+          // 임시 메시지를 서버 메시지로 교체
+          const newMessages = [...prev];
+          newMessages[tempMsgIndex] = chatMsg;
+          console.log('임시 메시지를 서버 메시지로 교체:', {
+            tempId: prev[tempMsgIndex].id,
+            serverMsgId: chatMsg.msgId,
+            content: chatMsg.content?.substring(0, 20)
+          });
+          return newMessages;
+        }
+      }
+      
+      // 3. 강력한 중복 체크: 같은 senderId, content, 그리고 비슷한 시간의 메시지가 있으면 무시
+      // (모든 메시지에 적용 - 내 메시지와 상대방 메시지 모두)
+      const newMsgTime = new Date(chatMsg.createdAt).getTime();
+      const duplicateMsg = prev.find(msg => {
+        if (msg.isOptimistic) return false; // 임시 메시지는 제외
+        
+        // 같은 발신자, 같은 내용, 같은 타입
+        const sameSender = msg.senderId === chatMsg.senderId;
+        const sameContent = msg.content === chatMsg.content;
+        const sameType = msg.type === chatMsg.type;
+        
+        // 시간 차이가 3초 이내
+        const msgTime = new Date(msg.createdAt).getTime();
+        const timeDiff = Math.abs(newMsgTime - msgTime);
+        const withinTimeWindow = timeDiff < 3000; // 3초 이내
+        
+        return sameSender && sameContent && sameType && withinTimeWindow;
+      });
+      
+      if (duplicateMsg) {
+        console.log('중복 메시지 무시 (같은 내용, 같은 발신자, 비슷한 시간):', {
+          existingMsgId: duplicateMsg.msgId,
+          newMsgId: chatMsg.msgId,
+          senderId: chatMsg.senderId,
+          content: chatMsg.content?.substring(0, 20),
+          timeDiff: Math.abs(new Date(duplicateMsg.createdAt).getTime() - newMsgTime)
+        });
+        return prev; // 중복 메시지 무시
+      }
+      
+      // 4. 새 메시지 추가
+      console.log('새 메시지 추가:', {
+        msgId: chatMsg.msgId,
+        senderId: chatMsg.senderId,
+        mine: chatMsg.mine,
+        content: chatMsg.content?.substring(0, 20)
+      });
+      return [...prev, chatMsg];
+    });
 
     // 스크롤이 맨 밑이면 자동 스크롤, 아니면 배지 표시
     if (isNearBottom) {
@@ -121,11 +235,10 @@ const ChatRoomScreen: React.FC = () => {
     } else if (!chatMsg.mine) {
       setNewMessageCount(prev => prev + 1);
     }
-  }, [convertMessage, isNearBottom, performReadSync]);
+  }, [convertMessage, isNearBottom, performReadSync, currentUserId]);
 
   // 읽음 상태 수신 핸들러 (READ_RECEIPT)
   const handleReadReceipt = useCallback((readerId: number, lastReadMsgId: number) => {
-    console.log('📖 읽음 상태 수신:', { readerId, lastReadMsgId });
     
     // 상대방이 읽은 경우 (내 메시지만 업데이트)
     setMessages(prev => prev.map(msg => {
@@ -144,31 +257,77 @@ const ChatRoomScreen: React.FC = () => {
     onReadReceipt: handleReadReceipt,
   });
 
-  // 연결 상태 로그
+
+  // 현재 로그인한 사용자 ID 가져오기 (화면 포커스 시마다 갱신)
+  useFocusEffect(
+    useCallback(() => {
+      const fetchCurrentUserId = async () => {
+        try {
+          const profile = await getMyProfile();
+          const userIdNumber = typeof profile.userId === 'string' ? parseInt(profile.userId) : profile.userId;
+          console.log('ChatRoomScreen: 현재 사용자 ID 설정:', userIdNumber);
+          setCurrentUserId(userIdNumber);
+        } catch (error) {
+          console.error('현재 사용자 ID 가져오기 실패:', error);
+          // 실패 시 route.params.userId를 fallback으로 사용
+          const fallbackUserId = parseInt(userId);
+          console.log('ChatRoomScreen: Fallback 사용자 ID 사용:', fallbackUserId);
+          setCurrentUserId(fallbackUserId);
+        }
+      };
+      fetchCurrentUserId();
+    }, [userId])
+  );
+
+  // currentUserId가 설정되면 기존 메시지들을 다시 변환하고 큐에 저장된 메시지 처리
   useEffect(() => {
-    console.log('WebSocket 연결 상태:', { isConnected, isConnecting });
-    
-    // ✅ 이미지 전송 시 WebSocket 연결 상태 확인
-    if (!isConnected && !isConnecting) {
-      console.warn('WebSocket 연결되지 않음 - 이미지 전송 후 수신 불가능');
+    if (currentUserId !== null) {
+      // 기존 메시지 재변환
+      if (messages.length > 0) {
+        console.log('ChatRoomScreen: currentUserId 설정됨, 기존 메시지 재변환:', currentUserId);
+        setMessages(prev => prev.map(msg => {
+          // 원본 ChatMessageType 형태로 재구성 (이미 변환된 메시지이므로)
+          const msgSenderId = typeof msg.senderId === 'string' ? parseInt(msg.senderId) : msg.senderId;
+          const myUserId = typeof currentUserId === 'string' ? parseInt(currentUserId) : currentUserId;
+          const isMine = msgSenderId === myUserId;
+          
+          return {
+            ...msg,
+            mine: isMine
+          };
+        }));
+      }
+      
+      // 큐에 저장된 메시지들 처리
+      if (pendingMessagesRef.current.length > 0) {
+        console.log('ChatRoomScreen: 큐에 저장된 메시지 처리:', pendingMessagesRef.current.length);
+        const pending = [...pendingMessagesRef.current];
+        pendingMessagesRef.current = []; // 큐 비우기
+        
+        pending.forEach(msg => {
+          handleMessageReceived(msg);
+        });
+      }
     }
-  }, [isConnected, isConnecting]);
+  }, [currentUserId, messages.length]);
 
   // 초기 메시지 로드
   useEffect(() => {
-    loadInitialMessages();
-  }, [roomId]);
+    if (currentUserId !== null) {
+      console.log('ChatRoomScreen: currentUserId 설정됨, 메시지 로드 시작:', currentUserId);
+      loadInitialMessages();
+    } else {
+      console.log('ChatRoomScreen: currentUserId가 null, 메시지 로드 대기 중...');
+    }
+  }, [roomId, currentUserId]);
 
   const loadInitialMessages = async () => {
     try {
       setLoading(true);
       
-      console.log('채팅방 입장 처리 시작:', roomId);
-      
       // 방 입장 처리
       try {
-        const latestMsgId = await enterChatRoom(parseInt(roomId));
-        console.log('채팅방 입장 완료, 최신 메시지 ID:', latestMsgId);
+        await enterChatRoom(parseInt(roomId));
       } catch (enterError: any) {
         console.error('채팅방 입장 실패:', enterError);
         console.error('입장 오류 상세:', {
@@ -185,24 +344,37 @@ const ChatRoomScreen: React.FC = () => {
       
       // 최근 30개 메시지 로드
       const recentMessages = await getRecentMessages(parseInt(roomId));
-      console.log('메시지 로드 완료:', recentMessages.length, '개');
       
       const convertedMessages = recentMessages.map(convertMessage);
       setMessages(convertedMessages);
       
-      // 맨 아래로 스크롤
-      setTimeout(() => {
-        flatRef.current?.scrollToEnd({ animated: false });
-        // 초기 렌더 후 맨 아래에 있으면 read-sync 호출
-        if (convertedMessages.length > 0) {
-          const lastMsgId = convertedMessages[convertedMessages.length - 1].msgId;
-          performReadSync(lastMsgId);
+      // 맨 아래로 스크롤 (여러 번 시도하여 확실히 스크롤)
+      const scrollToBottom = () => {
+        if (flatRef.current) {
+          flatRef.current.scrollToEnd({ animated: false });
         }
-      }, 100);
+      };
+      
+      // 즉시 스크롤 시도
+      setTimeout(scrollToBottom, 50);
+      // 렌더링 완료 후 다시 스크롤
+      setTimeout(scrollToBottom, 200);
+      // 추가 안전장치
+      setTimeout(scrollToBottom, 500);
+      
+      // 초기 렌더 후 맨 아래에 있으면 read-sync 호출
+      if (convertedMessages.length > 0) {
+        const lastMsgId = convertedMessages[convertedMessages.length - 1].msgId;
+        setTimeout(() => performReadSync(lastMsgId), 300);
+      }
+      
+      // 초기 로드 완료 표시
+      initialLoadCompleteRef.current = true;
     } catch (error: any) {
       console.error('메시지 로드 실패:', error);
       console.error('에러 상세:', error.response?.data || error.message);
       Alert.alert('오류', '메시지를 불러오는데 실패했습니다.');
+      initialLoadCompleteRef.current = true;
     } finally {
       setLoading(false);
     }
@@ -284,18 +456,39 @@ const ChatRoomScreen: React.FC = () => {
     if (!text) return;
 
     // WebSocket을 통해 메시지 전송
-    if (isConnected) {
-      sendMessage(text, 'TEXT');
+    if (isConnected && currentUserId !== null) {
+      console.log('onPressSend: 메시지 전송 시작:', {
+        content: text.substring(0, 20),
+        currentUserId,
+        isConnected
+      });
+      
+      // Optimistic update: 메시지를 즉시 로컬 상태에 추가
+      const tempMsgId = Date.now(); // 임시 ID (서버에서 받은 메시지로 교체됨)
+      const optimisticMessage: ChatMsg = {
+        id: `temp-${tempMsgId}`,
+        msgId: tempMsgId,
+        type: 'TEXT',
+        content: text,
+        createdAt: new Date().toISOString(),
+        mine: true, // 내가 보낸 메시지이므로 항상 true
+        senderId: currentUserId,
+        isRead: false,
+        isOptimistic: true, // 임시 메시지 표시
+        optimisticContent: text, // 매칭용 원본 내용
+      };
+      
+      setMessages(prev => [...prev, optimisticMessage]);
       setInput('');
+      
+      // WebSocket으로 메시지 전송
+      sendMessage(text, 'TEXT');
+      
+      console.log('onPressSend: 메시지 WebSocket 전송 완료');
       
       // 맨 아래로 스크롤
       setTimeout(() => {
         flatRef.current?.scrollToEnd({ animated: true });
-        // 메시지 전송 후 하단에 붙어있으면 read-sync (내가 보낸 메시지도 읽은 것으로 간주)
-        if (messages.length > 0) {
-          const lastMsgId = messages[messages.length - 1].msgId;
-          performReadSync(lastMsgId);
-        }
       }, 100);
     } else {
       Alert.alert('오류', '채팅 서버와 연결되지 않았습니다.');
@@ -303,8 +496,6 @@ const ChatRoomScreen: React.FC = () => {
   };
 
   const onPressPlus = () => {
-    console.log('이미지 선택 시작');
-    
     const options = {
       mediaType: 'photo' as MediaType,
       quality: 0.8 as const,
@@ -314,7 +505,6 @@ const ChatRoomScreen: React.FC = () => {
 
     launchImageLibrary(options, (response: ImagePickerResponse) => {
       if (response.didCancel) {
-        console.log('이미지 선택 취소');
         return;
       }
 
@@ -327,7 +517,6 @@ const ChatRoomScreen: React.FC = () => {
       if (response.assets && response.assets.length > 0) {
         const asset = response.assets[0];
         if (asset.uri) {
-          console.log('선택된 이미지:', asset.uri);
           sendImageMessage(asset.uri);
         }
       }
@@ -336,11 +525,8 @@ const ChatRoomScreen: React.FC = () => {
 
   const sendImageMessage = async (imageUri: string) => {
     try {
-      console.log('이미지 업로드 시작:', imageUri);
-      
       // 1. 이미지를 서버에 업로드
       const uploadedImageUrl = await uploadChatImage(imageUri);
-      console.log('이미지 업로드 완료:', uploadedImageUrl);
       
       // 2. HTTP API를 사용하여 메시지 전송 (WebSocket 대신)
       const messageData = {
@@ -348,26 +534,11 @@ const ChatRoomScreen: React.FC = () => {
         contentType: 'IMAGE',
       };
 
-      // 토큰 정보 확인
-      const token = await TokenManager.getAccessToken();
-      console.log('현재 토큰:', token ? `${token.substring(0, 20)}...` : '없음');
-      console.log('현재 사용자 ID:', userId);
-      
-      console.log('메시지 전송 요청:', {
-        roomId,
-        messageData,
-        url: `/api/chat/rooms/${roomId}/send`,
-        token: token ? `${token.substring(0, 20)}...` : '없음'
-      });
-
       const response = await apiClient.post(`/api/chat/rooms/${roomId}/send`, messageData);
 
       if (response.status === 200) {
-        console.log('이미지 메시지 전송 완료 (HTTP API)');
-        
         // 전송된 메시지를 로컬 상태에 즉시 추가
         const responseData = response.data;
-        console.log('서버 응답:', responseData);
         
         if (responseData.msgId && responseData.content && responseData.contentType && responseData.createdAt && responseData.senderId) {
           const chatMessage: ChatMessageType = {
@@ -381,7 +552,6 @@ const ChatRoomScreen: React.FC = () => {
           
           const chatMsg = convertMessage(chatMessage);
           setMessages(prev => [...prev, chatMsg]);
-          console.log('이미지 메시지 로컬 상태에 추가됨');
           
           // 맨 아래로 스크롤
           setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
@@ -435,13 +605,16 @@ const ChatRoomScreen: React.FC = () => {
     }
 
     // 메시지 버블
-    console.log('메시지 렌더링:', {
-      id: item.id,
-      type: item.type,
-      isImage: item.type === 'IMAGE',
-      content: item.content?.substring(0, 50) + '...',
-      mine: item.mine,
-    });
+    // 디버깅: 메시지 표시 정보 로그
+    if (__DEV__) {
+      console.log('renderRow:', {
+        msgId: item.msgId,
+        senderId: item.senderId,
+        currentUserId: currentUserId,
+        mine: item.mine,
+        content: item.content?.substring(0, 20)
+      });
+    }
 
     // 내 메시지인 경우 말풍선과 "1" 표시를 함께 배치
     if (item.mine) {
@@ -524,6 +697,22 @@ const ChatRoomScreen: React.FC = () => {
             contentContainerStyle={styles.listContent}
             onScroll={handleScroll}
             scrollEventThrottle={16}
+            onContentSizeChange={() => {
+              // 초기 로드 시에는 항상 스크롤, 이후에는 하단에 있을 때만 스크롤
+              if (initialLoadCompleteRef.current) {
+                // 초기 로드 완료 후에는 하단에 있을 때만 스크롤
+                if (isNearBottom && !loading) {
+                  setTimeout(() => {
+                    flatRef.current?.scrollToEnd({ animated: false });
+                  }, 50);
+                }
+              } else {
+                // 초기 로드 중에는 항상 스크롤
+                setTimeout(() => {
+                  flatRef.current?.scrollToEnd({ animated: false });
+                }, 50);
+              }
+            }}
           />
           
           {/* 새 메시지 배지 */}

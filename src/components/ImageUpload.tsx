@@ -1,7 +1,7 @@
 // ImageUpload.tsx
 import React from "react";
 import { launchImageLibrary } from "react-native-image-picker";
-import TestButton from "./UploadButton"; // ✅ UploadButton 대신 TestButton 사용
+import TestButton from "./UploadButton";
 
 interface ImageUploadProps {
   images: string[];

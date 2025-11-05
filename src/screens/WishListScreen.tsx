@@ -9,7 +9,6 @@ import { getFavoriteList, removeFavorite } from '../api/favoriteAPI';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BASE_URL } from '../api/config';
 
-// ⚠️ 프로젝트의 실제 아이콘 경로에 맞게 수정하세요.
 import AllowLeft from '../../assets/icons/allowLeft.svg';
 import HeartFilledIcon from '../../assets/icons/heart-filled.svg';
 

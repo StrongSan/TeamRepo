@@ -4,28 +4,19 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import type { Post } from "../api/postAPI";
-import { saveViewedCake } from "../api/postAPI"; // ✅ 추가
+import { saveViewedCake } from "../api/postAPI";
 
 type Props = {
   post: Post;
   userType: "seller" | "customer";
-  userId: string; // ✅ userId를 props로 받도록 수정
+  userId: string;
 };
 
 const PostCard: React.FC<Props> = ({ post, userType, userId }) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  // 디버깅: 이미지 URL 확인
-  console.log('PostCard 이미지 URL:', {
-    postId: post.postId,
-    title: post.title,
-    imageUrl: post.imageUrl,
-    imageUrlType: typeof post.imageUrl,
-    imageUrlLength: post.imageUrl?.length
-  });
-
   const handlePress = async () => {
-    await saveViewedCake(userId, post.postId); // ✅ 조회 기록 저장
+    await saveViewedCake(userId, post.postId);
     navigation.navigate("ProductDetail", {
       post,
       userType,

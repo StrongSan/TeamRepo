@@ -36,7 +36,7 @@ const PaymentScreen: React.FC = () => {
 
     const fetchData = async () => {
       try {
-        const data = await fetchPostById(postId); // ✅ API로 게시글 1개 가져오기
+        const data = await fetchPostById(postId);
         setPost(data);
       } catch (err) {
         console.error("게시글 불러오기 실패", err);
@@ -140,10 +140,10 @@ const PaymentScreen: React.FC = () => {
         visible={modalVisible}
         onClose={handleCloseModal}
         type={modalType}
-        cakeName={post.title} // ✅ 정확한 제목 전달
-        price={post.price}     // ✅ 정확한 가격 전달
+        cakeName={post.title}
+        price={post.price}
         postId={postId}
-        orderDate={orderDetails.orderDate} // ✅ 주문일시도 같이 전달
+        orderDate={orderDetails.orderDate}
         onNext={handleNext}
       />
     </SafeAreaView>

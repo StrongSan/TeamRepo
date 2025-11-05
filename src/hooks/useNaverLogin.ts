@@ -26,7 +26,7 @@ export const useNaverLogin = () => {
 
       if (token && user?.nickname) {
         await AsyncStorage.setItem('accessToken', token);
-        Alert.alert('로그인 성공!', `${user.nickname}님 환영합니다 🎉`);
+        Alert.alert('로그인 성공!', `${user.nickname}님 환영합니다`);
         // 필요시 navigation.navigate('Home') 등 이동 가능
       } else {
         console.warn('토큰 없음:', response);

@@ -16,7 +16,7 @@ interface Props {
   price?: string;
   postId: number;
   onNext?: () => void;
-  orderDate?: string; // ✅ 추가
+  orderDate?: string;
 }
 
 const OrderFlowModal: React.FC<Props> = ({
@@ -93,7 +93,7 @@ const OrderFlowModal: React.FC<Props> = ({
           <Text style={styles.title}>{content.title}</Text>
           <Text style={styles.sub}>{content.sub}</Text>
 
-          {/* ✅ 주문내역 영역 */}
+          {/* 주문내역 영역 */}
           <View style={styles.detailBox}>
             <View style={styles.row}>
               <Text style={styles.label}>주문일시</Text>

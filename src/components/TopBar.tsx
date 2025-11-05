@@ -1,4 +1,3 @@
-// ✅ TopBar.tsx
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -8,7 +7,7 @@ import { StyleProp, ViewStyle } from "react-native";
 
 interface TopBarProps {
   title: string;
-  onBackPress?: () => void; // ✅ 여기를 handleBack ❌ → onBackPress ✅
+  onBackPress?: () => void;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -17,9 +16,9 @@ const TopBar: React.FC<TopBarProps> = ({ title, onBackPress, style }) => {
 
   const handleBack = () => {
     if (onBackPress) {
-      onBackPress(); // ✅ props로 받은 onBackPress 실행
+      onBackPress();
     } else {
-      navigation.goBack(); // ✅ 없으면 기본 goBack
+      navigation.goBack();
     }
   };
 

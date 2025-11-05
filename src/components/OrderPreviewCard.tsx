@@ -21,21 +21,8 @@ const OrderPreviewCard: React.FC<OrderPreviewCardProps> = ({ orderInfo, orderId 
       <Image
         source={{ uri: fullImageUrl }}
         style={styles.cakePreviewImage}
-        onError={(error) => {
-          console.log('리뷰 화면 이미지 로드 실패:', error.nativeEvent.error);
-          console.log('cakeInfo.imageUrl:', orderInfo.cakeInfo.imageUrl);
-          console.log('thumbnail:', orderInfo.thumbnail);
-          const imageUrl = orderInfo.cakeInfo.imageUrl || orderInfo.thumbnail;
-          console.log(
-            '변환된 URL:',
-            imageUrl
-              ? imageUrl.startsWith('http')
-                ? imageUrl
-                : `${BASE_URL}/images/${imageUrl}`
-              : 'fallback'
-          );
-        }}
-        onLoad={() => console.log('리뷰 화면 이미지 로드 성공:', orderInfo.cakeInfo.imageUrl)}
+        onError={() => {}}
+        onLoad={() => {}}
       />
       <View style={styles.orderInfo}>
         <Text style={styles.cakeTitle}>{orderInfo.cakeInfo.title}</Text>

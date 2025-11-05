@@ -41,34 +41,10 @@ const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
                 // 이미지의 실제 렌더링 너비 측정
                 onContentLayout(e.nativeEvent.source.width);
               }
-              console.log('이미지 로드 성공:', content);
-              console.log('이미지 URL 형식 확인:', {
-                url: content,
-                isFilesPath: content.includes('/files/'),
-                isApiPath: content.includes('/api/chat/images/'),
-              });
             }}
             onError={(error) => {
               console.error('이미지 로드 실패:', content);
               console.error('오류 상세:', error.nativeEvent.error);
-              console.error('오류 타입:', typeof error.nativeEvent.error);
-
-              console.log('이미지 URL 분석:', {
-                originalUrl: content,
-                isFilesPath: content.includes('/files/'),
-                isApiPath: content.includes('/api/chat/images/'),
-                expectedFormat: `${apiClient.defaults.baseURL}/files/{filename}`,
-                urlParts: content.split('/'),
-                filename: content.split('/').pop(),
-              });
-
-              console.log('네트워크 상태 확인:', {
-                isLocalhost: content.includes('10.0.2.2'),
-                isHttp: content.startsWith('http://'),
-                isHttps: content.startsWith('https://'),
-              });
-
-              console.log('이미지 로드 실패 - 백엔드 직접 파일 서빙 엔드포인트 확인 필요');
             }}
           />
         ) : (

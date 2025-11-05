@@ -180,7 +180,7 @@ export default function PhoneAuthScreen() {
                 editable={!verified}
               />
 
-              {/* ⬇️ 타이머 + 흰색 확인 버튼을 하나의 캡슐로 */}
+              {/* 타이머 + 흰색 확인 버튼을 하나의 캡슐로 */}
               <View style={s.timerGroup}>
                 <Text style={s.timerText}>{sec > 0 ? timerText : '00:00'}</Text>
                 <TouchableOpacity
@@ -283,7 +283,7 @@ const s = StyleSheet.create({
 
   resendText: { color: '#8A8A8A' },
 
-  // ✅ 타이머 + 흰색 확인을 감싸는 캡슐
+  // 타이머 + 흰색 확인을 감싸는 캡슐
   timerGroup: {
     height: 52,
     flexDirection: 'row',

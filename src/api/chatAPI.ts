@@ -40,10 +40,10 @@ export interface ReadSyncResponse {
 /**
  * 상품별 문의하기 - 채팅방 생성 또는 기존 방 조회
  * @param productId 상품 ID
- * @param customerId 고객 ID
  * @returns 채팅방 정보
+ * @note customerId는 백엔드에서 JWT 토큰에서 자동으로 추출합니다.
  */
-export const createOrGetChatRoom = async (productId: number, customerId: number): Promise<{
+export const createOrGetChatRoom = async (productId: number): Promise<{
   roomId: number;
   sellerId: number;
   customerId: number;
@@ -51,7 +51,7 @@ export const createOrGetChatRoom = async (productId: number, customerId: number)
   messageCount: number;
   productId: number;
 }> => {
-  const response = await apiClient.post(`/api/chat/inquiry/${productId}?customerId=${customerId}`);
+  const response = await apiClient.post(`/api/chat/inquiry/${productId}`);
   return response.data;
 };
 

@@ -34,6 +34,30 @@ const ProfileAvatar: React.FC<Props> = ({ imageUri: propUri = null, onChangeImag
       return uri;
     }
     
+    // 카카오 CDN URL인 경우 처리
+    if (uri.includes('/dn/')) {
+      // 서버 URL과 결합된 카카오 경로를 감지 (예: http://192.168.219.101:8080/dn/...)
+      if (BASE_URL && uri.includes(BASE_URL.replace(/^https?:\/\//, '').split(':')[0])) {
+        // 카카오 경로만 추출
+        const kakaoPathMatch = uri.match(/\/dn\/.+$/);
+        if (kakaoPathMatch) {
+          // 카카오 CDN의 실제 도메인으로 변환
+          // 카카오 프로필 이미지는 보통 https://dn.kakao.com 또는 https://k.kakaocdn.net를 사용
+          // 하지만 정확한 도메인을 알 수 없으므로, 일반적으로 사용되는 https://dn.kakao.com 사용
+          const kakaoPath = kakaoPathMatch[0];
+          const correctedKakaoUrl = `https://dn.kakao.com${kakaoPath}`;
+          console.log('ProfileAvatar: 카카오 URL 복원:', { original: uri, corrected: correctedKakaoUrl });
+          return correctedKakaoUrl;
+        }
+      }
+      // 이미 올바른 카카오 CDN URL인 경우 그대로 사용
+      if (uri.includes('k.kakaocdn.net') || uri.includes('dn.kakao.com')) {
+        return uri;
+      }
+      // /dn/ 경로가 있지만 도메인이 없는 경우 (상대 경로)
+      return uri;
+    }
+    
     // 서버 URL인 경우, 잘못된 IP 주소를 BASE_URL로 교체
     if (BASE_URL && uri.includes('://')) {
       try {
@@ -52,11 +76,6 @@ const ProfileAvatar: React.FC<Props> = ({ imageUri: propUri = null, onChangeImag
           
           // 다른 origin이면 올바른 BASE_URL로 교체
           const correctedUrl = `${baseOrigin}${urlPath}`;
-          console.log('ProfileAvatar: URL IP 주소 교체:', {
-            original: uri,
-            corrected: correctedUrl,
-            baseUrl: BASE_URL
-          });
           return correctedUrl;
         } else {
           // 정규식 매칭 실패 시 경로만 추출
@@ -76,10 +95,6 @@ const ProfileAvatar: React.FC<Props> = ({ imageUri: propUri = null, onChangeImag
 
   useEffect(() => {
     const normalizedUri = normalizeImageUrl(propUri);
-    console.log('ProfileAvatar: imageUri 변경:', {
-      original: propUri,
-      normalized: normalizedUri
-    });
     setImageUri(normalizedUri);
   }, [propUri]);
 
@@ -99,9 +114,6 @@ const ProfileAvatar: React.FC<Props> = ({ imageUri: propUri = null, onChangeImag
     );
   };
 
-  useEffect(() => {
-    console.log('ProfileAvatar: imageUri 변경:', imageUri);
-  }, [imageUri]);
 
   return (
     <View style={styles.container}>
@@ -111,9 +123,7 @@ const ProfileAvatar: React.FC<Props> = ({ imageUri: propUri = null, onChangeImag
       <Image 
         source={{ uri: imageUri }} 
         style={styles.profileImage}
-        onLoad={() => {
-          console.log('ProfileAvatar: 이미지 로드 성공:', imageUri);
-        }}
+        onLoad={() => {}}
         onError={(error) => {
           console.error('ProfileAvatar: 이미지 로드 실패:', {
             uri: imageUri,

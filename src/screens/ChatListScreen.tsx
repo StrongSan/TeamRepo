@@ -27,7 +27,7 @@ type RealChatPreview = {
   lastMessageType: string;
 };
 
-// ✅ 통합된 채팅방 타입 (더미 데이터 제거)
+// 통합된 채팅방 타입
 type ChatPreview = {
   id: string;
   roomId: string;
@@ -53,18 +53,6 @@ const ChatListScreen: React.FC = () => {
     try {
       setLoading(true);
       const rooms = await getChatRooms(parseInt(userId));
-      
-      // ✅ 사용자별 채팅방 필터링 확인
-      console.log('실제 채팅방 데이터 로드 완료:', {
-        userId: userId,
-        roomCount: rooms.length,
-        rooms: rooms.map(room => ({
-          roomId: room.roomId,
-          otherUserId: room.otherUserId,
-          otherUserNickname: room.otherUserNickname
-        }))
-      });
-      
       setRealChatRooms(rooms);
     } catch (error) {
       console.error('실제 채팅방 데이터 로드 실패:', error);
@@ -96,10 +84,8 @@ const ChatListScreen: React.FC = () => {
     isReal: true,
   });
 
-  // ✅ 더미 데이터 변환 함수 제거 (실제 데이터만 사용)
 
   const list = useMemo(() => {
-    // ✅ 실제 데이터만 사용 (더미 데이터 제거)
     const realChatPreviews = realChatRooms.map(convertRealToChatPreview);
 
     const q = query.trim();
@@ -129,7 +115,6 @@ const ChatListScreen: React.FC = () => {
           <Text style={styles.name} numberOfLines={1}>
             {item.name}
           </Text>
-          {/* ✅ 실제 데이터 배지 제거 (이제 모든 데이터가 실제 데이터) */}
         </View>
         <Text style={styles.last} numberOfLines={1}>
           {item.lastMessage}
@@ -154,7 +139,7 @@ const ChatListScreen: React.FC = () => {
 
       {/* 검색 박스 */}
       <View style={styles.searchWrap}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <Text style={styles.searchIcon}>검색</Text>
         <TextInput
           style={styles.searchInput}
           placeholder="검색"

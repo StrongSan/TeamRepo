@@ -17,11 +17,6 @@ import OrderFlowModal from "../components/OrderFlowModal"; //  주문 모달
 import ImageThumbnailUpload from "../components/ImageThumbnailUpload";
 import { createOrder, OrderRequestDto } from "../api/orderAPI";
 
-/* 사용 안하는 임포트 
-import UploadButton from "../components/UploadButton";
-import CakeTypeSelection from "../components/CakeTypeSelection";
-import ImageUpload from "../components/ImageUpload";
-*/
 
 type CakeOrderFormRouteProp = RouteProp<RootStackParamList, "CakeOrderForm">;
 
@@ -31,8 +26,6 @@ const CakeOrderForm = () => {
   const { postId, userId, userType, price } = route.params;
 
   const [images, setImages] = useState<string[]>([]);
-  
-  console.log("주문화면으로 전달된 postId:", postId);
   // 대표 이미지 (1장만 백엔드 보낼 경우)
   const [selectedImage, setSelectedImage] = React.useState<any>(null);
 
@@ -127,11 +120,6 @@ const CakeOrderForm = () => {
         typeId: getTypeId(formData.type), // 타입 옵션 매핑
       };
 
-      // 디버깅을 위한 데이터 로그
-      console.log('전달받은 가격:', price);
-      console.log('폼 데이터 가격:', formData.price);
-      console.log('주문 데이터:', JSON.stringify(orderData, null, 2));
-      
       // 필수 필드 검증
       if (!orderData.userId || orderData.userId === 0) {
         Alert.alert('오류', '사용자 ID가 올바르지 않습니다.');
@@ -330,7 +318,7 @@ const CakeOrderForm = () => {
           </View>
 
 
-        {/* ✅ 주문 버튼 누르면 실제 주문 생성 */}
+        {/* 주문 버튼 누르면 실제 주문 생성 */}
         <OrderButton
           onCancel={() => {}}
           onOrder={handleCreateOrder}
@@ -339,7 +327,7 @@ const CakeOrderForm = () => {
         </View>
       </ScrollView>
 
-      {/* ✅ 모달 렌더링 */}
+      {/* 모달 렌더링 */}
       <OrderFlowModal
         postId={postId}
         visible={modalVisible}

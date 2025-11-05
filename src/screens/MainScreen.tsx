@@ -1,4 +1,3 @@
-// ✅ MainScreen.tsx (수정 완료본)
 import React, { useEffect, useState } from "react";
 import {
   View,

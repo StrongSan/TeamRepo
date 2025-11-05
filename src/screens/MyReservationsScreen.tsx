@@ -168,8 +168,9 @@ export default function MyReservationsScreen({ navigation, route }: Props) {
                     const { postId } = orderDetail.cakeInfo;
                     
                     // 채팅방 생성 또는 기존 채팅방 찾기
+                    // customerId는 백엔드에서 JWT 토큰에서 자동으로 추출합니다.
                     const { createOrGetChatRoom } = await import('../api/chatAPI');
-                    const chatRoom = await createOrGetChatRoom(postId, parseInt(userId));
+                    const chatRoom = await createOrGetChatRoom(postId);
                     
                     // ChatRoom으로 이동
                     navigation.navigate('ChatRoom', {
@@ -207,8 +208,9 @@ export default function MyReservationsScreen({ navigation, route }: Props) {
                     const { postId } = orderDetail.cakeInfo;
                     
                     // 채팅방 생성 또는 기존 채팅방 찾기
+                    // customerId는 백엔드에서 JWT 토큰에서 자동으로 추출합니다.
                     const { createOrGetChatRoom } = await import('../api/chatAPI');
-                    const chatRoom = await createOrGetChatRoom(postId, parseInt(userId));
+                    const chatRoom = await createOrGetChatRoom(postId);
                     
                     // ChatRoom으로 이동
                     navigation.navigate('ChatRoom', {

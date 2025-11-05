@@ -2,7 +2,7 @@ import apiClient from "./apiClient";
 import { BASE_URL } from "./config"; // 혹시 BASE_URL이 필요할 경우 대비
 import { TokenManager } from "../utils/tokenManager";
 
-// ✅ 카카오 로그인 요청 (백엔드 구조에 맞게 수정)
+// 카카오 로그인 요청
 export const loginWithKakao = async (kakaoAccessToken: string) => {
   try {
     const response = await apiClient.post("/api/users/kakao/check", {
@@ -17,7 +17,7 @@ export const loginWithKakao = async (kakaoAccessToken: string) => {
   }
 };
 
-// ✅ 카카오 회원가입 요청 (신규 사용자)
+// 카카오 회원가입 요청
 export const registerKakaoUser = async (
   kakaoId: string,
   nickname: string,
@@ -51,7 +51,7 @@ export const registerKakaoUser = async (
   }
 };
 
-// ✅ 네이버 로그인 요청
+// 네이버 로그인 요청
 export const loginWithNaver = async (naverToken: string) => {
   try {
     const response = await apiClient.post("/auth/naver", {
@@ -64,7 +64,7 @@ export const loginWithNaver = async (naverToken: string) => {
   }
 };
 
-// ✅ OTP 전송
+// OTP 전송
 export const sendOtp = async (phone: string) => {
   try {
     const response = await apiClient.post("/otp/send", { phone });
@@ -75,7 +75,7 @@ export const sendOtp = async (phone: string) => {
   }
 };
 
-// ✅ OTP 인증
+// OTP 인증
 export const verifyOtp = async (userId: string, phone: string, code: string) => {
   try {
     const response = await apiClient.post("/otp/verify", {
@@ -90,7 +90,7 @@ export const verifyOtp = async (userId: string, phone: string, code: string) => 
   }
 };
 
-// ✅ JWT 토큰 갱신
+// JWT 토큰 갱신
 export const refreshToken = async (): Promise<{ accessToken: string; refreshToken: string }> => {
   try {
     const refreshToken = await TokenManager.getRefreshToken();
@@ -121,7 +121,7 @@ export const refreshToken = async (): Promise<{ accessToken: string; refreshToke
   }
 };
 
-// ✅ 토큰 검증 (자동 로그인용)
+// 토큰 검증 (자동 로그인용)
 export const verifyToken = async (): Promise<{ 
   valid: boolean; 
   userId?: number; 
@@ -170,7 +170,7 @@ export const verifyToken = async (): Promise<{
   }
 };
 
-// ✅ 로그아웃
+// 로그아웃
 export const logout = async (): Promise<void> => {
   try {
     const accessToken = await TokenManager.getAccessToken();

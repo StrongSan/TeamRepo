@@ -18,7 +18,6 @@ export class TokenManager {
         AsyncStorage.setItem(ACCESS_TOKEN_KEY, accessToken),
         AsyncStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
       ]);
-      console.log('토큰 저장 완료');
     } catch (error) {
       console.error('토큰 저장 실패:', error);
       throw error;
@@ -31,7 +30,6 @@ export class TokenManager {
   static async saveAccessToken(accessToken: string): Promise<void> {
     try {
       await AsyncStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-      console.log('액세스 토큰 저장 완료');
     } catch (error) {
       console.error('액세스 토큰 저장 실패:', error);
       throw error;
@@ -91,7 +89,6 @@ export class TokenManager {
         AsyncStorage.removeItem(ACCESS_TOKEN_KEY),
         AsyncStorage.removeItem(REFRESH_TOKEN_KEY)
       ]);
-      console.log('토큰 삭제 완료');
     } catch (error) {
       console.error('토큰 삭제 실패:', error);
       throw error;
