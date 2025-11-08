@@ -1,5 +1,4 @@
 import { Platform } from "react-native";
-import axios from "axios";
 import apiClient from "./apiClient";
 import { BASE_URL, AI_SERVER_URL } from "./config";
 
@@ -30,6 +29,8 @@ export type Post = {
 };
 
 export const submitPostForm = async (data: PostPayload) => {
+  console.log("📤 [케이크 등록] 요청 시작 - title:", data.title, "variantId:", data.variantId);
+  
   const formData = new FormData();
   formData.append("title", data.title);
   formData.append("description", data.description);
@@ -41,13 +42,29 @@ export const submitPostForm = async (data: PostPayload) => {
     name: data.image.name,
   } as any);
 
-  const response = await axios.post(`${BASE_URL}/api/cake-posts`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  console.log("📤 [케이크 등록] FormData 생성 완료, 이미지:", data.image.name);
 
-  return response.data;
+  try {
+    // ✅ apiClient를 사용하여 Authorization 헤더 자동 추가
+    // 다른 API들과 동일하게 명시적으로 Content-Type 설정
+    const response = await apiClient.post("/api/cake-posts", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    console.log("✅ [케이크 등록] 성공:", response.status);
+    return response.data;
+  } catch (error: any) {
+    console.error("❌ [케이크 등록] 실패:", error);
+    console.error("❌ [케이크 등록] 에러 상세:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      headers: error.response?.headers,
+    });
+    throw error;
+  }
 };
 
 export const fetchAllPosts = async (): Promise<Post[]> => {

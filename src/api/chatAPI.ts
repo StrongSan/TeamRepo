@@ -29,6 +29,7 @@ export interface UnreadCountResponse {
 
 export interface EnterRoomResponse {
   latestMsgId: number;
+  otherLastReadMsgId: number;
 }
 
 export interface ReadSyncResponse {
@@ -126,9 +127,9 @@ export const getUnreadCount = async (roomId: number): Promise<number> => {
  * @param roomId 채팅방 ID
  * @returns 최신 메시지 ID
  */
-export const enterChatRoom = async (roomId: number): Promise<number> => {
+export const enterChatRoom = async (roomId: number): Promise<EnterRoomResponse> => {
   const response = await apiClient.post<EnterRoomResponse>(`/api/chat/rooms/${roomId}/enter`);
-  return response.data.latestMsgId;
+  return response.data;
 };
 
 /**

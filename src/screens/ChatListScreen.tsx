@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/AppNavigator';
@@ -47,32 +47,48 @@ const ChatListScreen: React.FC = () => {
   const [query, setQuery] = useState('');
   const [realChatRooms, setRealChatRooms] = useState<RealChatPreview[]>([]);
   const [loading, setLoading] = useState(true);
+  const firstLoadRef = useRef(true);
 
   // 실제 채팅방 데이터 로드
-  const loadRealChatRooms = async () => {
+  const loadRealChatRooms = useCallback(async (showSpinner = false) => {
     try {
-      setLoading(true);
+      if (showSpinner || firstLoadRef.current) {
+        setLoading(true);
+      }
       const rooms = await getChatRooms(parseInt(userId));
       setRealChatRooms(rooms);
     } catch (error) {
       console.error('실제 채팅방 데이터 로드 실패:', error);
     } finally {
-      setLoading(false);
+      if (showSpinner || firstLoadRef.current) {
+        setLoading(false);
+        firstLoadRef.current = false;
+      }
     }
-  };
-
-  useEffect(() => {
-    loadRealChatRooms();
   }, [userId]);
 
-  // 화면 포커스 시 목록 새로고침
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      loadRealChatRooms();
-    });
+    loadRealChatRooms(true);
+  }, [loadRealChatRooms]);
 
-    return unsubscribe;
-  }, [navigation, userId]);
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+
+      if (isMounted) {
+        loadRealChatRooms();
+      }
+
+      const intervalId = setInterval(() => {
+        loadRealChatRooms();
+      }, 4000);
+
+      return () => {
+        isMounted = false;
+        clearInterval(intervalId);
+      };
+    }, [loadRealChatRooms])
+  );
 
   // 실제 데이터를 통합된 형태로 변환
   const convertRealToChatPreview = (real: RealChatPreview): ChatPreview => ({

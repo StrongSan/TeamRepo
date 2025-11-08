@@ -97,7 +97,7 @@ export const useChatWebSocket = ({
       const ws = new WebSocket(wsUrl, ['v12.stomp']);
 
       ws.onopen = () => {
-        // STOMP CONNECT 프레임을 더 간단하게 구성
+        // STOMP CONNECT 프레임 구성
         const connectFrame = `CONNECT
 accept-version:1.2
 heart-beat:10000,10000
@@ -134,19 +134,14 @@ Authorization:Bearer ${token}
 
         if (frame.command === 'MESSAGE') {
           try {
+            console.log('📬 STOMP MESSAGE 프레임 수신:', frame.body);
             const data: StompMessage = JSON.parse(frame.body);
+            console.log('📦 파싱된 메시지 데이터:', data);
             
             if (data.type === 'READ_RECEIPT') {
+              console.log('👁️ 읽음 확인 메시지:', data);
               onReadReceipt?.(data.readerId!, data.lastReadMsgId!);
             } else if (data.msgId && data.content && data.contentType && data.createdAt && data.senderId) {
-              console.log('useChatWebSocket: 메시지 수신:', {
-                msgId: data.msgId,
-                senderId: data.senderId,
-                content: data.content?.substring(0, 20),
-                contentType: data.contentType,
-                roomId: data.roomId || roomId
-              });
-              
               const chatMessage: ChatMessage = {
                 msgId: data.msgId,
                 roomId: data.roomId || roomId,
@@ -155,11 +150,14 @@ Authorization:Bearer ${token}
                 contentType: data.contentType,
                 createdAt: data.createdAt,
               };
+              console.log('💬 채팅 메시지 전달:', chatMessage);
               onMessageReceived(chatMessage);
+            } else {
+              console.warn('⚠️ 메시지 형식이 올바르지 않음:', data);
             }
           } catch (e) {
-            console.error('메시지 파싱 실패:', e);
-            console.error('Raw body:', frame.body);
+            console.error('❌ 메시지 파싱 실패:', e);
+            console.error('원본 데이터:', frame.body);
           }
           return;
         }
@@ -172,15 +170,23 @@ Authorization:Bearer ${token}
       };
 
       ws.onerror = (e: any) => {
-        console.error('WebSocket error:', e?.message ?? e);
+        console.error('❌ WebSocket error:', e?.message ?? e);
         setIsConnected(false);
         setIsConnecting(false);
+        // 에러 발생 시 자동 재연결 시도하지 않음 (무한 루프 방지)
       };
 
       ws.onclose = (e) => {
-        console.warn('WebSocket closed:', e.code, e.reason);
         setIsConnected(false);
         setIsConnecting(false);
+        // 정상 종료가 아닌 경우에만 재연결 시도
+        if (e.code !== 1000 && e.code !== 1001) {
+          setTimeout(() => {
+            if (!isConnecting && !isConnected) {
+              connect();
+            }
+          }, 3000);
+        }
       };
 
       wsRef.current = ws;
@@ -208,17 +214,15 @@ Authorization:Bearer ${token}
     setIsConnected(false);
   }, []);
 
-  // --- SEND 바이트 길이 계산 (기존 sendMessage 교체) ---
   const sendMessage = useCallback(
     async (content: string, contentType: 'TEXT' | 'IMAGE' = 'TEXT') => {
-      if (!wsRef.current || !isConnected) {
+      if (!wsRef.current || !isConnected || wsRef.current.readyState !== WebSocket.OPEN) {
         return;
       }
+      
       try {
-        // 메시지 전송 시에도 토큰을 포함
         const token = await TokenManager.getAccessToken();
         if (!token) {
-          console.error('Access token not found for message send');
           return;
         }
 
@@ -230,6 +234,7 @@ Authorization:Bearer ${token}
           'content-length': String(byteLen),
           'Authorization': `Bearer ${token}`,
         }, body);
+        
         wsRef.current.send(sendFrame);
       } catch (error) {
         console.error('sendMessage error', error);

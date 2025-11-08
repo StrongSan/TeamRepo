@@ -42,6 +42,19 @@ apiClient.interceptors.request.use(
     } catch (error) {
       console.error('토큰 조회 실패:', error);
     }
+    
+    // ✅ FormData를 사용하는 경우 처리
+    // React Native에서는 instanceof가 제대로 작동하지 않을 수 있으므로
+    // config.data가 FormData인지 확인하는 더 안전한 방법 사용
+    if (config.data && typeof config.data.append === 'function') {
+      // React Native FormData 감지: append 메서드가 있으면 FormData로 간주
+      // Content-Type이 명시적으로 설정되어 있지 않으면 제거하여 axios가 자동으로 boundary 포함 multipart/form-data로 설정
+      // 하지만 명시적으로 설정되어 있으면 그대로 사용 (다른 API들과 동일하게)
+      if (!config.headers['Content-Type'] || config.headers['Content-Type'] === 'application/json') {
+        delete config.headers['Content-Type'];
+      }
+    }
+    
     return config;
   },
   (error) => {
