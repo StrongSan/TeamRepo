@@ -400,7 +400,7 @@ async def get_posts_by_variants(request: VariantIdRequest):
         connection.close()
 
         result = []
-        base_url = "http://10.78.232.104:8080/images/"  # 백엔드 서버 URL
+        base_url = "http://121.191.31.97/images/"  # 백엔드 서버 URL
         
         for _, row in cake_df.iterrows():
             image_filename = str(row["cake_img"]) if pd.notnull(row["cake_img"]) else ""

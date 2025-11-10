@@ -552,39 +552,35 @@ const ChatRoomScreen: React.FC = () => {
       // 1. 이미지를 서버에 업로드
       const uploadedImageUrl = await uploadChatImage(imageUri);
       
-      // 2. HTTP API를 사용하여 메시지 전송 (WebSocket 대신)
-      const messageData = {
-        content: uploadedImageUrl,
-        contentType: 'IMAGE',
-      };
-
-      const response = await apiClient.post(`/api/chat/rooms/${roomId}/send`, messageData);
-
-      if (response.status === 200) {
-        // 전송된 메시지를 로컬 상태에 즉시 추가
-        const responseData = response.data;
+      // 2. WebSocket을 통해 메시지 전송 (텍스트 메시지와 동일한 방식)
+      if (isConnected && currentUserId !== null) {
+        // Optimistic update: 메시지를 즉시 로컬 상태에 추가
+        const tempMsgId = Date.now(); // 임시 ID (서버에서 받은 메시지로 교체됨)
+        const optimisticMessage: ChatMsg = {
+          id: `temp-${tempMsgId}`,
+          msgId: tempMsgId,
+          type: 'IMAGE',
+          content: uploadedImageUrl,
+          imageUrl: uploadedImageUrl,
+          createdAt: new Date().toISOString(),
+          mine: true, // 내가 보낸 메시지이므로 항상 true
+          senderId: currentUserId,
+          isRead: false,
+          isOptimistic: true, // 임시 메시지 표시
+          optimisticContent: uploadedImageUrl, // 매칭용 원본 내용
+        };
         
-        if (responseData.msgId && responseData.content && responseData.contentType && responseData.createdAt && responseData.senderId) {
-          const chatMessage: ChatMessageType = {
-            msgId: responseData.msgId,
-            roomId: parseInt(roomId),
-            senderId: responseData.senderId,
-            content: responseData.content,
-            contentType: responseData.contentType,
-            createdAt: responseData.createdAt,
-          };
-          
-          const chatMsg = convertMessage(chatMessage);
-          setMessages(prev => [...prev, chatMsg]);
-          
-          // 맨 아래로 스크롤
-          setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
-        }
+        setMessages(prev => [...prev, optimisticMessage]);
         
-        // 입력창 초기화
-        setInput('');
+        // WebSocket으로 메시지 전송
+        sendMessage(uploadedImageUrl, 'IMAGE');
+        
+        // 맨 아래로 스크롤
+        setTimeout(() => {
+          flatRef.current?.scrollToEnd({ animated: true });
+        }, 100);
       } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        Alert.alert('오류', '채팅 서버와 연결되지 않았습니다.');
       }
     } catch (error: any) {
       console.error('이미지 전송 실패:', error);
@@ -595,22 +591,7 @@ const ChatRoomScreen: React.FC = () => {
           status: error.response.status,
           statusText: error.response.statusText,
           data: error.response.data,
-          headers: {
-            'content-type': error.response.headers['content-type'],
-            'www-authenticate': error.response.headers['www-authenticate'],
-            'authorization': error.response.headers['authorization']
-          }
         });
-        
-        // 응답 데이터가 문자열인 경우 파싱 시도
-        if (typeof error.response.data === 'string' && error.response.data) {
-          try {
-            const parsedData = JSON.parse(error.response.data);
-            console.error('파싱된 오류 데이터:', parsedData);
-          } catch (e) {
-            console.error('원본 오류 데이터 (JSON 파싱 실패):', error.response.data);
-          }
-        }
       } else if (error.request) {
         console.error('요청 오류 (서버 응답 없음):', error.request);
       } else {
