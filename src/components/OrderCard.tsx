@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { BASE_URL } from '../api/config';
 
 // 이 컴포넌트에서 사용하는 props 타입 정의
 interface OrderDetails {
@@ -7,6 +8,7 @@ interface OrderDetails {
   itemName: string;
   quantity: number;
   totalPrice: string;
+  imageUrl?: string;
 }
 
 interface OrderCardProps {
@@ -17,10 +19,23 @@ interface OrderCardProps {
 
 
 const OrderCard: React.FC<OrderCardProps> = ({ orderDetails, onOrderDetails, onInquiry }) => {
+  const resolveImageUrl = (uri?: string) => {
+    if (!uri) return null;
+    if (uri.startsWith('http')) return uri;
+    const normalized = uri.startsWith('/') ? uri : `/${uri}`;
+    return `${BASE_URL}${normalized}`;
+  };
+
+  const imageUrl = resolveImageUrl(orderDetails.imageUrl);
+
   return (
     <View style={styles.container}>
       <View style={styles.cardContent}>
-        <View style={styles.imageContainer} />
+        {imageUrl ? (
+          <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
+        ) : (
+          <View style={styles.imagePlaceholder} />
+        )}
         <View style={styles.detailsContainer}>
           <Text style={styles.itemName}>{orderDetails.itemName}</Text>
           <View style={styles.infoContainer}>
@@ -70,7 +85,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 16,
   },
-  imageContainer: {
+  image: {
+    borderRadius: 8,
+    width: 109,
+    height: 108,
+  },
+  imagePlaceholder: {
     borderRadius: 8,
     backgroundColor: '#C4C4C4',
     width: 109,

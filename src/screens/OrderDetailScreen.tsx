@@ -64,30 +64,16 @@ export default function OrderDetailScreen({ navigation, route }: Props) {
     );
   };
 
-  const handleInquiry = async () => {
+  const handleGoToPayment = () => {
     if (!orderDetail) return;
-    
-    try {
-      // 주문의 케이크 정보에서 postId를 가져와서 채팅방 생성/이동
-      const { postId } = orderDetail.cakeInfo;
-      
-      // 채팅방 생성 또는 기존 채팅방 찾기
-      // customerId는 백엔드에서 JWT 토큰에서 자동으로 추출합니다.
-      const { createOrGetChatRoom } = await import('../api/chatAPI');
-      const chatRoom = await createOrGetChatRoom(postId);
-      
-      // ChatRoom으로 이동
-      navigation.navigate('ChatRoom', {
-        roomId: chatRoom.roomId.toString(),
-        userId,
-        userType: 'customer', // 주문자는 customer
-        productId: postId,
-        isNewRoom: true
-      });
-    } catch (error) {
-      console.error('문의하기 실패:', error);
-      Alert.alert('오류', '문의하기 기능을 사용할 수 없습니다.');
-    }
+
+    const { postId } = orderDetail.cakeInfo;
+
+    navigation.navigate('Payment', {
+      postId,
+      userId,
+      userType: 'customer',
+    });
   };
 
   const handleReorder = () => {
@@ -208,8 +194,8 @@ export default function OrderDetailScreen({ navigation, route }: Props) {
       <View style={styles.actionButtons}>
         {orderDetail.status === 'IN_PROGRESS' ? (
           <>
-            <TouchableOpacity style={styles.actionButton} onPress={handleInquiry}>
-              <Text style={styles.actionButtonText}>문의하기</Text>
+            <TouchableOpacity style={styles.actionButton} onPress={handleGoToPayment}>
+              <Text style={styles.actionButtonText}>결제하기</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.actionButton, styles.cancelButton]} 

@@ -336,6 +336,8 @@ const CakeOrderForm = () => {
         cakeName={`${formData.size || ""} ${formData.filling || ""} ${formData.type || ""} 케이크`.trim()}
         price={formData.price || "0"}
         orderDate={new Date().toISOString().split("T")[0]}
+        userId={userId}
+        userType={userType}
         onNext={() => {
           setModalVisible(false);
           // 주문 완료 후 내 주문내역으로 이동

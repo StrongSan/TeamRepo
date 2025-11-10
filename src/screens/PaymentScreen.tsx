@@ -62,11 +62,15 @@ const PaymentScreen: React.FC = () => {
     );
   }
 
+  const formattedPrice =
+    post.price ? `${Number(post.price).toLocaleString()}원` : post.price;
+
   const orderDetails = {
     orderDate: new Date().toISOString().split("T")[0],
     itemName: post.title,
     quantity: 1,
-    totalPrice: post.price,
+    totalPrice: formattedPrice,
+    imageUrl: post.imageUrl,
   };
 
   const handleOrderDetails = () => {};
@@ -92,9 +96,15 @@ const PaymentScreen: React.FC = () => {
       setCreatedOrderId(orderId);
       setModalType("success");
       setModalVisible(true);
-    } catch (error) {
-      console.error('주문 생성 오류:', error);
-      // 오류 발생 시에도 모달은 표시 (실제 환경에서는 에러 처리)
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+        // 인증되지 않은 상태에서는 추가 로그 없이 안내 모달만 노출
+        setModalType("success");
+        setModalVisible(true);
+        return;
+      }
+      // 기타 오류는 콘솔 경고로만 처리
+      console.warn('주문 생성 중 예상치 못한 오류가 발생했습니다.', error);
       setModalType("success");
       setModalVisible(true);
     } finally {
@@ -145,6 +155,12 @@ const PaymentScreen: React.FC = () => {
         postId={postId}
         orderDate={orderDetails.orderDate}
         onNext={handleNext}
+        userId={userId}
+        userType={userType}
+        successPrimaryAction={{
+          label: '메인으로 가기',
+          onPress: handleCloseModal,
+        }}
       />
     </SafeAreaView>
   );

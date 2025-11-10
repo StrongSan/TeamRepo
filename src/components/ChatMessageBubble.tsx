@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
-import apiClient from '../api/apiClient';
+import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
 
 const PINK = '#f1b6b6';
+const MAX_IMAGE_WIDTH = Dimensions.get('window').width * 0.65;
+const MAX_IMAGE_HEIGHT = MAX_IMAGE_WIDTH;
 
 interface ChatMessageBubbleProps {
   content: string;
@@ -34,12 +35,16 @@ const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
               uri: content,
               cache: 'force-cache',
             }}
-            style={styles.imageBubble}
+            style={[
+              styles.imageBubble,
+              { width: MAX_IMAGE_WIDTH, height: MAX_IMAGE_HEIGHT },
+              mine ? styles.myImage : styles.otherImage,
+            ]}
             resizeMode="cover"
-            onLoad={(e) => {
-              if (onContentLayout && e.nativeEvent.source.width) {
-                // 이미지의 실제 렌더링 너비 측정
-                onContentLayout(e.nativeEvent.source.width);
+            onLayout={(event) => {
+              if (onContentLayout && mine) {
+                const { width } = event.nativeEvent.layout;
+                onContentLayout(width);
               }
             }}
             onError={(error) => {
@@ -85,6 +90,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 14,
+    marginHorizontal: -4,
   },
   myBubble: {
     backgroundColor: PINK,
@@ -101,12 +107,17 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   imageBubble: {
-    width: 200,
-    height: 200,
     borderRadius: 12,
     backgroundColor: '#f0f0f0',
     borderWidth: 1,
     borderColor: '#e0e0e0',
+    overflow: 'hidden',
+  },
+  myImage: {
+    alignSelf: 'flex-end',
+  },
+  otherImage: {
+    alignSelf: 'flex-start',
   },
   msgText: {
     fontSize: 14,

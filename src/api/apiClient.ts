@@ -4,7 +4,7 @@ import { TokenManager } from '../utils/tokenManager';
 import { normalizeError } from '../utils/normalizeError';
 
 const apiClient = axios.create({
-  baseURL: 'http://192.168.219.101:8080', 
+  baseURL: 'http://10.78.232.104:8080', 
   timeout: 10000, // 10초 타임아웃
   headers: {
     'Content-Type': 'application/json',

@@ -8,6 +8,12 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
+type SuccessAction = {
+  label: string;
+  onPress: () => void;
+  outline?: boolean;
+};
+
 interface Props {
   visible: boolean;
   onClose: () => void;
@@ -17,6 +23,9 @@ interface Props {
   postId: number;
   onNext?: () => void;
   orderDate?: string;
+  userId?: string;
+  userType?: 'seller' | 'customer';
+  successPrimaryAction?: SuccessAction;
 }
 
 const OrderFlowModal: React.FC<Props> = ({
@@ -28,6 +37,9 @@ const OrderFlowModal: React.FC<Props> = ({
   postId,
   onNext,
   orderDate,
+  userId,
+  userType,
+  successPrimaryAction,
 }) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -65,13 +77,33 @@ const OrderFlowModal: React.FC<Props> = ({
           ],
         };
       case 'success':
+        const defaultSuccessAction: SuccessAction = {
+          label: '결제하러 가기',
+          onPress: () => {
+            onClose();
+            const params: RootStackParamList['Payment'] = { postId };
+            if (userId) {
+              params.userId = userId;
+            }
+            if (userType) {
+              params.userType = userType;
+            }
+            navigation.navigate('Payment', params);
+          },
+        };
+        const primarySuccessAction = successPrimaryAction ?? defaultSuccessAction;
+        const secondarySuccessAction: SuccessAction = {
+          label: '주문내역 상세',
+          onPress: onNext ?? onClose,
+          outline: true,
+        };
         return {
           icon: <OrderSuccessIcon width={56} height={56} />,
           title: '주문 성공!',
           sub: '픽업 날짜에 뵈어요 :-)',
           buttons: [
-            { label: '케이크 더 구경하기', onPress: onClose },
-            { label: '주문내역 상세', onPress: onNext, outline: true },
+            primarySuccessAction,
+            secondarySuccessAction,
           ],
         };
     }

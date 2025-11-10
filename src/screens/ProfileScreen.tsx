@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
   SafeAreaView,
   ScrollView,
   StatusBar,
-  Platform,
   ActivityIndicator,
 } from "react-native";
 import TopBar from "../components/TopBar";
@@ -17,13 +16,21 @@ import SellerBottomBar from "../components/SellerBottomBar";
 import { useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList } from "../navigation/AppNavigator";
-import { getMyProfile, ProfileResponse } from "../api/userAPI";
+import { getMyProfile, type ProfileResponse } from "../api/userAPI";
 
 type ProfileScreenRouteProp = RouteProp<RootStackParamList, "ProfileScreen">;
+
+const MOCK_PROFILE = {
+  username: "cakeee",
+  bio: "청주 케이크 맛집입니다 ♥",
+  rating: 3.0,
+  isFollowing: false,
+};
 
 const ProfileScreen = () => {
   const route = useRoute<ProfileScreenRouteProp>();
   const { userType, userId } = route.params;
+
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -42,7 +49,13 @@ const ProfileScreen = () => {
     loadProfile();
   }, []);
 
-  if (loading) {
+  const displayName = profile?.nickname || profile?.userName || MOCK_PROFILE.username;
+  const displayBio = profile?.favoriteArea || MOCK_PROFILE.bio;
+  const displayUserType = profile?.userType || userType;
+  const displayRating =
+    typeof (profile as any)?.rating === "number" ? (profile as any).rating : MOCK_PROFILE.rating;
+
+  if (loading && !profile) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <TopBar title=" " />
@@ -55,28 +68,28 @@ const ProfileScreen = () => {
 
   return (
     <>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="#FFFFFF"
-        translucent={false}
-      />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={false} />
       <SafeAreaView style={styles.safeArea}>
-      <TopBar title=" " />
+        <TopBar title=" " />
         <View style={styles.container}>
           <ScrollView contentContainerStyle={styles.scrollContent}>
-          <ProfileAvatarBlock />
+            <ProfileAvatarBlock />
             <View style={styles.profileContent}>
               <ProfileInfo
-                username={profile?.nickname || profile?.userName || ""}
-                bio={profile?.favoriteArea || ""}
-                rating={0}
-                userType={profile?.userType || userType}
-                isFollowing={false}
+                username={displayName}
+                bio={displayBio}
+                rating={displayRating}
+                userType={displayUserType}
+                isFollowing={MOCK_PROFILE.isFollowing}
               />
-              <PhotoGrid userId={userId} userType={userType} />
+              <PhotoGrid userId={userId} userType={displayUserType} />
             </View>
           </ScrollView>
-          {userType === "seller" ? <SellerBottomBar /> : <CustomerBottomBar userId={userId} />}
+          {displayUserType === "seller" ? (
+            <SellerBottomBar userId={userId} />
+          ) : (
+            <CustomerBottomBar userId={userId} />
+          )}
         </View>
       </SafeAreaView>
     </>

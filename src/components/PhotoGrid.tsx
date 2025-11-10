@@ -22,14 +22,26 @@ type PhotoItem = {
   postId?: number;
 };
 
+const PLACEHOLDER_ITEMS: PhotoItem[] = [
+  { id: 1, imageUrl: "", liked: true },
+  { id: 2, imageUrl: "", liked: false },
+  { id: 3, imageUrl: "", liked: false },
+  { id: 4, imageUrl: "", liked: true },
+  { id: 5, imageUrl: "", liked: false },
+  { id: 6, imageUrl: "", liked: false },
+];
+
 const PhotoGrid: React.FC<PhotoGridProps> = ({ userId, userType }) => {
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const [placeholderPhotos, setPlaceholderPhotos] = useState<PhotoItem[]>(PLACEHOLDER_ITEMS);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadPhotos = async () => {
       if (!userId) {
         setLoading(false);
+        setPhotos([]);
+        setPlaceholderPhotos(PLACEHOLDER_ITEMS);
         return;
       }
 
@@ -48,9 +60,11 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({ userId, userType }) => {
         
         // API가 구현될 때까지 빈 배열 유지
         setPhotos([]);
+        setPlaceholderPhotos(PLACEHOLDER_ITEMS);
       } catch (error) {
         console.error("사진 로드 실패:", error);
         setPhotos([]);
+        setPlaceholderPhotos(PLACEHOLDER_ITEMS);
       } finally {
         setLoading(false);
       }
@@ -60,18 +74,18 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({ userId, userType }) => {
   }, [userId, userType]);
 
   const handleLikeToggle = (index: number) => {
-    const updated = [...photos];
-    updated[index].liked = !updated[index].liked;
-    setPhotos(updated);
+    if (photos.length > 0) {
+      const updated = [...photos];
+      updated[index].liked = !updated[index].liked;
+      setPhotos(updated);
+      return;
+    }
+
+    const updatedPlaceholder = [...placeholderPhotos];
+    updatedPlaceholder[index].liked = !updatedPlaceholder[index].liked;
+    setPlaceholderPhotos(updatedPlaceholder);
     
-    // TODO: API 호출로 찜 상태 업데이트
-    // if (updated[index].postId) {
-    //   if (updated[index].liked) {
-    //     await addFavorite(updated[index].postId);
-    //   } else {
-    //     await removeFavorite(updated[index].postId);
-    //   }
-    // }
+    // TODO: API 호출로 찜 상태 업데이트 (실제 데이터가 있을 때)
   };
 
   const renderRows = () => {
@@ -83,13 +97,14 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({ userId, userType }) => {
       );
     }
 
-    if (photos.length === 0) {
+    const data = photos.length > 0 ? photos : placeholderPhotos;
+    if (data.length === 0) {
       return null;
     }
 
     const rows = [];
-    for (let i = 0; i < photos.length; i += 3) {
-      const rowItems = photos.slice(i, i + 3);
+    for (let i = 0; i < data.length; i += 3) {
+      const rowItems = data.slice(i, i + 3);
       rows.push(
         <View key={`row-${i}`} style={styles.row}>
           {rowItems.map((item, idx) => (

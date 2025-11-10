@@ -13,11 +13,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import TopBar from "../components/TopBar";
 import InputField from "../components/OrderFormInput";
 import SubmitButton from "../components/PrimaryButton";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../navigation/AppNavigator";
 import FormFieldWithDropdown from "../components/FormFieldWithDropdown";
 import ImageThumbnailUpload from "../components/ImageThumbnailUpload";
 import { submitPostForm, resolveVariantId } from "../api/postAPI";
 
 const SellerWriting: React.FC = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [formData, setFormData] = React.useState({
     type: "",
     size: "",
@@ -93,7 +97,7 @@ const SellerWriting: React.FC = () => {
     }
 
     try {
-      await submitPostForm({
+      const result = await submitPostForm({
         title,
         description,
         price,
@@ -104,7 +108,22 @@ const SellerWriting: React.FC = () => {
           name: selectedImage.fileName,
         },
       });
-      Alert.alert("글이 등록되었습니다.");
+      Alert.alert("글이 등록되었습니다.", undefined, [
+        {
+          text: "확인",
+          onPress: () => {
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: "MainScreen",
+                  params: { userType: "seller", userId: result?.sellerId?.toString?.() ?? "" },
+                },
+              ],
+            });
+          },
+        },
+      ]);
     } catch (e) {
       Alert.alert("등록 실패", "잠시 후 다시 시도해주세요.");
       console.error(e);
